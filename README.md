@@ -1,59 +1,143 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# POS Faro
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+POS Faro es una plataforma punto de venta (POS) web construida con Laravel 12, Inertia.js y React para tiendas que requieren control de inventario multi‑almacén, ventas por mostrador, administración de catálogos, clientes y reportes ejecutivos. El proyecto provee una API REST versionada (`/api/v1`) y una interfaz web responsiva pensada para tablets o escritorios táctiles.
 
-## About Laravel
+## Tabla de contenidos
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+1. [Características principales](#características-principales)  
+2. [Arquitectura](#arquitectura)  
+3. [Requisitos previos](#requisitos-previos)  
+4. [Instalación y configuración](#instalación-y-configuración)  
+5. [Scripts útiles](#scripts-útiles)  
+6. [Flujos funcionales](#flujos-funcionales)  
+7. [Estructura de carpetas](#estructura-de-carpetas)  
+8. [Testing y aseguramiento de calidad](#testing-y-aseguramiento-de-calidad)  
+9. [Roadmap corto](#roadmap-corto)  
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Características principales
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- **Inventario multi‑almacén**: seguimiento de existencias por sucursal con puntos de reorden, bloqueo de SKU reservados y fechas de agotamiento automáticas.  
+- **POS con carritos simultáneos**: cada vendedor puede operar múltiples carritos identificados por una clave visual; se soportan descuentos por renglón o totales, pagos mixtos y generación de recibos.  
+- **Catálogos completos**: CRUD para almacenes, tipos de producto y productos con búsqueda, filtros e integración futura para captura por cámara.  
+- **Clientes y marketing**: registro rápido, opt-in de campañas y ligas de auto-registro desde los recibos.  
+- **Reportes operativos**: dashboards diarios/semanales/mensuales, comparativos y ranking por vendedor, con exportaciones y filtros por almacén/tipo de producto.  
+- **Observabilidad y seguridad**: logging estructurado JSON con `request-id`, guardia swift-auth para tokens Bearer, auditoría de cambios y colas para envíos de recibo.  
 
-## Learning Laravel
+## Arquitectura
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+- **Backend**: Laravel 12 (PHP 8.3), base de datos MySQL 8 (InnoDB, utf8mb4, strict).  
+- **Frontend**: Inertia.js + React 18, TailwindCSS 3, HeroUI, Chart.js, Zustand para estado.  
+- **Autenticación**: paquete interno `equdna/swift-auth` con tokens Bearer y roles (admin, vendedor, auditor).  
+- **Toolkit de respuestas**: `equidna/toolkit` estandariza la forma `{ success, data, error, meta }` para toda la API.  
+- **Colas y jobs**: receipts enviados mediante jobs asincrónicos (`SendReceiptJob`).  
+- **Internacionalización**: ES-MX como idioma predeterminado; copia y UI listas para llaves i18n futuras.  
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Requisitos previos
 
-## Laravel Sponsors
+- PHP 8.3+ con extensiones: OpenSSL, PDO, Mbstring, Tokenizer, XML, Ctype, JSON, BCMath, Fileinfo, SQLite (para correr pruebas en memoria).  
+- Composer 2.5+  
+- Node.js 20.19+ (o >=22.12) y npm 10+  
+- MySQL 8.x  
+- Redis opcional para colas (en local se usa base de datos).  
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## Instalación y configuración
 
-### Premium Partners
+```bash
+git clone <repo> pos-faro
+cd pos-faro
+composer install
+cp .env.example .env
+php artisan key:generate
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+# Configura .env:
+# DB_CONNECTION=mysql
+# DB_HOST=127.0.0.1
+# DB_DATABASE=pos
+# DB_USERNAME=pos
+# DB_PASSWORD=secret
 
-## Contributing
+php artisan migrate --seed
+npm install
+npm run build    # o npm run dev para entorno local
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### Configuración adicional
 
-## Code of Conduct
+- `AUTH_GUARD=swift` ya está establecido para usar tokens Bearer.  
+- `LOG_STACK=daily` escribe logs JSON estructurados en `storage/logs/laravel.log`.  
+- Variables para almacenamiento y notificaciones (`MEDIA_DISK`, `SMS_FROM`, `MAIL_*`) están definidas en `.env.example`. Ajusta según tu infraestructura (S3, proveedor SMTP, gateway SMS real).  
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Scripts útiles
 
-## Security Vulnerabilities
+| Comando | Descripción |
+| --- | --- |
+| `composer setup` | Instala dependencias PHP, publica `.env`, genera key, migra y ejecuta build front. |
+| `composer dev` | Inicia servidor artisan, listener de colas, visor de logs (pail) y Vite en paralelo. |
+| `composer test` / `php artisan test` | Limpia caché de config, ejecuta suite de PHPUnit. |
+| `npm run dev` | Vite en modo hot reload. |
+| `npm run build` | Genera assets para producción. |
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## Flujos funcionales
 
-## License
+### Autenticación / Usuarios
+- `POST /api/v1/auth/login` con email/password devuelve token Bearer.  
+- UI: pantalla de login (HeroUI) almacena sesión en localStorage vía Zustand.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### POS
+1. Vendedor crea carrito indicando almacén.  
+2. Añade productos por SKU o búsqueda; se puede editar cantidad/desc descuentos.  
+3. Aplica descuentos globales y elige método de pago (efectivo, tarjeta, transferencia, mixto con desglose).  
+4. Realiza checkout (`POST /carts/{id}/checkout`) con transacción que descuenta inventario, genera venta, items y job de recibo.  
+
+### Catálogos & Clientes
+- CRUD de almacenes, tipos y productos desde UI (Inertia) con tablas HeroUI.  
+- Clientes: listado con búsqueda, registro manual y endpoint `POST /customers/register` percibido desde recibo.  
+
+### Reportes
+- Dashboard inicial muestra KPIs diarios, alertas de inventario y ranking de vendedores.  
+- Pantallas dedicadas para reportes diarios/semanales/mensuales y por vendedor con gráficas (Chart.js) y tablas exportables.  
+
+## Estructura de carpetas
+
+```
+app/
+ ├─ Domain/         # Servicios de dominio (SKU, Inventario, POS, Sales, Shared)
+ ├─ Models/         # Entidades Eloquent (Warehouse, Product, Cart, Sale…)
+ ├─ Http/Controllers/API/V1 # Endpoints REST
+ ├─ Http/Middleware # Inertia, logging y request context
+ ├─ Jobs/           # SendReceiptJob
+ ├─ Services/Notifications # Stubs mail/SMS
+ └─ Support/        # Helpers (FolioGenerator, AuditLogger, ReceiptRenderer)
+
+packages/
+ ├─ equidna/toolkit       # Macros de respuesta + middleware request-id
+ └─ equdna/swift-auth     # Guard, tokens y middleware ability
+
+resources/js/
+ ├─ Pages/                # Vistas Inertia (Dashboard, POS, Catalog, Reports)
+ ├─ Layouts/AppLayout.jsx
+ ├─ components/           # Tablas, tarjetitas de stats, etc.
+ ├─ hooks/useApi.js       # Wrapper Axios
+ ├─ store/authStore.js    # Zustand para token/usuario
+ └─ utils/formatters.js
+```
+
+## Testing y aseguramiento de calidad
+
+- **Unit**: `tests/Unit/SkuGeneratorTest.php` garantiza que el servicio evita colisiones y respeta rangos.  
+- **Feature**:
+  - `tests/Feature/Auth/LoginTest.php` valida el flujo de login y emisión del token.  
+  - `tests/Feature/CheckoutFlowTest.php` cubre carrito → checkout, actualización de inventario y generación de venta/folio.  
+- Las pruebas usan SQLite en memoria (`phpunit.xml`). Habilita la extensión `pdo_sqlite` en tu entorno para ejecutarlas (`php artisan test`).  
+- Logging JSON + request-id facilita monitoreo en producción; `SendReceiptJob` corre en cola `database` por defecto.  
+
+## Roadmap corto
+
+1. **Integraciones reales**: conectar SMTP y proveedor SMS real; mover `Mailer`/`SmsProvider` a drivers configurables.  
+2. **Puntos/marketing**: implementar página `/r/{token}` para campañas y registro auto gestionado.  
+3. **Devoluciones y notas de crédito** (v1.1+ según requisitos).  
+4. **App móvil**: reutilizar API /auth y catálogos para cliente móvil React Native/Flutter.  
+
+---
+
+¿Preguntas o sugerencias? Revisa `doc/requirements.md` para el contexto completo y consulta `action_plan.md` para el registro de decisiones y próximos pasos. ¡Buen deploy! 💡

@@ -6,12 +6,30 @@
         "build": "vite build",
         "dev": "vite"
     },
-    "devDependencies": {
-        "@tailwindcss/vite": "^4.0.0",
+    "dependencies": {
+        "@headlessui/react": "^2.2.0",
+        "@heroicons/react": "^2.1.5",
+        "@heroui/react": "^2.2.5",
+        "@inertiajs/progress": "^0.2.7",
+        "@inertiajs/react": "^1.2.0",
         "axios": "^1.11.0",
+        "chart.js": "^4.4.6",
+        "clsx": "^2.1.1",
+        "date-fns": "^4.1.0",
+        "react": "^18.3.1",
+        "react-chartjs-2": "^5.2.0",
+        "react-dom": "^18.3.1",
+        "zustand": "^5.0.0"
+    },
+    "devDependencies": {
+        "@tailwindcss/forms": "^0.5.7",
+        "@tailwindcss/vite": "^4.0.0",
+        "@vitejs/plugin-react": "^4.3.4",
+        "autoprefixer": "^10.4.20",
         "concurrently": "^9.0.1",
         "laravel-vite-plugin": "^2.0.0",
-        "tailwindcss": "^4.0.0",
+        "postcss": "^8.4.47",
+        "tailwindcss": "^3.4.15",
         "vite": "^7.0.7"
     }
 }
