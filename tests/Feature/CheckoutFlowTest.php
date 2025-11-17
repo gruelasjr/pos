@@ -8,9 +8,9 @@ use App\Models\ProductType;
 use App\Models\ReservedSkuRange;
 use App\Models\User;
 use App\Models\Warehouse;
-use Equdna\SwiftAuth\Services\SwiftAuthManager;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Bus;
+use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class CheckoutFlowTest extends TestCase
@@ -21,7 +21,7 @@ class CheckoutFlowTest extends TestCase
     {
         Bus::fake();
 
-        $user = User::factory()->create(['role' => 'vendedor']);
+        $user = User::factory()->seller()->create();
         $warehouse = Warehouse::factory()->create();
         $type = ProductType::factory()->create();
         $product = Product::factory()->create([
@@ -41,25 +41,21 @@ class CheckoutFlowTest extends TestCase
             'proposito' => 'test',
         ]);
 
-        $token = app(SwiftAuthManager::class)->issueToken($user->id, 'tests');
+        Sanctum::actingAs($user);
 
-        $this->withToken($token['token'])
-            ->postJson('/api/v1/carts', ['almacen_id' => $warehouse->id])
+        $this->postJson('/api/v1/carts', ['almacen_id' => $warehouse->id])
             ->assertSuccessful();
 
-        $cartId = $this->getJson('/api/v1/carts?per_page=1')->json('data.0.id');
+        $cartId = $this->getJson('/api/v1/carts?per_page=1')->json('data.items.0.id');
 
-        $this->withToken($token['token'])
-            ->postJson("/api/v1/carts/{$cartId}/items", [
-                'producto_id' => $product->id,
-                'cantidad' => 2,
-            ])
-            ->assertSuccessful();
+        $this->postJson("/api/v1/carts/{$cartId}/items", [
+            'producto_id' => $product->id,
+            'cantidad' => 2,
+        ])->assertSuccessful();
 
-        $this->withToken($token['token'])
-            ->postJson("/api/v1/carts/{$cartId}/checkout", [
-                'metodo_pago' => 'efectivo',
-            ])
+        $this->postJson("/api/v1/carts/{$cartId}/checkout", [
+            'metodo_pago' => 'efectivo',
+        ])
             ->assertSuccessful()
             ->assertJsonPath('data.total_neto', 300);
 

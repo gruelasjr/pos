@@ -2,55 +2,44 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Equidna\SwifthAuth\Models\User as SwiftUser;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
+use Laravel\Sanctum\HasApiTokens;
 
-class User extends Authenticatable
+class User extends SwiftUser
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
+    protected $table = 'users';
+
+    protected $primaryKey = 'id';
+
+    protected $with = ['roles'];
+
     protected $fillable = [
         'uuid',
         'name',
         'email',
         'phone',
-        'role',
         'active',
         'password',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-            'active' => 'boolean',
-        ];
-    }
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+        'active' => 'boolean',
+    ];
 
     protected static function booted(): void
     {
@@ -61,18 +50,47 @@ class User extends Authenticatable
         });
     }
 
+    public function roles(): BelongsToMany
+    {
+        return $this->belongsToMany(Role::class, 'role_user', 'user_id', 'role_id')->withTimestamps();
+    }
+
+    public function hasRoles(string|array $roles): bool
+    {
+        $roles = Arr::wrap($roles);
+
+        return $this->roles->contains(fn (Role $role) => in_array($role->slug, $roles, true));
+    }
+
+    public function availableActions(): array
+    {
+        return $this->roles
+            ->flatMap(function (Role $role) {
+                $actions = $role->actions;
+
+                if (is_array($actions)) {
+                    return $actions;
+                }
+
+                return array_filter(array_map('trim', explode(',', (string) $actions)));
+            })
+            ->unique()
+            ->values()
+            ->all();
+    }
+
     public function isAdmin(): bool
     {
-        return $this->role === 'admin';
+        return $this->hasRoles('admin');
     }
 
     public function isAuditor(): bool
     {
-        return $this->role === 'auditor';
+        return $this->hasRoles('auditor');
     }
 
     public function isSeller(): bool
     {
-        return $this->role === 'vendedor';
+        return $this->hasRoles('vendedor');
     }
 }

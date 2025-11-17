@@ -13,7 +13,7 @@ class LoginTest extends TestCase
 
     public function test_can_login_and_receive_token(): void
     {
-        User::factory()->create([
+        User::factory()->seller()->create([
             'email' => 'agent@pos.test',
             'password' => Hash::make('secret123'),
         ]);

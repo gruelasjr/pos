@@ -20,12 +20,12 @@ class SaleController extends BaseApiController
             ->orderByDesc('pagado_en')
             ->paginate($request->integer('per_page', 25));
 
-        return $this->paginated($sales);
+        return $this->paginated($sales, 'Ventas listadas');
     }
 
     public function show(Sale $sale)
     {
-        return $this->success($sale->load('items', 'customer', 'warehouse', 'seller'));
+        return $this->success('Detalle de venta', $sale->load('items', 'customer', 'warehouse', 'seller'));
     }
 
     public function sendReceipt(Request $request, Sale $sale)
@@ -37,6 +37,6 @@ class SaleController extends BaseApiController
 
         SendReceiptJob::dispatch($sale->id, $data);
 
-        return $this->success(['scheduled' => true]);
+        return $this->success('Recibo programado', ['scheduled' => true]);
     }
 }

@@ -3,13 +3,14 @@
 namespace App\Http\Controllers\API\V1;
 
 use App\Models\User;
-use Equdna\SwiftAuth\Services\SwiftAuthManager;
+use Equidna\SwifthAuth\Facades\SwiftAuth;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
 class AuthController extends BaseApiController
 {
-    public function login(Request $request, SwiftAuthManager $swift): \Illuminate\Http\JsonResponse
+    public function login(Request $request): JsonResponse
     {
         $data = $request->validate([
             'email' => ['required', 'email'],
@@ -17,21 +18,23 @@ class AuthController extends BaseApiController
         ]);
 
         /** @var User|null $user */
-        $user = User::where('email', $data['email'])->first();
+        $user = User::query()->where('email', $data['email'])->first();
 
         if (!$user || !Hash::check($data['password'], $user->password)) {
-            return $this->error('auth_failed', 'Credenciales inválidas', 401);
+            return $this->error('Credenciales inválidas', [], 401);
         }
 
         if (!$user->active) {
-            return $this->error('user_inactivo', 'El usuario está inactivo', 403);
+            return $this->error('El usuario está inactivo', [], 403);
         }
 
-        $token = $swift->issueToken($user->id, 'api');
+        SwiftAuth::login($user);
 
-        return $this->success([
-            'token' => $token['token'],
-            'user' => $user,
+        $token = $user->createToken('api')->plainTextToken;
+
+        return $this->success('Inicio de sesión exitoso', [
+            'token' => $token,
+            'user' => $user->load('roles'),
         ]);
     }
 }

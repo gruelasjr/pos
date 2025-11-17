@@ -3,26 +3,41 @@
 namespace App\Http\Controllers\API\V1;
 
 use App\Http\Controllers\Controller;
+use Equidna\Toolkit\Helpers\ResponseHelper;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\JsonResponse;
 
 abstract class BaseApiController extends Controller
 {
-    protected function success(mixed $data = null, array $meta = []): JsonResponse
+    protected function success(string $message, mixed $data = null, array $headers = []): JsonResponse
     {
-        return response()->equidnaSuccess($data, $meta);
+        /** @var JsonResponse $response */
+        $response = ResponseHelper::success($message, $data, $headers);
+
+        return $response;
     }
 
-    protected function error(string $code, string $message, int $status = 400, mixed $details = null): JsonResponse
+    protected function error(string $message, array $errors = [], int $status = 400): JsonResponse
     {
-        return response()->equidnaError($code, $message, $status, $details);
+        /** @var JsonResponse $response */
+        $response = match ($status) {
+            ResponseHelper::HTTP_UNAUTHORIZED => ResponseHelper::unauthorized($message, $errors),
+            ResponseHelper::HTTP_FORBIDDEN => ResponseHelper::forbidden($message, $errors),
+            ResponseHelper::HTTP_NOT_FOUND => ResponseHelper::notFound($message, $errors),
+            ResponseHelper::HTTP_CONFLICT => ResponseHelper::conflict($message, $errors),
+            ResponseHelper::HTTP_UNPROCESSABLE_ENTITY => ResponseHelper::unprocessableEntity($message, $errors),
+            default => ResponseHelper::badRequest($message, $errors),
+        };
+
+        return $response;
     }
 
-    protected function paginated(LengthAwarePaginator $paginator): JsonResponse
+    protected function paginated(LengthAwarePaginator $paginator, string $message = 'Listado paginado'): JsonResponse
     {
-        return $this->success($paginator->items(), [
+        return $this->success($message, [
+            'items' => $paginator->items(),
             'pagination' => [
-                'page' => $paginator->currentPage(),
+                'current_page' => $paginator->currentPage(),
                 'per_page' => $paginator->perPage(),
                 'total' => $paginator->total(),
             ],

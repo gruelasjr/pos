@@ -4,8 +4,6 @@ namespace App\Http\Controllers\API\V1;
 
 use App\Domain\Inventory\InventoryService;
 use App\Models\Inventory;
-use App\Models\Product;
-use App\Models\Warehouse;
 use Illuminate\Http\Request;
 
 class InventoryController extends BaseApiController
@@ -18,7 +16,7 @@ class InventoryController extends BaseApiController
             ->when($request->filled('producto_id'), fn ($q) => $q->where('product_id', $request->input('producto_id')))
             ->paginate($request->integer('per_page', 25));
 
-        return $this->paginated($inventory);
+        return $this->paginated($inventory, 'Inventario listado');
     }
 
     public function adjust(Request $request, InventoryService $inventoryService)
@@ -32,6 +30,6 @@ class InventoryController extends BaseApiController
 
         $inventory = $inventoryService->adjust($data['producto_id'], $data['almacen_id'], $data['delta'], $data['motivo'] ?? null);
 
-        return $this->success($inventory->load('product', 'warehouse'));
+        return $this->success('Inventario actualizado', $inventory->load('product', 'warehouse'));
     }
 }

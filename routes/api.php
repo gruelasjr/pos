@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('api/v1')->group(function () {
     Route::post('auth/login', [AuthController::class, 'login']);
 
-    Route::middleware('auth:swift')->group(function () {
+    Route::middleware('auth:sanctum')->group(function () {
         Route::get('warehouses', [WarehouseController::class, 'index']);
         Route::post('warehouses', [WarehouseController::class, 'store']);
         Route::patch('warehouses/{warehouse}', [WarehouseController::class, 'update']);

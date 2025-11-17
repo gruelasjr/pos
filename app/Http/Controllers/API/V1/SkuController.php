@@ -16,6 +16,6 @@ class SkuController extends BaseApiController
 
         $reservation = $skuGenerator->reserve($data['cantidad'], $data['prefijo'] ?? null);
 
-        return $this->success($reservation);
+        return $this->success('SKUs reservados', $reservation);
     }
 }

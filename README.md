@@ -21,14 +21,14 @@ POS Faro es una plataforma punto de venta (POS) web construida con Laravel 12, I
 - **Catálogos completos**: CRUD para almacenes, tipos de producto y productos con búsqueda, filtros e integración futura para captura por cámara.  
 - **Clientes y marketing**: registro rápido, opt-in de campañas y ligas de auto-registro desde los recibos.  
 - **Reportes operativos**: dashboards diarios/semanales/mensuales, comparativos y ranking por vendedor, con exportaciones y filtros por almacén/tipo de producto.  
-- **Observabilidad y seguridad**: logging estructurado JSON con `request-id`, guardia swift-auth para tokens Bearer, auditoría de cambios y colas para envíos de recibo.  
+- **Observabilidad y seguridad**: logging estructurado JSON con `request-id`, RBAC vía Equidna Swift Auth, tokens Bearer emitidos con Laravel Sanctum, auditoría de cambios y colas para envíos de recibo.  
 
 ## Arquitectura
 
 - **Backend**: Laravel 12 (PHP 8.3), base de datos MySQL 8 (InnoDB, utf8mb4, strict).  
 - **Frontend**: Inertia.js + React 18, TailwindCSS 3, HeroUI, Chart.js, Zustand para estado.  
-- **Autenticación**: paquete interno `equdna/swift-auth` con tokens Bearer y roles (admin, vendedor, auditor).  
-- **Toolkit de respuestas**: `equidna/toolkit` estandariza la forma `{ success, data, error, meta }` para toda la API.  
+- **Autenticación**: Equidna SwiftAuth gestiona acciones/roles y sesiones, mientras que Sanctum expone tokens Bearer para el API.  
+- **Toolkit de respuestas**: `equidna/toolkit` unifica el formato `{ status, message, data, errors }` configurable según contexto.  
 - **Colas y jobs**: receipts enviados mediante jobs asincrónicos (`SendReceiptJob`).  
 - **Internacionalización**: ES-MX como idioma predeterminado; copia y UI listas para llaves i18n futuras.  
 
@@ -63,7 +63,7 @@ npm run build    # o npm run dev para entorno local
 
 ### Configuración adicional
 
-- `AUTH_GUARD=swift` ya está establecido para usar tokens Bearer.  
+- `AUTH_GUARD=sanctum` ya está establecido para proteger el API con tokens Bearer.  
 - `LOG_STACK=daily` escribe logs JSON estructurados en `storage/logs/laravel.log`.  
 - Variables para almacenamiento y notificaciones (`MEDIA_DISK`, `SMS_FROM`, `MAIL_*`) están definidas en `.env.example`. Ajusta según tu infraestructura (S3, proveedor SMTP, gateway SMS real).  
 
@@ -111,7 +111,7 @@ app/
 
 packages/
  ├─ equidna/toolkit       # Macros de respuesta + middleware request-id
- └─ equdna/swift-auth     # Guard, tokens y middleware ability
+ └─ equidna/swift-auth    # Guard, tokens y middleware ability
 
 resources/js/
  ├─ Pages/                # Vistas Inertia (Dashboard, POS, Catalog, Reports)

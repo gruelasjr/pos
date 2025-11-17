@@ -4,11 +4,12 @@ namespace App\Http\Controllers\API\V1;
 
 use App\Models\Customer;
 use App\Models\Sale;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class CustomerController extends BaseApiController
 {
-    public function index(Request $request)
+    public function index(Request $request): JsonResponse
     {
         $customers = Customer::query()
             ->when($request->filled('query'), function ($q) use ($request) {
@@ -21,10 +22,10 @@ class CustomerController extends BaseApiController
             ->orderBy('nombre')
             ->paginate($request->integer('per_page', 25));
 
-        return $this->paginated($customers);
+        return $this->paginated($customers, 'Clientes listados');
     }
 
-    public function store(Request $request)
+    public function store(Request $request): JsonResponse
     {
         $data = $request->validate([
             'nombre' => ['required', 'string', 'max:160'],
@@ -35,10 +36,10 @@ class CustomerController extends BaseApiController
 
         $customer = Customer::create($data);
 
-        return $this->success($customer);
+        return $this->success('Cliente registrado', $customer);
     }
 
-    public function update(Request $request, Customer $customer)
+    public function update(Request $request, Customer $customer): JsonResponse
     {
         $data = $request->validate([
             'nombre' => ['sometimes', 'string', 'max:160'],
@@ -49,10 +50,10 @@ class CustomerController extends BaseApiController
 
         $customer->update($data);
 
-        return $this->success($customer);
+        return $this->success('Cliente actualizado', $customer);
     }
 
-    public function register(Request $request)
+    public function register(Request $request): JsonResponse
     {
         $data = $request->validate([
             'token' => ['required', 'string'],
@@ -67,7 +68,7 @@ class CustomerController extends BaseApiController
             ->first();
 
         if (!$sale) {
-            return $this->error('token_invalido', 'Token inválido', 404);
+            return $this->error('Token inválido', [], 404);
         }
 
         $customer = $sale->customer_id ? Customer::find($sale->customer_id) : new Customer();
@@ -82,6 +83,6 @@ class CustomerController extends BaseApiController
         $sale->customer_id = $customer->id;
         $sale->save();
 
-        return $this->success($customer);
+        return $this->success('Cliente actualizado desde registro remoto', $customer);
     }
 }

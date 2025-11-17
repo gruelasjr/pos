@@ -14,7 +14,7 @@ class WarehouseController extends BaseApiController
             ->orderBy('nombre')
             ->paginate($request->integer('per_page', 20));
 
-        return $this->paginated($warehouses);
+        return $this->paginated($warehouses, 'Almacenes listados');
     }
 
     public function store(Request $request)
@@ -27,7 +27,7 @@ class WarehouseController extends BaseApiController
 
         $warehouse = Warehouse::create($data);
 
-        return $this->success($warehouse);
+        return $this->success('Almacén creado', $warehouse);
     }
 
     public function update(Request $request, Warehouse $warehouse)
@@ -40,6 +40,6 @@ class WarehouseController extends BaseApiController
 
         $warehouse->update($data);
 
-        return $this->success($warehouse);
+        return $this->success('Almacén actualizado', $warehouse);
     }
 }

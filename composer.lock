@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "144deea888a3f59a9aad3823b146e416",
+    "content-hash": "3d4a8e7f2c3e45daa9619295a1d1888a",
     "packages": [
         {
             "name": "brick/math",
@@ -566,53 +566,92 @@
             "time": "2025-03-06T22:45:56+00:00"
         },
         {
-            "name": "equdna/swift-auth",
+            "name": "equidna/swift-auth",
             "version": "1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/EquidnaMX/swift_auth.git",
+                "reference": "4accdc8d164afb31012e1ef652130563d057babc"
+            },
             "dist": {
-                "type": "path",
-                "url": "packages/equdna/swift-auth",
-                "reference": "6e55435ee9a8fbc537271056e1796848a3a73921"
+                "type": "zip",
+                "url": "https://api.github.com/repos/EquidnaMX/swift_auth/zipball/4accdc8d164afb31012e1ef652130563d057babc",
+                "reference": "4accdc8d164afb31012e1ef652130563d057babc",
+                "shasum": ""
             },
             "require": {
-                "illuminate/auth": "^12.0",
-                "illuminate/support": "^12.0",
-                "php": "^8.3"
+                "equidna/toolkit": "^0.6.5",
+                "inertiajs/inertia-laravel": "^1.0",
+                "php": "^8.2"
+            },
+            "require-dev": {
+                "laravel/framework": "^11.21",
+                "squizlabs/php_codesniffer": "^4.0",
+                "stevebauman/autodoc-facades": "^1.3"
             },
             "type": "library",
             "extra": {
                 "laravel": {
                     "providers": [
-                        "Equdna\\SwiftAuth\\SwiftAuthServiceProvider"
+                        "Equidna\\SwifthAuth\\Providers\\SwiftAuthServiceProvider"
                     ]
                 }
             },
             "autoload": {
                 "psr-4": {
-                    "Equdna\\SwiftAuth\\": "src/"
+                    "Equidna\\SwifthAuth\\": "src/"
                 }
             },
-            "description": "Internal authentication guard with bearer tokens and role helpers.",
-            "transport-options": {
-                "relative": true
-            }
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Gabriel Ruelas",
+                    "email": "gruelas@gruelas.com"
+                },
+                {
+                    "name": "Raul Cruz",
+                    "email": "rcruz@teleurban.mx"
+                },
+                {
+                    "name": "Guillermo Corona",
+                    "email": "gcorona@teleurban.mx"
+                }
+            ],
+            "description": "Bottled authentication for Laravel projects",
+            "support": {
+                "issues": "https://github.com/EquidnaMX/swift_auth/issues",
+                "source": "https://github.com/EquidnaMX/swift_auth/tree/1.0.0"
+            },
+            "time": "2025-11-17T19:30:07+00:00"
         },
         {
             "name": "equidna/toolkit",
-            "version": "1.0.0",
+            "version": "0.6.5",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/EquidnaMX/laravel-toolkit.git",
+                "reference": "18a45eefcc81e6a98f7f9a17db65fef58f8d0f3a"
+            },
             "dist": {
-                "type": "path",
-                "url": "packages/equidna/toolkit",
-                "reference": "91b3c63fc6197c4949958f4c3927744c254a4682"
+                "type": "zip",
+                "url": "https://api.github.com/repos/EquidnaMX/laravel-toolkit/zipball/18a45eefcc81e6a98f7f9a17db65fef58f8d0f3a",
+                "reference": "18a45eefcc81e6a98f7f9a17db65fef58f8d0f3a",
+                "shasum": ""
             },
             "require": {
-                "illuminate/support": "^12.0",
-                "php": "^8.3"
+                "illuminate/support": "^11.21 || ^12.0",
+                "laravel/framework": "^11.21 || ^12.0",
+                "laravel/helpers": "^1.7",
+                "php": "^8.0"
             },
             "type": "library",
             "extra": {
                 "laravel": {
                     "providers": [
-                        "Equidna\\Toolkit\\ToolkitServiceProvider"
+                        "Equidna\\Toolkit\\Providers\\EquidnaServiceProvider"
                     ]
                 }
             },
@@ -621,10 +660,22 @@
                     "Equidna\\Toolkit\\": "src/"
                 }
             },
-            "description": "Internal toolkit utilities for standardized API responses, request context, and helpers.",
-            "transport-options": {
-                "relative": true
-            }
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Gabriel Ruelas",
+                    "email": "gruelasjr@gmail.com"
+                }
+            ],
+            "support": {
+                "issues": "https://github.com/EquidnaMX/laravel-toolkit/issues",
+                "source": "https://github.com/EquidnaMX/laravel-toolkit/tree/0.6.5"
+            },
+            "abandoned": "equidna/laravel-toolkit",
+            "time": "2025-07-28T14:02:06+00:00"
         },
         {
             "name": "fruitcake/php-cors",
@@ -1457,6 +1508,63 @@
                 "source": "https://github.com/laravel/framework"
             },
             "time": "2025-11-13T02:12:47+00:00"
+        },
+        {
+            "name": "laravel/helpers",
+            "version": "v1.8.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/laravel/helpers.git",
+                "reference": "d0094b4bc4364560c8ee3a9e956596d760d4afab"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/laravel/helpers/zipball/d0094b4bc4364560c8ee3a9e956596d760d4afab",
+                "reference": "d0094b4bc4364560c8ee3a9e956596d760d4afab",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/support": "~5.8.0|^6.0|^7.0|^8.0|^9.0|^10.0|^11.0|^12.0",
+                "php": "^7.2.0|^8.0"
+            },
+            "require-dev": {
+                "phpstan/phpstan": "^1.10",
+                "phpunit/phpunit": "^7.0|^8.0|^9.0|^10.0"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.x-dev"
+                }
+            },
+            "autoload": {
+                "files": [
+                    "src/helpers.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Taylor Otwell",
+                    "email": "taylor@laravel.com"
+                },
+                {
+                    "name": "Dries Vints",
+                    "email": "dries@laravel.com"
+                }
+            ],
+            "description": "Provides backwards compatibility for helpers in the latest Laravel release.",
+            "keywords": [
+                "helpers",
+                "laravel"
+            ],
+            "support": {
+                "source": "https://github.com/laravel/helpers/tree/v1.8.1"
+            },
+            "time": "2025-09-02T15:31:25+00:00"
         },
         {
             "name": "laravel/prompts",
@@ -8486,6 +8594,85 @@
                 }
             ],
             "time": "2024-10-09T05:16:32+00:00"
+        },
+        {
+            "name": "squizlabs/php_codesniffer",
+            "version": "4.0.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/PHPCSStandards/PHP_CodeSniffer.git",
+                "reference": "0525c73950de35ded110cffafb9892946d7771b5"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/PHPCSStandards/PHP_CodeSniffer/zipball/0525c73950de35ded110cffafb9892946d7771b5",
+                "reference": "0525c73950de35ded110cffafb9892946d7771b5",
+                "shasum": ""
+            },
+            "require": {
+                "ext-simplexml": "*",
+                "ext-tokenizer": "*",
+                "ext-xmlwriter": "*",
+                "php": ">=7.2.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^8.4.0 || ^9.3.4 || ^10.5.32 || 11.3.3 - 11.5.28 || ^11.5.31"
+            },
+            "bin": [
+                "bin/phpcbf",
+                "bin/phpcs"
+            ],
+            "type": "library",
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Greg Sherwood",
+                    "role": "Former lead"
+                },
+                {
+                    "name": "Juliette Reinders Folmer",
+                    "role": "Current lead"
+                },
+                {
+                    "name": "Contributors",
+                    "homepage": "https://github.com/PHPCSStandards/PHP_CodeSniffer/graphs/contributors"
+                }
+            ],
+            "description": "PHP_CodeSniffer tokenizes PHP files and detects violations of a defined set of coding standards.",
+            "homepage": "https://github.com/PHPCSStandards/PHP_CodeSniffer",
+            "keywords": [
+                "phpcs",
+                "standards",
+                "static analysis"
+            ],
+            "support": {
+                "issues": "https://github.com/PHPCSStandards/PHP_CodeSniffer/issues",
+                "security": "https://github.com/PHPCSStandards/PHP_CodeSniffer/security/policy",
+                "source": "https://github.com/PHPCSStandards/PHP_CodeSniffer",
+                "wiki": "https://github.com/PHPCSStandards/PHP_CodeSniffer/wiki"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/PHPCSStandards",
+                    "type": "github"
+                },
+                {
+                    "url": "https://github.com/jrfnl",
+                    "type": "github"
+                },
+                {
+                    "url": "https://opencollective.com/php_codesniffer",
+                    "type": "open_collective"
+                },
+                {
+                    "url": "https://thanks.dev/u/gh/phpcsstandards",
+                    "type": "thanks_dev"
+                }
+            ],
+            "time": "2025-11-10T16:43:36+00:00"
         },
         {
             "name": "staabm/side-effects-detector",

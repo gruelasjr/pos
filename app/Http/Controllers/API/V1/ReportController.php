@@ -14,7 +14,7 @@ class ReportController extends BaseApiController
         $query = $this->baseQuery($request)
             ->whereDate('pagado_en', $date->toDateString());
 
-        return $this->success([
+        return $this->success('Reporte diario', [
             'fecha' => $date->toDateString(),
             'total_bruto' => $query->sum('total_bruto'),
             'total_neto' => $query->sum('total_neto'),
@@ -30,7 +30,7 @@ class ReportController extends BaseApiController
         $previous = $this->baseQuery($request)
             ->whereBetween('pagado_en', [(clone $weekStart)->subWeek(), (clone $weekStart)->subWeek()->endOfWeek()]);
 
-        return $this->success([
+        return $this->success('Reporte semanal', [
             'semana' => $weekStart->toDateString(),
             'actual' => [
                 'total' => $current->sum('total_neto'),
@@ -51,7 +51,7 @@ class ReportController extends BaseApiController
         $previous = $this->baseQuery($request)
             ->whereBetween('pagado_en', [(clone $monthStart)->subMonth()->startOfMonth(), (clone $monthStart)->subMonth()->endOfMonth()]);
 
-        return $this->success([
+        return $this->success('Reporte mensual', [
             'mes' => $monthStart->format('Y-m'),
             'actual' => [
                 'total' => $current->sum('total_neto'),
@@ -73,7 +73,7 @@ class ReportController extends BaseApiController
 
         $data = $query->get();
 
-        return $this->success($data);
+        return $this->success('Reporte por vendedor', $data);
     }
 
     protected function baseQuery(Request $request)

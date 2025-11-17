@@ -22,7 +22,7 @@ class ProductController extends BaseApiController
 
         $products = $query->paginate($request->integer('per_page', 25));
 
-        return $this->paginated($products);
+        return $this->paginated($products, 'Productos listados');
     }
 
     public function store(Request $request, SkuGeneratorService $skuGenerator)
@@ -45,12 +45,12 @@ class ProductController extends BaseApiController
 
         $product = Product::create($data);
 
-        return $this->success($product->load('type'));
+        return $this->success('Producto creado', $product->load('type'));
     }
 
     public function show(Product $product)
     {
-        return $this->success($product->load('type', 'inventories'));
+        return $this->success('Detalle de producto', $product->load('type', 'inventories'));
     }
 
     public function update(Request $request, Product $product)
@@ -69,6 +69,6 @@ class ProductController extends BaseApiController
 
         $product->update($data);
 
-        return $this->success($product->load('type'));
+        return $this->success('Producto actualizado', $product->load('type'));
     }
 }

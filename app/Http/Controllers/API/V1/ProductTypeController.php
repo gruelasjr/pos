@@ -13,7 +13,7 @@ class ProductTypeController extends BaseApiController
             ->orderBy('nombre')
             ->paginate($request->integer('per_page', 50));
 
-        return $this->paginated($types);
+        return $this->paginated($types, 'Tipos de producto listados');
     }
 
     public function store(Request $request)
@@ -25,7 +25,7 @@ class ProductTypeController extends BaseApiController
 
         $type = ProductType::create($data);
 
-        return $this->success($type);
+        return $this->success('Tipo de producto creado', $type);
     }
 
     public function update(Request $request, ProductType $productType)
@@ -37,6 +37,6 @@ class ProductTypeController extends BaseApiController
 
         $productType->update($data);
 
-        return $this->success($productType);
+        return $this->success('Tipo de producto actualizado', $productType);
     }
 }

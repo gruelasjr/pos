@@ -2,10 +2,12 @@
 
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\RequestLogging;
-use Equdna\SwiftAuth\Http\Middleware\EnsureAbility;
+use Equidna\Toolkit\Helpers\ResponseHelper;
+use Equidna\Toolkit\Http\Middleware\ForceJsonResponse;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Throwable;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -15,24 +17,13 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->web(HandleInertiaRequests::class);
-
-        $middleware->alias([
-            'ability' => EnsureAbility::class,
-        ]);
-
         $middleware->append(RequestLogging::class);
+        $middleware->appendToGroup('api', ForceJsonResponse::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        $exceptions->render(function (\Throwable $e, $request) {
+        $exceptions->render(function (Throwable $e, $request) {
             if ($request->is('api/*')) {
-                $status = method_exists($e, 'getStatusCode') ? $e->getStatusCode() : 500;
-                $code = method_exists($e, 'getCode') && $e->getCode() ? $e->getCode() : 'error';
-
-                return response()->equidnaError(
-                    is_string($code) ? $code : 'error',
-                    $e->getMessage() ?: 'Error inesperado',
-                    $status
-                );
+                return ResponseHelper::handleException($e);
             }
         });
     })->create();

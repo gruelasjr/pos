@@ -29,7 +29,7 @@ class CartController extends BaseApiController
             ->orderBy('updated_at', 'desc')
             ->paginate($request->integer('per_page', 25));
 
-        return $this->paginated($carts);
+        return $this->paginated($carts, 'Carritos listados');
     }
 
     public function store(Request $request)
@@ -40,7 +40,7 @@ class CartController extends BaseApiController
 
         $cart = $this->cartService->createCart($request->user(), Warehouse::findOrFail($data['almacen_id']));
 
-        return $this->success($cart->load('warehouse'));
+        return $this->success('Carrito creado', $cart->load('warehouse'));
     }
 
     public function addItem(Request $request, Cart $cart)
@@ -62,7 +62,7 @@ class CartController extends BaseApiController
             $data['descuento'] ?? null
         );
 
-        return $this->success($cart);
+        return $this->success('Producto agregado al carrito', $cart);
     }
 
     public function updateItem(Request $request, Cart $cart, string $itemId)
@@ -77,7 +77,7 @@ class CartController extends BaseApiController
 
         $cart = $this->cartService->updateItem($cart, $itemId, $data);
 
-        return $this->success($cart);
+        return $this->success('Producto actualizado en el carrito', $cart);
     }
 
     public function deleteItem(Request $request, Cart $cart, string $itemId)
@@ -86,7 +86,7 @@ class CartController extends BaseApiController
 
         $cart = $this->cartService->removeItem($cart, $itemId);
 
-        return $this->success($cart);
+        return $this->success('Producto eliminado del carrito', $cart);
     }
 
     public function updateCart(Request $request, Cart $cart)
@@ -100,7 +100,7 @@ class CartController extends BaseApiController
 
         $cart = $this->cartService->updateCart($cart, $data);
 
-        return $this->success($cart);
+        return $this->success('Carrito actualizado', $cart);
     }
 
     public function checkout(Request $request, Cart $cart)
@@ -116,7 +116,7 @@ class CartController extends BaseApiController
 
         $sale = $this->checkoutService->checkout($cart, $data);
 
-        return $this->success($sale);
+        return $this->success('Venta confirmada', $sale);
     }
 
     protected function authorizeCart(Request $request, Cart $cart): void
