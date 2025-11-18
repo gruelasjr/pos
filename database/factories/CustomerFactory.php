@@ -14,10 +14,10 @@ class CustomerFactory extends Factory
     {
         return [
             'id' => Str::uuid()->toString(),
-            'nombre' => fake()->name(),
+            'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
-            'telefono' => fake()->phoneNumber(),
-            'acepta_marketing' => fake()->boolean(),
+            'phone' => fake()->phoneNumber(),
+            'accepts_marketing' => fake()->boolean(),
         ];
     }
 }

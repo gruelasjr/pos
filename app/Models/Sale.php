@@ -21,20 +21,20 @@ class Sale extends Model
         'warehouse_id',
         'user_id',
         'customer_id',
-        'metodo_pago',
-        'pagos_detalle',
-        'total_bruto',
-        'descuento_total',
-        'total_neto',
-        'pagado_en',
+        'payment_method',
+        'payment_details',
+        'total_gross',
+        'discount_total',
+        'total_net',
+        'paid_at',
     ];
 
     protected $casts = [
-        'pagos_detalle' => 'array',
-        'total_bruto' => 'decimal:2',
-        'descuento_total' => 'decimal:2',
-        'total_neto' => 'decimal:2',
-        'pagado_en' => 'datetime',
+        'payment_details' => 'array',
+        'total_gross' => 'decimal:2',
+        'discount_total' => 'decimal:2',
+        'total_net' => 'decimal:2',
+        'paid_at' => 'datetime',
     ];
 
     protected static function booted(): void

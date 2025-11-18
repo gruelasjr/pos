@@ -16,6 +16,7 @@ class CartController extends BaseApiController
         private CartService $cartService,
         private CheckoutService $checkoutService
     ) {
+        //
     }
 
     public function index(Request $request)
@@ -24,8 +25,8 @@ class CartController extends BaseApiController
 
         $carts = Cart::query()
             ->with('items.product', 'warehouse', 'seller')
-            ->when(!$user->isAdmin(), fn ($q) => $q->where('user_id', $user->id))
-            ->when($request->filled('estado'), fn ($q) => $q->where('estado', $request->input('estado')))
+            ->when(!$user->isAdmin(), fn($q) => $q->where('user_id', $user->id))
+            ->when($request->filled('status'), fn($q) => $q->where('status', $request->input('status')))
             ->orderBy('updated_at', 'desc')
             ->paginate($request->integer('per_page', 25));
 
@@ -35,10 +36,10 @@ class CartController extends BaseApiController
     public function store(Request $request)
     {
         $data = $request->validate([
-            'almacen_id' => ['required', 'exists:warehouses,id'],
+            'warehouse_id' => ['required', 'exists:warehouses,id'],
         ]);
 
-        $cart = $this->cartService->createCart($request->user(), Warehouse::findOrFail($data['almacen_id']));
+        $cart = $this->cartService->createCart($request->user(), Warehouse::findOrFail($data['warehouse_id']));
 
         return $this->success('Carrito creado', $cart->load('warehouse'));
     }
@@ -48,17 +49,17 @@ class CartController extends BaseApiController
         $this->authorizeCart($request, $cart);
 
         $data = $request->validate([
-            'producto_id' => ['required', 'exists:products,id'],
-            'cantidad' => ['required', 'integer', 'min:1'],
-            'precio_unitario' => ['nullable', 'numeric', 'min:0'],
+            'product_id' => ['required', 'exists:products,id'],
+            'quantity' => ['required', 'integer', 'min:1'],
+            'unit_price' => ['nullable', 'numeric', 'min:0'],
             'descuento' => ['nullable', 'numeric', 'min:0'],
         ]);
 
         $cart = $this->cartService->addItem(
             $cart,
-            Product::findOrFail($data['producto_id']),
-            $data['cantidad'],
-            $data['precio_unitario'] ?? null,
+            Product::findOrFail($data['product_id']),
+            $data['quantity'],
+            $data['unit_price'] ?? null,
             $data['descuento'] ?? null
         );
 
@@ -70,8 +71,8 @@ class CartController extends BaseApiController
         $this->authorizeCart($request, $cart);
 
         $data = $request->validate([
-            'cantidad' => ['nullable', 'integer', 'min:1'],
-            'precio_unitario' => ['nullable', 'numeric', 'min:0'],
+            'quantity' => ['nullable', 'integer', 'min:1'],
+            'unit_price' => ['nullable', 'numeric', 'min:0'],
             'descuento' => ['nullable', 'numeric', 'min:0'],
         ]);
 
@@ -94,8 +95,8 @@ class CartController extends BaseApiController
         $this->authorizeCart($request, $cart);
 
         $data = $request->validate([
-            'descuento_total' => ['nullable', 'numeric', 'min:0'],
-            'estado' => ['nullable', Rule::in(['activo', 'en_pausa', 'cerrado'])],
+            'discount_total' => ['nullable', 'numeric', 'min:0'],
+            'status' => ['nullable', Rule::in(['active', 'paused', 'closed'])],
         ]);
 
         $cart = $this->cartService->updateCart($cart, $data);
@@ -108,10 +109,10 @@ class CartController extends BaseApiController
         $this->authorizeCart($request, $cart);
 
         $data = $request->validate([
-            'metodo_pago' => ['required', Rule::in(['efectivo', 'tarjeta', 'transferencia', 'mixto'])],
-            'pagos_detalle' => ['nullable', 'array'],
-            'cliente_id' => ['nullable', 'exists:customers,id'],
-            'recibo' => ['nullable', 'array'],
+            'payment_method' => ['required', Rule::in(['cash', 'card', 'transfer', 'mixed'])],
+            'payment_details' => ['nullable', 'array'],
+            'customer_id' => ['nullable', 'exists:customers,id'],
+            'receipt' => ['nullable', 'array'],
         ]);
 
         $sale = $this->checkoutService->checkout($cart, $data);

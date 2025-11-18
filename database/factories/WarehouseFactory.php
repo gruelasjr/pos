@@ -14,9 +14,9 @@ class WarehouseFactory extends Factory
     {
         return [
             'id' => Str::uuid()->toString(),
-            'nombre' => fake()->company(),
-            'codigo' => strtoupper(fake()->lexify('ALM???')),
-            'activo' => true,
+            'name' => fake()->company(),
+            'code' => strtoupper(fake()->lexify('ALM???')),
+            'active' => true,
         ];
     }
 }

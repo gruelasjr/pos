@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Cart model.
+ *
+ * PHP 8.1+
+ *
+ * @package   App\Models
+ */
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -17,26 +25,26 @@ class Cart extends Model
 
     protected $fillable = [
         'id',
-        'clave_visual',
+        'visual_key',
         'user_id',
         'warehouse_id',
-        'estado',
-        'total_bruto',
-        'descuento_total',
-        'total_neto',
+        'status',
+        'total_gross',
+        'discount_total',
+        'total_net',
     ];
 
     protected $casts = [
-        'total_bruto' => 'decimal:2',
-        'descuento_total' => 'decimal:2',
-        'total_neto' => 'decimal:2',
+        'total_gross' => 'decimal:2',
+        'discount_total' => 'decimal:2',
+        'total_net' => 'decimal:2',
     ];
 
     protected static function booted(): void
     {
         static::creating(function (self $cart) {
             $cart->id ??= (string) Str::uuid();
-            $cart->clave_visual ??= strtoupper(Str::random(6));
+            $cart->visual_key ??= strtoupper(Str::random(6));
         });
     }
 
@@ -57,9 +65,9 @@ class Cart extends Model
 
     public function recalculateTotals(): void
     {
-        $bruto = $this->items->sum(fn (CartItem $item) => $item->subtotal);
-        $this->total_bruto = $bruto;
-        $descuento = $this->descuento_total ?? 0;
-        $this->total_neto = max(0, $bruto - $descuento);
+        $bruto = $this->items->sum(fn(CartItem $item) => $item->subtotal);
+        $this->total_gross = $bruto;
+        $descuento = $this->discount_total ?? 0;
+        $this->total_net = max(0, $bruto - $descuento);
     }
 }

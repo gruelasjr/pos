@@ -10,73 +10,73 @@ return new class extends Migration
     {
         Schema::create('warehouses', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string('nombre', 120);
-            $table->string('codigo', 32)->unique();
-            $table->boolean('activo')->default(true);
+            $table->string('name', 120);
+            $table->string('code', 32)->unique();
+            $table->boolean('active')->default(true);
             $table->timestamps();
         });
 
         Schema::create('product_types', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string('nombre', 120);
-            $table->string('codigo', 32)->unique();
+            $table->string('name', 120);
+            $table->string('code', 32)->unique();
             $table->timestamps();
         });
 
         Schema::create('products', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('sku', 64)->unique();
-            $table->string('descripcion_corta', 160);
-            $table->text('descripcion_larga')->nullable();
-            $table->string('foto_url')->nullable();
-            $table->decimal('precio_compra', 12, 2)->default(0);
-            $table->decimal('precio_venta', 12, 2)->default(0);
-            $table->dateTime('fecha_ingreso');
-            $table->dateTime('fecha_fin_stock')->nullable();
+            $table->string('short_description', 160);
+            $table->text('long_description')->nullable();
+            $table->string('photo_url')->nullable();
+            $table->decimal('purchase_price', 12, 2)->default(0);
+            $table->decimal('sale_price', 12, 2)->default(0);
+            $table->dateTime('entry_date');
+            $table->dateTime('stock_end_date')->nullable();
             $table->foreignUuid('product_type_id')->constrained('product_types');
-            $table->boolean('activo')->default(true);
+            $table->boolean('active')->default(true);
             $table->timestamps();
-            $table->index('descripcion_corta');
+            $table->index('short_description');
         });
 
         Schema::create('inventories', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('product_id')->constrained('products');
             $table->foreignUuid('warehouse_id')->constrained('warehouses');
-            $table->unsignedInteger('existencias')->default(0);
-            $table->unsignedInteger('punto_reorden')->default(0);
+            $table->unsignedInteger('stock')->default(0);
+            $table->unsignedInteger('reorder_point')->default(0);
             $table->timestamps();
             $table->unique(['product_id', 'warehouse_id']);
         });
 
         Schema::create('reserved_sku_ranges', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string('prefijo', 16)->nullable();
-            $table->unsignedBigInteger('desde');
-            $table->unsignedBigInteger('hasta');
-            $table->unsignedBigInteger('usado_hasta')->nullable();
-            $table->string('proposito', 120);
+            $table->string('prefix', 16)->nullable();
+            $table->unsignedBigInteger('from');
+            $table->unsignedBigInteger('to');
+            $table->unsignedBigInteger('used_up_to')->nullable();
+            $table->string('purpose', 120);
             $table->timestamps();
         });
 
         Schema::create('customers', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string('nombre', 160);
+            $table->string('name', 160);
             $table->string('email', 160)->nullable()->unique();
-            $table->string('telefono', 32)->nullable();
-            $table->boolean('acepta_marketing')->default(false);
+            $table->string('phone', 32)->nullable();
+            $table->boolean('accepts_marketing')->default(false);
             $table->timestamps();
         });
 
         Schema::create('carts', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string('clave_visual', 12)->unique();
+            $table->string('visual_key', 12)->unique();
             $table->foreignId('user_id')->constrained('users');
             $table->foreignUuid('warehouse_id')->constrained('warehouses');
-            $table->enum('estado', ['activo', 'en_pausa', 'cerrado'])->default('activo');
-            $table->decimal('total_bruto', 12, 2)->default(0);
-            $table->decimal('descuento_total', 12, 2)->default(0);
-            $table->decimal('total_neto', 12, 2)->default(0);
+            $table->enum('status', ['active', 'paused', 'closed'])->default('active');
+            $table->decimal('total_gross', 12, 2)->default(0);
+            $table->decimal('discount_total', 12, 2)->default(0);
+            $table->decimal('total_net', 12, 2)->default(0);
             $table->timestamps();
         });
 
@@ -84,9 +84,9 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->foreignUuid('cart_id')->constrained('carts')->cascadeOnDelete();
             $table->foreignUuid('product_id')->constrained('products');
-            $table->unsignedInteger('cantidad');
-            $table->decimal('precio_unitario', 12, 2);
-            $table->decimal('descuento', 12, 2)->default(0);
+            $table->unsignedInteger('quantity');
+            $table->decimal('unit_price', 12, 2);
+            $table->decimal('discount', 12, 2)->default(0);
             $table->decimal('subtotal', 12, 2);
             $table->timestamps();
             $table->unique(['cart_id', 'product_id']);
@@ -98,12 +98,12 @@ return new class extends Migration
             $table->foreignUuid('warehouse_id')->constrained('warehouses');
             $table->foreignId('user_id')->constrained('users');
             $table->foreignUuid('customer_id')->nullable()->constrained('customers');
-            $table->enum('metodo_pago', ['efectivo', 'tarjeta', 'transferencia', 'mixto']);
-            $table->json('pagos_detalle')->nullable();
-            $table->decimal('total_bruto', 12, 2);
-            $table->decimal('descuento_total', 12, 2);
-            $table->decimal('total_neto', 12, 2);
-            $table->dateTime('pagado_en');
+            $table->enum('payment_method', ['cash', 'card', 'transfer', 'mixed']);
+            $table->json('payment_details')->nullable();
+            $table->decimal('total_gross', 12, 2);
+            $table->decimal('discount_total', 12, 2);
+            $table->decimal('total_net', 12, 2);
+            $table->dateTime('paid_at');
             $table->timestamps();
         });
 
@@ -112,10 +112,10 @@ return new class extends Migration
             $table->foreignUuid('sale_id')->constrained('sales')->cascadeOnDelete();
             $table->foreignUuid('product_id')->constrained('products');
             $table->string('sku', 64);
-            $table->string('descripcion', 160);
-            $table->unsignedInteger('cantidad');
-            $table->decimal('precio_unitario', 12, 2);
-            $table->decimal('descuento', 12, 2)->default(0);
+            $table->string('description', 160);
+            $table->unsignedInteger('quantity');
+            $table->decimal('unit_price', 12, 2);
+            $table->decimal('discount', 12, 2)->default(0);
             $table->decimal('subtotal', 12, 2);
             $table->timestamps();
         });
@@ -144,8 +144,8 @@ return new class extends Migration
         Schema::create('folio_sequences', function (Blueprint $table) {
             $table->id();
             $table->foreignUuid('warehouse_id')->constrained('warehouses')->unique();
-            $table->string('prefijo', 8)->default('POS');
-            $table->unsignedBigInteger('consecutivo')->default(1);
+            $table->string('prefix', 8)->default('POS');
+            $table->unsignedBigInteger('sequence')->default(1);
             $table->timestamps();
         });
     }

@@ -18,13 +18,13 @@ class Inventory extends Model
         'id',
         'product_id',
         'warehouse_id',
-        'existencias',
-        'punto_reorden',
+        'stock',
+        'reorder_point',
     ];
 
     protected $casts = [
-        'existencias' => 'integer',
-        'punto_reorden' => 'integer',
+        'stock' => 'integer',
+        'reorder_point' => 'integer',
     ];
 
     protected static function booted(): void

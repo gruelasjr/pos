@@ -1,6 +1,15 @@
-import { useEffect, useState } from 'react';
-import { Button, Card, CardBody, Input, Select, SelectItem, Tabs, Tab } from '@heroui/react';
-import { Line } from 'react-chartjs-2';
+import { useEffect, useState } from "react";
+import {
+    Button,
+    Card,
+    CardBody,
+    Input,
+    Select,
+    SelectItem,
+    Tabs,
+    Tab,
+} from "@heroui/react";
+import { Line } from "react-chartjs-2";
 import {
     Chart,
     CategoryScale,
@@ -9,30 +18,42 @@ import {
     LineElement,
     Tooltip,
     Legend,
-} from 'chart.js';
-import AppLayout from '../../Layouts/AppLayout';
-import useApi from '../../hooks/useApi';
-import DataTable from '../../components/DataTable';
-import { formatCurrency } from '../../utils/formatters';
+} from "chart.js";
+import AppLayout from "../../Layouts/AppLayout";
+import useApi from "../../hooks/useApi";
+import DataTable from "../../components/DataTable";
+import { formatCurrency } from "../../utils/formatters";
 
-Chart.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend);
+Chart.register(
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    LineElement,
+    Tooltip,
+    Legend
+);
 
 const ReportsPage = () => {
     const api = useApi();
     const [warehouses, setWarehouses] = useState([]);
-    const [filters, setFilters] = useState({ almacen_id: '', fecha: new Date().toISOString().slice(0, 10) });
+    const [filters, setFilters] = useState({
+        warehouse_id: "",
+        date: new Date().toISOString().slice(0, 10),
+    });
     const [daily, setDaily] = useState(null);
     const [weekly, setWeekly] = useState(null);
     const [monthly, setMonthly] = useState(null);
     const [sellerReport, setSellerReport] = useState([]);
 
     const loadReports = async () => {
-        const params = filters.almacen_id ? { almacen_id: filters.almacen_id } : {};
+        const params = filters.warehouse_id
+            ? { warehouse_id: filters.warehouse_id }
+            : {};
         const [dailyRes, weeklyRes, monthlyRes, sellerRes] = await Promise.all([
-            api.get('reports/daily', { ...params, fecha: filters.fecha }),
-            api.get('reports/weekly', params),
-            api.get('reports/monthly', params),
-            api.get('reports/by-seller', params),
+            api.get("reports/daily", { ...params, date: filters.date }),
+            api.get("reports/weekly", params),
+            api.get("reports/monthly", params),
+            api.get("reports/by-seller", params),
         ]);
         setDaily(dailyRes.data);
         setWeekly(weeklyRes.data);
@@ -42,7 +63,7 @@ const ReportsPage = () => {
 
     useEffect(() => {
         const bootstrap = async () => {
-            const { data } = await api.get('warehouses');
+            const { data } = await api.get("warehouses");
             setWarehouses(data);
         };
         bootstrap();
@@ -59,19 +80,28 @@ const ReportsPage = () => {
                     <Input
                         type="date"
                         label="Fecha"
-                        value={filters.fecha}
-                        onChange={(e) => setFilters({ ...filters, fecha: e.target.value })}
+                        value={filters.date}
+                        onChange={(e) =>
+                            setFilters({ ...filters, date: e.target.value })
+                        }
                     />
                     <Select
                         label="Almacén"
-                        selectedKeys={filters.almacen_id ? [filters.almacen_id] : []}
+                        selectedKeys={
+                            filters.warehouse_id ? [filters.warehouse_id] : []
+                        }
                         onSelectionChange={(keys) =>
-                            setFilters({ ...filters, almacen_id: extractKey(keys) || '' })
+                            setFilters({
+                                ...filters,
+                                warehouse_id: extractKey(keys) || "",
+                            })
                         }
                     >
                         <SelectItem key="">Todos</SelectItem>
                         {warehouses.map((warehouse) => (
-                            <SelectItem key={warehouse.id}>{warehouse.nombre}</SelectItem>
+                            <SelectItem key={warehouse.id}>
+                                {warehouse.name}
+                            </SelectItem>
                         ))}
                     </Select>
                     <Button variant="ghost" onPress={loadReports}>
@@ -85,13 +115,13 @@ const ReportsPage = () => {
                     <Card>
                         <CardBody className="space-y-2">
                             <p className="text-sm text-slate-500">
-                                Ventas del día {daily?.fecha}
+                                Ventas del día {daily?.date}
                             </p>
                             <p className="text-3xl font-semibold">
-                                {formatCurrency(daily?.total_neto || 0)}
+                                {formatCurrency(daily?.total_net || 0)}
                             </p>
                             <p className="text-sm text-slate-500">
-                                {daily?.ventas || 0} tickets emitidos
+                                {daily?.sales || 0} tickets emitidos
                             </p>
                         </CardBody>
                     </Card>
@@ -107,7 +137,8 @@ const ReportsPage = () => {
                     <Card>
                         <CardBody>
                             <p className="text-sm text-slate-500">
-                                Mes {monthly?.mes} total {formatCurrency(monthly?.actual?.total || 0)}
+                                Mes {monthly?.mes} total{" "}
+                                {formatCurrency(monthly?.actual?.total || 0)}
                             </p>
                         </CardBody>
                     </Card>
@@ -115,11 +146,11 @@ const ReportsPage = () => {
                 <Tab key="seller" title="Por vendedor">
                     <DataTable
                         columns={[
-                            { key: 'seller_name', title: 'Vendedor' },
-                            { key: 'ventas', title: 'Tickets' },
+                            { key: "seller_name", title: "Vendedor" },
+                            { key: "ventas", title: "Tickets" },
                             {
-                                key: 'total',
-                                title: 'Total',
+                                key: "total",
+                                title: "Total",
                                 render: (value) => formatCurrency(value),
                             },
                         ]}
@@ -134,13 +165,13 @@ const ReportsPage = () => {
 
 const WeeklyChart = ({ weekly }) => {
     const data = {
-        labels: ['Semana actual', 'Semana previa'],
+        labels: ["Semana actual", "Semana previa"],
         datasets: [
             {
-                label: 'Total ventas',
+                label: "Total ventas",
                 data: [weekly.actual?.total || 0, weekly.anterior?.total || 0],
-                borderColor: '#2563eb',
-                backgroundColor: 'rgba(37, 99, 235, 0.2)',
+                borderColor: "#2563eb",
+                backgroundColor: "rgba(37, 99, 235, 0.2)",
             },
         ],
     };
@@ -151,8 +182,8 @@ const WeeklyChart = ({ weekly }) => {
 export default ReportsPage;
 
 const extractKey = (keys) => {
-    if (!keys) return '';
-    if (typeof keys === 'string') {
+    if (!keys) return "";
+    if (typeof keys === "string") {
         return keys;
     }
 
@@ -163,9 +194,8 @@ const extractKey = (keys) => {
     const iterator = keys?.values ? keys.values() : null;
     if (iterator) {
         const next = iterator.next();
-        return next.value ?? '';
+        return next.value ?? "";
     }
 
-    return Array.from(keys || [])[0] || '';
+    return Array.from(keys || [])[0] || "";
 };
-

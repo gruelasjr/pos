@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Product model.
+ *
+ * PHP 8.1+
+ *
+ * @package   App\Models
+ */
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -19,23 +27,23 @@ class Product extends Model
     protected $fillable = [
         'id',
         'sku',
-        'descripcion_corta',
-        'descripcion_larga',
-        'foto_url',
-        'precio_compra',
-        'precio_venta',
-        'fecha_ingreso',
-        'fecha_fin_stock',
+        'short_description',
+        'long_description',
+        'photo_url',
+        'purchase_price',
+        'sale_price',
+        'entry_date',
+        'stock_end_date',
         'product_type_id',
-        'activo',
+        'active',
     ];
 
     protected $casts = [
-        'precio_compra' => 'decimal:2',
-        'precio_venta' => 'decimal:2',
-        'fecha_ingreso' => 'datetime',
-        'fecha_fin_stock' => 'datetime',
-        'activo' => 'boolean',
+        'purchase_price' => 'decimal:2',
+        'sale_price' => 'decimal:2',
+        'entry_date' => 'datetime',
+        'stock_end_date' => 'datetime',
+        'active' => 'boolean',
     ];
 
     protected static function booted(): void
@@ -62,7 +70,7 @@ class Product extends Model
 
     public function scopeActive($query)
     {
-        return $query->where('activo', true);
+        return $query->where('active', true);
     }
 
     public function scopeSearch($query, ?string $term)
@@ -72,7 +80,7 @@ class Product extends Model
         }
 
         return $query->where(function ($q) use ($term) {
-            $q->where('descripcion_corta', 'like', "%{$term}%")
+            $q->where('short_description', 'like', "%{$term}%")
                 ->orWhere('sku', 'like', "%{$term}%");
         });
     }

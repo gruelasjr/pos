@@ -234,9 +234,7 @@ Paginación: page, per_page, total.
 
 ## 11) Pruebas y calidad
 
--   Pruebas unitarias de dominios críticos: generación de SKU, checkout, descuentos, inventario.
--   Pruebas de API con Pest o PHPUnit.
--   CI: lint, tests, build.
+Automated tests and testing tooling are not included in this workspace. When tests are reintroduced, they should be unit tests for critical domain logic (SKU generation, checkout, discounts, inventory) and isolated API feature tests using the project's chosen tooling. CI should run linting, tests, and the build pipeline once test tooling is restored.
 
 ## 12) Aceptación (criterios verificables)
 

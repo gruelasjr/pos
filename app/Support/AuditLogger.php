@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Audit logger helpers.
+ *
+ * PHP 8.1+
+ *
+ * @package   App\Support
+ */
+
 namespace App\Support;
 
 use App\Models\AuditLog;
@@ -10,10 +18,16 @@ class AuditLogger
 {
     public function __construct(private Request $request)
     {
+        // No body
     }
 
-    public function log(string $event, ?Authenticatable $user, ?string $auditableType, ?string $auditableId, array $payload = []): void
-    {
+    public function log(
+        string $event,
+        ?Authenticatable $user,
+        ?string $auditableType,
+        ?string $auditableId,
+        array $payload = []
+    ): void {
         AuditLog::create([
             'event' => $event,
             'auditable_type' => $auditableType,

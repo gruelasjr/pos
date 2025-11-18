@@ -19,16 +19,16 @@ class SaleItem extends Model
         'sale_id',
         'product_id',
         'sku',
-        'descripcion',
-        'cantidad',
-        'precio_unitario',
+        'description',
+        'quantity',
+        'unit_price',
         'descuento',
         'subtotal',
     ];
 
     protected $casts = [
-        'cantidad' => 'integer',
-        'precio_unitario' => 'decimal:2',
+        'quantity' => 'integer',
+        'unit_price' => 'decimal:2',
         'descuento' => 'decimal:2',
         'subtotal' => 'decimal:2',
     ];

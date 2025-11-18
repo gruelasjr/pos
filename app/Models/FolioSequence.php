@@ -11,8 +11,8 @@ class FolioSequence extends Model
 
     protected $fillable = [
         'warehouse_id',
-        'prefijo',
-        'consecutivo',
+        'prefix',
+        'sequence',
     ];
 
     public function warehouse()

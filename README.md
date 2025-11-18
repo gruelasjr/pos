@@ -4,41 +4,42 @@ POS Faro es una plataforma punto de venta (POS) web construida con Laravel 12, I
 
 ## Tabla de contenidos
 
-1. [Características principales](#características-principales)  
-2. [Arquitectura](#arquitectura)  
-3. [Requisitos previos](#requisitos-previos)  
-4. [Instalación y configuración](#instalación-y-configuración)  
-5. [Scripts útiles](#scripts-útiles)  
-6. [Flujos funcionales](#flujos-funcionales)  
-7. [Estructura de carpetas](#estructura-de-carpetas)  
-8. [Testing y aseguramiento de calidad](#testing-y-aseguramiento-de-calidad)  
-9. [Roadmap corto](#roadmap-corto)  
+1. [Características principales](#características-principales)
+2. [Arquitectura](#arquitectura)
+3. [Requisitos previos](#requisitos-previos)
+4. [Instalación y configuración](#instalación-y-configuración)
+5. [Scripts útiles](#scripts-útiles)
+6. [Flujos funcionales](#flujos-funcionales)
+7. [Estructura de carpetas](#estructura-de-carpetas)
+8. [Testing y aseguramiento de calidad](#testing-y-aseguramiento-de-calidad)
+9. [Roadmap corto](#roadmap-corto)
 
 ## Características principales
 
-- **Inventario multi‑almacén**: seguimiento de existencias por sucursal con puntos de reorden, bloqueo de SKU reservados y fechas de agotamiento automáticas.  
-- **POS con carritos simultáneos**: cada vendedor puede operar múltiples carritos identificados por una clave visual; se soportan descuentos por renglón o totales, pagos mixtos y generación de recibos.  
-- **Catálogos completos**: CRUD para almacenes, tipos de producto y productos con búsqueda, filtros e integración futura para captura por cámara.  
-- **Clientes y marketing**: registro rápido, opt-in de campañas y ligas de auto-registro desde los recibos.  
-- **Reportes operativos**: dashboards diarios/semanales/mensuales, comparativos y ranking por vendedor, con exportaciones y filtros por almacén/tipo de producto.  
-- **Observabilidad y seguridad**: logging estructurado JSON con `request-id`, RBAC vía Equidna Swift Auth, tokens Bearer emitidos con Laravel Sanctum, auditoría de cambios y colas para envíos de recibo.  
+-   **Inventario multi‑almacén**: seguimiento de existencias por sucursal con puntos de reorden, bloqueo de SKU reservados y fechas de agotamiento automáticas.
+-   **POS con carritos simultáneos**: cada vendedor puede operar múltiples carritos identificados por una clave visual; se soportan descuentos por renglón o totales, pagos mixtos y generación de recibos.
+-   **Catálogos completos**: CRUD para almacenes, tipos de producto y productos con búsqueda, filtros e integración futura para captura por cámara.
+-   **Clientes y marketing**: registro rápido, opt-in de campañas y ligas de auto-registro desde los recibos.
+-   **Reportes operativos**: dashboards diarios/semanales/mensuales, comparativos y ranking por vendedor, con exportaciones y filtros por almacén/tipo de producto.
+-   **Observabilidad y seguridad**: logging estructurado JSON con `request-id`, RBAC vía Equidna Swift Auth, tokens Bearer emitidos por el proveedor de tokens del proyecto (Swift Auth o mecanismo equivalente), auditoría de cambios y colas para envíos de recibo.
 
 ## Arquitectura
 
-- **Backend**: Laravel 12 (PHP 8.3), base de datos MySQL 8 (InnoDB, utf8mb4, strict).  
-- **Frontend**: Inertia.js + React 18, TailwindCSS 3, HeroUI, Chart.js, Zustand para estado.  
-- **Autenticación**: Equidna SwiftAuth gestiona acciones/roles y sesiones, mientras que Sanctum expone tokens Bearer para el API.  
-- **Toolkit de respuestas**: `equidna/toolkit` unifica el formato `{ status, message, data, errors }` configurable según contexto.  
-- **Colas y jobs**: receipts enviados mediante jobs asincrónicos (`SendReceiptJob`).  
-- **Internacionalización**: ES-MX como idioma predeterminado; copia y UI listas para llaves i18n futuras.  
+-   **Backend**: Laravel 12 (PHP 8.3), base de datos MySQL 8 (InnoDB, utf8mb4, strict).
+-   **Frontend**: Inertia.js + React 18, TailwindCSS 3, HeroUI, Chart.js, Zustand para estado.
+-   **Autenticación**: Equidna SwiftAuth gestiona acciones/roles y sesiones; el proyecto usa el proveedor de tokens integrado (Swift Auth) para la emisión/validación de tokens Bearer en el API.
+-   **Toolkit de respuestas**: `equidna/toolkit` unifica el formato `{ status, message, data, errors }` configurable según contexto.
+-   **Colas y jobs**: receipts enviados mediante jobs asincrónicos (`SendReceiptJob`).
+-   **Internacionalización**: ES-MX como idioma predeterminado; copia y UI listas para llaves i18n futuras.
 
 ## Requisitos previos
 
-- PHP 8.3+ con extensiones: OpenSSL, PDO, Mbstring, Tokenizer, XML, Ctype, JSON, BCMath, Fileinfo, SQLite (para correr pruebas en memoria).  
-- Composer 2.5+  
-- Node.js 20.19+ (o >=22.12) y npm 10+  
-- MySQL 8.x  
-- Redis opcional para colas (en local se usa base de datos).  
+-- PHP 8.3+ con extensiones: OpenSSL, PDO, Mbstring, Tokenizer, XML, Ctype, JSON, BCMath, Fileinfo.
+
+-   Composer 2.5+
+-   Node.js 20.19+ (o >=22.12) y npm 10+
+-   MySQL 8.x
+-   Redis opcional para colas (en local se usa base de datos).
 
 ## Instalación y configuración
 
@@ -63,39 +64,43 @@ npm run build    # o npm run dev para entorno local
 
 ### Configuración adicional
 
-- `AUTH_GUARD=sanctum` ya está establecido para proteger el API con tokens Bearer.  
-- `LOG_STACK=daily` escribe logs JSON estructurados en `storage/logs/laravel.log`.  
-- Variables para almacenamiento y notificaciones (`MEDIA_DISK`, `SMS_FROM`, `MAIL_*`) están definidas en `.env.example`. Ajusta según tu infraestructura (S3, proveedor SMTP, gateway SMS real).  
+-   `AUTH_GUARD=swift` (u otro guard configurado) protege el API con el guard/token provider configurado.
+-   `LOG_STACK=daily` escribe logs JSON estructurados en `storage/logs/laravel.log`.
+-   Variables para almacenamiento y notificaciones (`MEDIA_DISK`, `SMS_FROM`, `MAIL_*`) están definidas en `.env.example`. Ajusta según tu infraestructura (S3, proveedor SMTP, gateway SMS real).
 
 ## Scripts útiles
 
-| Comando | Descripción |
-| --- | --- |
-| `composer setup` | Instala dependencias PHP, publica `.env`, genera key, migra y ejecuta build front. |
-| `composer dev` | Inicia servidor artisan, listener de colas, visor de logs (pail) y Vite en paralelo. |
-| `composer test` / `php artisan test` | Limpia caché de config, ejecuta suite de PHPUnit. |
-| `npm run dev` | Vite en modo hot reload. |
-| `npm run build` | Genera assets para producción. |
+| Comando                              | Descripción                                                                          |
+| ------------------------------------ | ------------------------------------------------------------------------------------ |
+| `composer setup`                     | Instala dependencias PHP, publica `.env`, genera key, migra y ejecuta build front.   |
+| `composer dev`                       | Inicia servidor artisan, listener de colas, visor de logs (pail) y Vite en paralelo. |
+| `composer test` / `php artisan test` | (Removed) Tests are not included in this workspace.                                  |
+| `npm run dev`                        | Vite en modo hot reload.                                                             |
+| `npm run build`                      | Genera assets para producción.                                                       |
 
 ## Flujos funcionales
 
 ### Autenticación / Usuarios
-- `POST /api/v1/auth/login` con email/password devuelve token Bearer.  
-- UI: pantalla de login (HeroUI) almacena sesión en localStorage vía Zustand.
+
+-   `POST /api/v1/auth/login` con email/password devuelve token Bearer.
+-   UI: pantalla de login (HeroUI) almacena sesión en localStorage vía Zustand.
 
 ### POS
-1. Vendedor crea carrito indicando almacén.  
-2. Añade productos por SKU o búsqueda; se puede editar cantidad/desc descuentos.  
-3. Aplica descuentos globales y elige método de pago (efectivo, tarjeta, transferencia, mixto con desglose).  
-4. Realiza checkout (`POST /carts/{id}/checkout`) con transacción que descuenta inventario, genera venta, items y job de recibo.  
+
+1. Vendedor crea carrito indicando almacén.
+2. Añade productos por SKU o búsqueda; se puede editar cantidad/desc descuentos.
+3. Aplica descuentos globales y elige método de pago (efectivo, tarjeta, transferencia, mixto con desglose).
+4. Realiza checkout (`POST /carts/{id}/checkout`) con transacción que descuenta inventario, genera venta, items y job de recibo.
 
 ### Catálogos & Clientes
-- CRUD de almacenes, tipos y productos desde UI (Inertia) con tablas HeroUI.  
-- Clientes: listado con búsqueda, registro manual y endpoint `POST /customers/register` percibido desde recibo.  
+
+-   CRUD de almacenes, tipos y productos desde UI (Inertia) con tablas HeroUI.
+-   Clientes: listado con búsqueda, registro manual y endpoint `POST /customers/register` percibido desde recibo.
 
 ### Reportes
-- Dashboard inicial muestra KPIs diarios, alertas de inventario y ranking de vendedores.  
-- Pantallas dedicadas para reportes diarios/semanales/mensuales y por vendedor con gráficas (Chart.js) y tablas exportables.  
+
+-   Dashboard inicial muestra KPIs diarios, alertas de inventario y ranking de vendedores.
+-   Pantallas dedicadas para reportes diarios/semanales/mensuales y por vendedor con gráficas (Chart.js) y tablas exportables.
 
 ## Estructura de carpetas
 
@@ -124,19 +129,16 @@ resources/js/
 
 ## Testing y aseguramiento de calidad
 
-- **Unit**: `tests/Unit/SkuGeneratorTest.php` garantiza que el servicio evita colisiones y respeta rangos.  
-- **Feature**:
-  - `tests/Feature/Auth/LoginTest.php` valida el flujo de login y emisión del token.  
-  - `tests/Feature/CheckoutFlowTest.php` cubre carrito → checkout, actualización de inventario y generación de venta/folio.  
-- Las pruebas usan SQLite en memoria (`phpunit.xml`). Habilita la extensión `pdo_sqlite` en tu entorno para ejecutarlas (`php artisan test`).  
-- Logging JSON + request-id facilita monitoreo en producción; `SendReceiptJob` corre en cola `database` por defecto.  
+Automated tests and test tooling have been removed from this workspace. Tests may be reintroduced later; consult the project maintainers for the current testing strategy.
+
+Logging JSON + request-id facilita monitoreo en producción; `SendReceiptJob` corre en cola `database` por defecto.
 
 ## Roadmap corto
 
-1. **Integraciones reales**: conectar SMTP y proveedor SMS real; mover `Mailer`/`SmsProvider` a drivers configurables.  
-2. **Puntos/marketing**: implementar página `/r/{token}` para campañas y registro auto gestionado.  
-3. **Devoluciones y notas de crédito** (v1.1+ según requisitos).  
-4. **App móvil**: reutilizar API /auth y catálogos para cliente móvil React Native/Flutter.  
+1. **Integraciones reales**: conectar SMTP y proveedor SMS real; mover `Mailer`/`SmsProvider` a drivers configurables.
+2. **Puntos/marketing**: implementar página `/r/{token}` para campañas y registro auto gestionado.
+3. **Devoluciones y notas de crédito** (v1.1+ según requisitos).
+4. **App móvil**: reutilizar API /auth y catálogos para cliente móvil React Native/Flutter.
 
 ---
 

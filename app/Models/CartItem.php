@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Cart item model.
+ *
+ * PHP 8.1+
+ *
+ * @package   App\Models
+ */
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -18,15 +26,15 @@ class CartItem extends Model
         'id',
         'cart_id',
         'product_id',
-        'cantidad',
-        'precio_unitario',
+        'quantity',
+        'unit_price',
         'descuento',
         'subtotal',
     ];
 
     protected $casts = [
-        'cantidad' => 'integer',
-        'precio_unitario' => 'decimal:2',
+        'quantity' => 'integer',
+        'unit_price' => 'decimal:2',
         'descuento' => 'decimal:2',
         'subtotal' => 'decimal:2',
     ];
@@ -50,7 +58,7 @@ class CartItem extends Model
 
     public function computeSubtotal(): void
     {
-        $subtotal = ($this->precio_unitario * $this->cantidad) - $this->descuento;
+        $subtotal = ($this->unit_price * $this->quantity) - $this->descuento;
         $this->subtotal = max(0, $subtotal);
     }
 }

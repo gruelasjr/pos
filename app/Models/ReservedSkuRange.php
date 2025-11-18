@@ -15,11 +15,11 @@ class ReservedSkuRange extends Model
 
     protected $fillable = [
         'id',
-        'prefijo',
-        'desde',
-        'hasta',
-        'usado_hasta',
-        'proposito',
+        'prefix',
+        'from',
+        'to',
+        'used_up_to',
+        'purpose',
     ];
 
     protected static function booted(): void
@@ -31,12 +31,12 @@ class ReservedSkuRange extends Model
 
     public function nextSku(): ?string
     {
-        $next = $this->usado_hasta ? $this->usado_hasta + 1 : $this->desde;
+        $next = $this->used_up_to ? $this->used_up_to + 1 : $this->from;
 
-        if ($next > $this->hasta) {
+        if ($next > $this->to) {
             return null;
         }
 
-        return ($this->prefijo ?? '') . str_pad((string) $next, 6, '0', STR_PAD_LEFT);
+        return ($this->prefix ?? '') . str_pad((string) $next, 6, '0', STR_PAD_LEFT);
     }
 }

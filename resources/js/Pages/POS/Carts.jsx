@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 import {
     Button,
     Card,
@@ -8,29 +8,29 @@ import {
     SelectItem,
     Tabs,
     Tab,
-} from '@heroui/react';
-import AppLayout from '../../Layouts/AppLayout';
-import useApi from '../../hooks/useApi';
-import { formatCurrency } from '../../utils/formatters';
+} from "@heroui/react";
+import AppLayout from "../../Layouts/AppLayout";
+import useApi from "../../hooks/useApi";
+import { formatCurrency } from "../../utils/formatters";
 
 const CartsPage = () => {
     const api = useApi();
     const [carts, setCarts] = useState([]);
     const [warehouses, setWarehouses] = useState([]);
     const [selectedCart, setSelectedCart] = useState(null);
-    const [productQuery, setProductQuery] = useState('');
+    const [productQuery, setProductQuery] = useState("");
     const [products, setProducts] = useState([]);
-    const [payment, setPayment] = useState({ metodo_pago: 'efectivo' });
+    const [payment, setPayment] = useState({ payment_method: "cash" });
 
     const loadCarts = async () => {
-        const { data } = await api.get('carts', { per_page: 50 });
+        const { data } = await api.get("carts", { per_page: 50 });
         setCarts(data);
         setSelectedCart((prev) => prev || data[0]);
     };
 
     useEffect(() => {
         const bootstrap = async () => {
-            const [warehouseRes] = await Promise.all([api.get('warehouses')]);
+            const [warehouseRes] = await Promise.all([api.get("warehouses")]);
             setWarehouses(warehouseRes.data);
             await loadCarts();
         };
@@ -40,7 +40,10 @@ const CartsPage = () => {
     useEffect(() => {
         const handler = setTimeout(async () => {
             if (productQuery.length === 0) return;
-            const { data } = await api.get('products', { query: productQuery, per_page: 5 });
+            const { data } = await api.get("products", {
+                query: productQuery,
+                per_page: 5,
+            });
             setProducts(data);
         }, 300);
 
@@ -48,7 +51,7 @@ const CartsPage = () => {
     }, [productQuery]);
 
     const createCart = async (warehouseId) => {
-        const { data } = await api.post('carts', { almacen_id: warehouseId });
+        const { data } = await api.post("carts", { warehouse_id: warehouseId });
         await loadCarts();
         setSelectedCart(data);
     };
@@ -56,39 +59,47 @@ const CartsPage = () => {
     const addItem = async (productId) => {
         if (!selectedCart) return;
         const { data } = await api.post(`carts/${selectedCart.id}/items`, {
-            producto_id: productId,
-            cantidad: 1,
+            product_id: productId,
+            quantity: 1,
         });
         updateCartState(data);
     };
 
-    const updateItem = async (itemId, cantidad) => {
-        const { data } = await api.patch(`carts/${selectedCart.id}/items/${itemId}`, {
-            cantidad,
-        });
+    const updateItem = async (itemId, quantity) => {
+        const { data } = await api.patch(
+            `carts/${selectedCart.id}/items/${itemId}`,
+            {
+                quantity,
+            }
+        );
         updateCartState(data);
     };
 
     const applyDiscount = async (value) => {
         const { data } = await api.patch(`carts/${selectedCart.id}`, {
-            descuento_total: Number(value),
+            discount_total: Number(value),
         });
         updateCartState(data);
     };
 
     const checkout = async () => {
         const payload = {
-            metodo_pago: payment.metodo_pago,
-            pagos_detalle: payment.detalle || null,
+            payment_method: payment.payment_method,
+            payment_details: payment.details || null,
         };
-        const { data } = await api.post(`carts/${selectedCart.id}/checkout`, payload);
-        setPayment({ metodo_pago: 'efectivo' });
+        const { data } = await api.post(
+            `carts/${selectedCart.id}/checkout`,
+            payload
+        );
+        setPayment({ payment_method: "cash" });
         await loadCarts();
         alert(`Venta folio ${data.folio} confirmada`);
     };
 
     const updateCartState = (cart) => {
-        setCarts((current) => current.map((item) => (item.id === cart.id ? cart : item)));
+        setCarts((current) =>
+            current.map((item) => (item.id === cart.id ? cart : item))
+        );
         setSelectedCart(cart);
     };
 
@@ -98,7 +109,9 @@ const CartsPage = () => {
                 <div className="lg:col-span-1 space-y-4">
                     <Card>
                         <CardBody className="space-y-3">
-                            <p className="font-semibold text-slate-700">Crear carrito</p>
+                            <p className="font-semibold text-slate-700">
+                                Crear carrito
+                            </p>
                             <Select
                                 label="Almacén"
                                 placeholder="Selecciona"
@@ -108,8 +121,11 @@ const CartsPage = () => {
                                 }}
                             >
                                 {warehouses.map((warehouse) => (
-                                    <SelectItem key={warehouse.id} textValue={warehouse.nombre}>
-                                        {warehouse.nombre}
+                                    <SelectItem
+                                        key={warehouse.id}
+                                        textValue={warehouse.name}
+                                    >
+                                        {warehouse.name}
                                     </SelectItem>
                                 ))}
                             </Select>
@@ -122,13 +138,17 @@ const CartsPage = () => {
                                 isPressable
                                 onPress={() => setSelectedCart(cart)}
                                 className={
-                                    selectedCart?.id === cart.id ? 'border-blue-500 border-2' : ''
+                                    selectedCart?.id === cart.id
+                                        ? "border-blue-500 border-2"
+                                        : ""
                                 }
                             >
                                 <CardBody>
-                                    <p className="text-sm text-slate-500">{cart.clave_visual}</p>
+                                    <p className="text-sm text-slate-500">
+                                        {cart.visual_key}
+                                    </p>
                                     <p className="text-lg font-semibold">
-                                        {formatCurrency(cart.total_neto)}
+                                        {formatCurrency(cart.total_net)}
                                     </p>
                                     <p className="text-xs text-slate-400">
                                         {cart.items?.length || 0} artículos
@@ -145,16 +165,20 @@ const CartsPage = () => {
                                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                                     <div>
                                         <p className="text-sm text-slate-500">
-                                            {selectedCart.warehouse?.nombre}
+                                            {selectedCart.warehouse?.name}
                                         </p>
                                         <h2 className="text-2xl font-semibold">
-                                            Carrito {selectedCart.clave_visual}
+                                            Carrito {selectedCart.visual_key}
                                         </h2>
                                     </div>
                                     <div className="text-right">
-                                        <p className="text-sm text-slate-500">Total neto</p>
+                                        <p className="text-sm text-slate-500">
+                                            Total neto
+                                        </p>
                                         <p className="text-3xl font-bold text-blue-600">
-                                            {formatCurrency(selectedCart.total_neto)}
+                                            {formatCurrency(
+                                                selectedCart.total_net
+                                            )}
                                         </p>
                                     </div>
                                 </div>
@@ -164,7 +188,9 @@ const CartsPage = () => {
                                         label="Buscar producto"
                                         placeholder="SKU o descripción"
                                         value={productQuery}
-                                        onChange={(e) => setProductQuery(e.target.value)}
+                                        onChange={(e) =>
+                                            setProductQuery(e.target.value)
+                                        }
                                     />
                                     <Select
                                         label="Resultados"
@@ -176,7 +202,8 @@ const CartsPage = () => {
                                     >
                                         {products.map((product) => (
                                             <SelectItem key={product.id}>
-                                                {product.descripcion_corta} ({product.sku})
+                                                {product.short_description} (
+                                                {product.sku})
                                             </SelectItem>
                                         ))}
                                     </Select>
@@ -189,20 +216,37 @@ const CartsPage = () => {
                                             className="flex items-center justify-between bg-slate-50 rounded-lg px-3 py-2"
                                         >
                                             <div>
-                                                <p className="font-medium">{item.product.descripcion_corta}</p>
+                                                <p className="font-medium">
+                                                    {
+                                                        item.product
+                                                            .short_description
+                                                    }
+                                                </p>
                                                 <p className="text-xs text-slate-500">
-                                                    {formatCurrency(item.precio_unitario)} / SKU {item.product.sku}
+                                                    {formatCurrency(
+                                                        item.unit_price
+                                                    )}{" "}
+                                                    / SKU {item.product.sku}
                                                 </p>
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <Input
                                                     size="sm"
                                                     type="number"
-                                                    value={item.cantidad}
-                                                    onChange={(e) => updateItem(item.id, Number(e.target.value))}
+                                                    value={item.quantity}
+                                                    onChange={(e) =>
+                                                        updateItem(
+                                                            item.id,
+                                                            Number(
+                                                                e.target.value
+                                                            )
+                                                        )
+                                                    }
                                                 />
                                                 <p className="text-sm font-semibold">
-                                                    {formatCurrency(item.subtotal)}
+                                                    {formatCurrency(
+                                                        item.subtotal
+                                                    )}
                                                 </p>
                                             </div>
                                         </div>
@@ -213,32 +257,48 @@ const CartsPage = () => {
                                     <Input
                                         type="number"
                                         label="Descuento total"
-                                        value={selectedCart.descuento_total}
-                                        onChange={(e) => applyDiscount(e.target.value)}
+                                        value={selectedCart.discount_total}
+                                        onChange={(e) =>
+                                            applyDiscount(e.target.value)
+                                        }
                                     />
                                     <Select
                                         label="Método de pago"
-                                        selectedKeys={[payment.metodo_pago]}
+                                        selectedKeys={[payment.payment_method]}
                                         onSelectionChange={(keys) =>
                                             setPayment((prev) => ({
                                                 ...prev,
-                                                metodo_pago: extractKey(keys),
+                                                payment_method:
+                                                    extractKey(keys),
                                             }))
                                         }
                                     >
-                                        {['efectivo', 'tarjeta', 'transferencia', 'mixto'].map((method) => (
-                                            <SelectItem key={method}>{method}</SelectItem>
+                                        {[
+                                            { key: "cash", label: "efectivo" },
+                                            { key: "card", label: "tarjeta" },
+                                            {
+                                                key: "transfer",
+                                                label: "transferencia",
+                                            },
+                                            { key: "mixed", label: "mixto" },
+                                        ].map((method) => (
+                                            <SelectItem key={method.key}>
+                                                {method.label}
+                                            </SelectItem>
                                         ))}
                                     </Select>
                                 </div>
 
                                 <Button color="success" onPress={checkout}>
-                                    Confirmar pago · {formatCurrency(selectedCart.total_neto)}
+                                    Confirmar pago ·{" "}
+                                    {formatCurrency(selectedCart.total_neto)}
                                 </Button>
                             </CardBody>
                         </Card>
                     ) : (
-                        <p className="text-sm text-slate-500">Selecciona un carrito para comenzar.</p>
+                        <p className="text-sm text-slate-500">
+                            Selecciona un carrito para comenzar.
+                        </p>
                     )}
                 </div>
             </div>
@@ -248,7 +308,7 @@ const CartsPage = () => {
 
 const extractKey = (keys) => {
     if (!keys) return null;
-    if (typeof keys === 'string') return keys;
+    if (typeof keys === "string") return keys;
     if (Array.isArray(keys)) return keys[0];
     return Array.from(keys)[0];
 };

@@ -13,12 +13,18 @@ class ProductController extends BaseApiController
         $query = Product::query()
             ->with('type')
             ->search($request->string('query'))
-            ->when($request->filled('tipo_id'), fn ($q) => $q->where('product_type_id', $request->input('tipo_id')))
-            ->when($request->filled('almacen_id'), function ($q) use ($request) {
-                $warehouseId = $request->input('almacen_id');
-                $q->withSum(['inventories as existencias' => fn ($sub) => $sub->where('warehouse_id', $warehouseId)], 'existencias');
+            ->when(
+                $request->filled('product_type_id'),
+                fn($q) => $q->where('product_type_id', $request->input('product_type_id'))
+            )
+            ->when($request->filled('warehouse_id'), function ($q) use ($request) {
+                $warehouseId = $request->input('warehouse_id');
+                $q->withSum(
+                    ['inventories as stock' => fn($sub) => $sub->where('warehouse_id', $warehouseId)],
+                    'stock'
+                );
             })
-            ->orderBy('descripcion_corta');
+            ->orderBy('short_description');
 
         $products = $query->paginate($request->integer('per_page', 25));
 
@@ -29,14 +35,14 @@ class ProductController extends BaseApiController
     {
         $data = $request->validate([
             'sku' => ['nullable', 'string', 'max:64', 'unique:products,sku'],
-            'descripcion_corta' => ['required', 'string', 'max:160'],
-            'descripcion_larga' => ['nullable', 'string'],
-            'foto_url' => ['nullable', 'string'],
-            'precio_compra' => ['required', 'numeric', 'min:0'],
-            'precio_venta' => ['required', 'numeric', 'min:0'],
-            'fecha_ingreso' => ['required', 'date'],
+            'short_description' => ['required', 'string', 'max:160'],
+            'long_description' => ['nullable', 'string'],
+            'photo_url' => ['nullable', 'string'],
+            'purchase_price' => ['required', 'numeric', 'min:0'],
+            'sale_price' => ['required', 'numeric', 'min:0'],
+            'entry_date' => ['required', 'date'],
             'product_type_id' => ['required', 'exists:product_types,id'],
-            'activo' => ['boolean'],
+            'active' => ['boolean'],
         ]);
 
         if (empty($data['sku'])) {
@@ -56,15 +62,15 @@ class ProductController extends BaseApiController
     public function update(Request $request, Product $product)
     {
         $data = $request->validate([
-            'descripcion_corta' => ['sometimes', 'string', 'max:160'],
-            'descripcion_larga' => ['nullable', 'string'],
-            'foto_url' => ['nullable', 'string'],
-            'precio_compra' => ['sometimes', 'numeric', 'min:0'],
-            'precio_venta' => ['sometimes', 'numeric', 'min:0'],
-            'fecha_ingreso' => ['sometimes', 'date'],
-            'fecha_fin_stock' => ['nullable', 'date'],
+            'short_description' => ['sometimes', 'string', 'max:160'],
+            'long_description' => ['nullable', 'string'],
+            'photo_url' => ['nullable', 'string'],
+            'purchase_price' => ['sometimes', 'numeric', 'min:0'],
+            'sale_price' => ['sometimes', 'numeric', 'min:0'],
+            'entry_date' => ['sometimes', 'date'],
+            'stock_end_date' => ['nullable', 'date'],
             'product_type_id' => ['sometimes', 'exists:product_types,id'],
-            'activo' => ['boolean'],
+            'active' => ['boolean'],
         ]);
 
         $product->update($data);

@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Application User model.
+ *
+ * Extends the Swift Auth base user to add application-specific behavior
+ * such as role helpers and UUID generation on creation.
+ *
+ * PHP 8.1+
+ *
+ * @package App\Models
+ */
+
 namespace App\Models;
 
 use Equidna\SwifthAuth\Models\User as SwiftUser;
@@ -8,12 +19,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
-use Laravel\Sanctum\HasApiTokens;
 
 class User extends SwiftUser
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasFactory;
+    use Notifiable;
 
     protected $table = 'users';
 
@@ -59,7 +70,7 @@ class User extends SwiftUser
     {
         $roles = Arr::wrap($roles);
 
-        return $this->roles->contains(fn (Role $role) => in_array($role->slug, $roles, true));
+        return $this->roles->contains(fn(Role $role) => in_array($role->slug, $roles, true));
     }
 
     public function availableActions(): array

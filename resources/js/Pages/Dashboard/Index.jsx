@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
-import AppLayout from '../../Layouts/AppLayout';
-import StatCard from '../../components/StatCard';
-import DataTable from '../../components/DataTable';
-import useApi from '../../hooks/useApi';
-import { formatCurrency, formatDate } from '../../utils/formatters';
+import { useEffect, useState } from "react";
+import AppLayout from "../../Layouts/AppLayout";
+import StatCard from "../../components/StatCard";
+import DataTable from "../../components/DataTable";
+import useApi from "../../hooks/useApi";
+import { formatCurrency, formatDate } from "../../utils/formatters";
 
 const Dashboard = () => {
     const api = useApi();
@@ -16,17 +16,20 @@ const Dashboard = () => {
     useEffect(() => {
         const load = async () => {
             try {
-                const [dailyRes, weeklyRes, sellerRes, inventoryRes] = await Promise.all([
-                    api.get('reports/daily'),
-                    api.get('reports/weekly'),
-                    api.get('reports/by-seller'),
-                    api.get('inventory', { per_page: 5 }),
-                ]);
+                const [dailyRes, weeklyRes, sellerRes, inventoryRes] =
+                    await Promise.all([
+                        api.get("reports/daily"),
+                        api.get("reports/weekly"),
+                        api.get("reports/by-seller"),
+                        api.get("inventory", { per_page: 5 }),
+                    ]);
                 setDaily(dailyRes.data);
                 setWeekly(weeklyRes.data);
                 setSellers(sellerRes.data);
                 setAlerts(
-                    inventoryRes.data.filter((item) => item.existencias <= item.punto_reorden),
+                    inventoryRes.data.filter(
+                        (item) => item.stock <= item.reorder_point
+                    )
                 );
             } finally {
                 setLoading(false);
@@ -39,7 +42,9 @@ const Dashboard = () => {
     if (loading) {
         return (
             <AppLayout title="Dashboard">
-                <p className="text-sm text-slate-500">Cargando indicadores...</p>
+                <p className="text-sm text-slate-500">
+                    Cargando indicadores...
+                </p>
             </AppLayout>
         );
     }
@@ -48,14 +53,14 @@ const Dashboard = () => {
         <AppLayout title="Dashboard">
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <StatCard
-                    label={`Ventas ${formatDate(daily?.fecha)}`}
-                    value={formatCurrency(daily?.total_neto || 0)}
-                    hint={`${daily?.ventas || 0} tickets`}
+                    label={`Ventas ${formatDate(daily?.date)}`}
+                    value={formatCurrency(daily?.total_net || 0)}
+                    hint={`${daily?.sales || 0} tickets`}
                 />
                 <StatCard
                     label="Semana (MXN)"
                     value={formatCurrency(weekly?.actual?.total || 0)}
-                    hint={`${weekly?.actual?.ventas || 0} ventas`}
+                    hint={`${weekly?.actual?.sales || 0} ventas`}
                     trend={computeTrend(weekly)}
                 />
                 <StatCard
@@ -72,16 +77,18 @@ const Dashboard = () => {
 
             <div className="mt-8 grid gap-6 lg:grid-cols-2">
                 <div>
-                    <h2 className="text-lg font-semibold text-slate-800 mb-3">Top vendedores</h2>
+                    <h2 className="text-lg font-semibold text-slate-800 mb-3">
+                        Top vendedores
+                    </h2>
                     <DataTable
                         columns={[
-                            { key: 'seller_name', title: 'Vendedor' },
+                            { key: "seller_name", title: "Vendedor" },
                             {
-                                key: 'total',
-                                title: 'Total vendido',
+                                key: "total",
+                                title: "Total vendido",
                                 render: (value) => formatCurrency(value),
                             },
-                            { key: 'ventas', title: 'Tickets' },
+                            { key: "ventas", title: "Tickets" },
                         ]}
                         data={sellers}
                         emptyMessage="Aún no hay ventas."
@@ -94,17 +101,18 @@ const Dashboard = () => {
                     <DataTable
                         columns={[
                             {
-                                key: 'product',
-                                title: 'Producto',
-                                render: (_, row) => row.product.descripcion_corta,
+                                key: "product",
+                                title: "Producto",
+                                render: (_, row) =>
+                                    row.product.short_description,
                             },
                             {
-                                key: 'warehouse',
-                                title: 'Almacén',
-                                render: (_, row) => row.warehouse.nombre,
+                                key: "warehouse",
+                                title: "Almacén",
+                                render: (_, row) => row.warehouse.name,
                             },
-                            { key: 'existencias', title: 'Existencias' },
-                            { key: 'punto_reorden', title: 'Punto de reorden' },
+                            { key: "stock", title: "Existencias" },
+                            { key: "reorder_point", title: "Punto de reorden" },
                         ]}
                         data={alerts}
                         emptyMessage="Sin alertas activas."

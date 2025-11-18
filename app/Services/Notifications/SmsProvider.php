@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * SMS notifications provider.
+ *
+ * PHP 8.1+
+ *
+ * @package   App\Services\Notifications
+ */
+
 namespace App\Services\Notifications;
 
 use Illuminate\Support\Facades\Log;

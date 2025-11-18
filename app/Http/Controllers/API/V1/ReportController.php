@@ -10,56 +10,62 @@ class ReportController extends BaseApiController
 {
     public function daily(Request $request)
     {
-        $date = Carbon::parse($request->input('fecha', now()->toDateString()));
+        $date = Carbon::parse($request->input('date', now()->toDateString()));
         $query = $this->baseQuery($request)
-            ->whereDate('pagado_en', $date->toDateString());
+            ->whereDate('paid_at', $date->toDateString());
 
         return $this->success('Reporte diario', [
-            'fecha' => $date->toDateString(),
-            'total_bruto' => $query->sum('total_bruto'),
-            'total_neto' => $query->sum('total_neto'),
-            'ventas' => $query->count(),
+            'date' => $date->toDateString(),
+            'total_gross' => $query->sum('total_gross'),
+            'total_net' => $query->sum('total_net'),
+            'sales' => $query->count(),
         ]);
     }
 
     public function weekly(Request $request)
     {
-        $weekStart = Carbon::parse($request->input('semana', now()->startOfWeek()));
+        $weekStart = Carbon::parse($request->input('week', now()->startOfWeek()));
         $current = $this->baseQuery($request)
-            ->whereBetween('pagado_en', [$weekStart, (clone $weekStart)->endOfWeek()]);
+            ->whereBetween('paid_at', [$weekStart, (clone $weekStart)->endOfWeek()]);
         $previous = $this->baseQuery($request)
-            ->whereBetween('pagado_en', [(clone $weekStart)->subWeek(), (clone $weekStart)->subWeek()->endOfWeek()]);
+            ->whereBetween(
+                'paid_at',
+                [(clone $weekStart)->subWeek(), (clone $weekStart)->subWeek()->endOfWeek()]
+            );
 
         return $this->success('Reporte semanal', [
-            'semana' => $weekStart->toDateString(),
+            'week' => $weekStart->toDateString(),
             'actual' => [
-                'total' => $current->sum('total_neto'),
-                'ventas' => $current->count(),
+                'total' => $current->sum('total_net'),
+                'sales' => $current->count(),
             ],
             'anterior' => [
-                'total' => $previous->sum('total_neto'),
-                'ventas' => $previous->count(),
+                'total' => $previous->sum('total_net'),
+                'sales' => $previous->count(),
             ],
         ]);
     }
 
     public function monthly(Request $request)
     {
-        $monthStart = Carbon::parse($request->input('mes', now()->startOfMonth()));
+        $monthStart = Carbon::parse($request->input('month', now()->startOfMonth()));
         $current = $this->baseQuery($request)
-            ->whereBetween('pagado_en', [$monthStart, (clone $monthStart)->endOfMonth()]);
+            ->whereBetween('paid_at', [$monthStart, (clone $monthStart)->endOfMonth()]);
         $previous = $this->baseQuery($request)
-            ->whereBetween('pagado_en', [(clone $monthStart)->subMonth()->startOfMonth(), (clone $monthStart)->subMonth()->endOfMonth()]);
+            ->whereBetween(
+                'paid_at',
+                [(clone $monthStart)->subMonth()->startOfMonth(), (clone $monthStart)->subMonth()->endOfMonth()]
+            );
 
         return $this->success('Reporte mensual', [
-            'mes' => $monthStart->format('Y-m'),
+            'month' => $monthStart->format('Y-m'),
             'actual' => [
-                'total' => $current->sum('total_neto'),
-                'ventas' => $current->count(),
+                'total' => $current->sum('total_net'),
+                'sales' => $current->count(),
             ],
             'anterior' => [
-                'total' => $previous->sum('total_neto'),
-                'ventas' => $previous->count(),
+                'total' => $previous->sum('total_net'),
+                'sales' => $previous->count(),
             ],
         ]);
     }
@@ -68,7 +74,7 @@ class ReportController extends BaseApiController
     {
         $query = $this->baseQuery($request)
             ->join('users', 'sales.user_id', '=', 'users.id')
-            ->selectRaw('users.id as id, users.name as seller_name, SUM(sales.total_neto) as total, COUNT(*) as ventas')
+            ->selectRaw('users.id as id, users.name as seller_name, SUM(sales.total_net) as total, COUNT(*) as sales')
             ->groupBy('users.id', 'users.name');
 
         $data = $query->get();
@@ -79,10 +85,13 @@ class ReportController extends BaseApiController
     protected function baseQuery(Request $request)
     {
         return Sale::query()
-            ->when($request->filled('almacen_id'), fn ($q) => $q->where('warehouse_id', $request->input('almacen_id')))
-            ->when($request->filled('tipo_id'), function ($q) use ($request) {
+            ->when(
+                $request->filled('warehouse_id'),
+                fn($q) => $q->where('warehouse_id', $request->input('warehouse_id'))
+            )
+            ->when($request->filled('product_type_id'), function ($q) use ($request) {
                 $q->whereHas('items.product', function ($sub) use ($request) {
-                    $sub->where('product_type_id', $request->input('tipo_id'));
+                    $sub->where('product_type_id', $request->input('product_type_id'));
                 });
             });
     }

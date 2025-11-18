@@ -10,11 +10,11 @@ class SkuController extends BaseApiController
     public function reserve(Request $request, SkuGeneratorService $skuGenerator)
     {
         $data = $request->validate([
-            'cantidad' => ['required', 'integer', 'min:1', 'max:100'],
-            'prefijo' => ['nullable', 'string', 'max:16'],
+            'quantity' => ['required', 'integer', 'min:1', 'max:100'],
+            'prefix' => ['nullable', 'string', 'max:16'],
         ]);
 
-        $reservation = $skuGenerator->reserve($data['cantidad'], $data['prefijo'] ?? null);
+        $reservation = $skuGenerator->reserve($data['quantity'], $data['prefix'] ?? null);
 
         return $this->success('SKUs reservados', $reservation);
     }
