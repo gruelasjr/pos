@@ -13,11 +13,11 @@ class SaleController extends BaseApiController
     {
         $sales = Sale::query()
             ->with('customer', 'seller', 'warehouse')
-            ->when($request->filled('almacen_id'), fn ($q) => $q->where('warehouse_id', $request->input('almacen_id')))
-            ->when($request->filled('vendedor_id'), fn ($q) => $q->where('user_id', $request->input('vendedor_id')))
-            ->when($request->filled('desde'), fn ($q) => $q->whereDate('pagado_en', '>=', $request->input('desde')))
-            ->when($request->filled('hasta'), fn ($q) => $q->whereDate('pagado_en', '<=', $request->input('hasta')))
-            ->orderByDesc('pagado_en')
+            ->when($request->filled('warehouse_id'), fn($q) => $q->where('warehouse_id', $request->input('warehouse_id')))
+            ->when($request->filled('seller_id'), fn($q) => $q->where('user_id', $request->input('seller_id')))
+            ->when($request->filled('from'), fn($q) => $q->whereDate('paid_at', '>=', $request->input('from')))
+            ->when($request->filled('to'), fn($q) => $q->whereDate('paid_at', '<=', $request->input('to')))
+            ->orderByDesc('paid_at')
             ->paginate($request->integer('per_page', 25));
 
         return $this->paginated($sales, 'Ventas listadas');
@@ -31,8 +31,8 @@ class SaleController extends BaseApiController
     public function sendReceipt(Request $request, Sale $sale)
     {
         $data = $request->validate([
-            'canal' => ['required', Rule::in(['email', 'sms'])],
-            'destino' => ['required', 'string'],
+            'channel' => ['required', Rule::in(['email', 'sms'])],
+            'destination' => ['required', 'string'],
         ]);
 
         SendReceiptJob::dispatch($sale->id, $data);

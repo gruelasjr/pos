@@ -8,7 +8,6 @@ use App\Models\Product;
 use App\Models\User;
 use App\Models\Warehouse;
 use Illuminate\Database\DatabaseManager;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use RuntimeException;
 
 class CartService
@@ -27,23 +26,23 @@ class CartService
         return $cart->fresh()->load('warehouse', 'items.product', 'seller');
     }
 
-    public function addItem(Cart $cart, Product $product, int $cantidad, ?float $precio = null, ?float $descuento = null): Cart
+    public function addItem(Cart $cart, Product $product, int $quantity, ?float $price = null, ?float $discount = null): Cart
     {
-        return $this->db->transaction(function () use ($cart, $product, $cantidad, $precio, $descuento) {
+        return $this->db->transaction(function () use ($cart, $product, $quantity, $price, $discount) {
             /** @var CartItem|null $item */
             $item = $cart->items()->where('product_id', $product->id)->lockForUpdate()->first();
 
             if ($item) {
-                $item->cantidad += $cantidad;
+                $item->quantity += $quantity;
             } else {
                 $item = $cart->items()->make([
                     'product_id' => $product->id,
-                    'cantidad' => $cantidad,
+                    'quantity' => $quantity,
                 ]);
             }
 
-            $item->precio_unitario = $precio ?? $product->precio_venta;
-            $item->descuento = $descuento ?? $item->descuento ?? 0;
+            $item->unit_price = $price ?? $product->sale_price;
+            $item->discount = $discount ?? $item->discount ?? 0;
             $item->computeSubtotal();
             $item->save();
 
@@ -61,19 +60,19 @@ class CartService
             /** @var CartItem $item */
             $item = $cart->items()->lockForUpdate()->findOrFail($itemId);
 
-            if (isset($payload['cantidad'])) {
-                $item->cantidad = (int) $payload['cantidad'];
+            if (isset($payload['quantity'])) {
+                $item->quantity = (int) $payload['quantity'];
             }
 
-            if (isset($payload['descuento'])) {
-                $item->descuento = (float) $payload['descuento'];
+            if (isset($payload['discount'])) {
+                $item->discount = (float) $payload['discount'];
             }
 
-            if (isset($payload['precio_unitario'])) {
-                $item->precio_unitario = (float) $payload['precio_unitario'];
+            if (isset($payload['unit_price'])) {
+                $item->unit_price = (float) $payload['unit_price'];
             }
 
-            if ($item->cantidad <= 0) {
+            if ($item->quantity <= 0) {
                 throw new RuntimeException('cantidad_invalida');
             }
 

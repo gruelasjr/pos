@@ -35,11 +35,11 @@ class ReportController extends BaseApiController
 
         return $this->success('Reporte semanal', [
             'week' => $weekStart->toDateString(),
-            'actual' => [
+            'current' => [
                 'total' => $current->sum('total_net'),
                 'sales' => $current->count(),
             ],
-            'anterior' => [
+            'previous' => [
                 'total' => $previous->sum('total_net'),
                 'sales' => $previous->count(),
             ],
@@ -59,11 +59,11 @@ class ReportController extends BaseApiController
 
         return $this->success('Reporte mensual', [
             'month' => $monthStart->format('Y-m'),
-            'actual' => [
+            'current' => [
                 'total' => $current->sum('total_net'),
                 'sales' => $current->count(),
             ],
-            'anterior' => [
+            'previous' => [
                 'total' => $previous->sum('total_net'),
                 'sales' => $previous->count(),
             ],

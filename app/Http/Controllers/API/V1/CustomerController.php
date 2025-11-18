@@ -15,11 +15,11 @@ class CustomerController extends BaseApiController
             ->when($request->filled('query'), function ($q) use ($request) {
                 $term = $request->input('query');
                 $q->where(function ($search) use ($term) {
-                    $search->where('nombre', 'like', "%{$term}%")
+                    $search->where('name', 'like', "%{$term}%")
                         ->orWhere('email', 'like', "%{$term}%");
                 });
             })
-            ->orderBy('nombre')
+            ->orderBy('name')
             ->paginate($request->integer('per_page', 25));
 
         return $this->paginated($customers, 'Clientes listados');
@@ -28,10 +28,10 @@ class CustomerController extends BaseApiController
     public function store(Request $request): JsonResponse
     {
         $data = $request->validate([
-            'nombre' => ['required', 'string', 'max:160'],
+            'name' => ['required', 'string', 'max:160'],
             'email' => ['nullable', 'email', 'max:160', 'unique:customers,email'],
-            'telefono' => ['nullable', 'string', 'max:32'],
-            'acepta_marketing' => ['boolean'],
+            'phone' => ['nullable', 'string', 'max:32'],
+            'accepts_marketing' => ['boolean'],
         ]);
 
         $customer = Customer::create($data);
@@ -42,10 +42,10 @@ class CustomerController extends BaseApiController
     public function update(Request $request, Customer $customer): JsonResponse
     {
         $data = $request->validate([
-            'nombre' => ['sometimes', 'string', 'max:160'],
+            'name' => ['sometimes', 'string', 'max:160'],
             'email' => ['nullable', 'email', 'max:160', 'unique:customers,email,' . $customer->id . ',id'],
-            'telefono' => ['nullable', 'string', 'max:32'],
-            'acepta_marketing' => ['boolean'],
+            'phone' => ['nullable', 'string', 'max:32'],
+            'accepts_marketing' => ['boolean'],
         ]);
 
         $customer->update($data);
@@ -57,10 +57,10 @@ class CustomerController extends BaseApiController
     {
         $data = $request->validate([
             'token' => ['required', 'string'],
-            'nombre' => ['required', 'string', 'max:160'],
+            'name' => ['required', 'string', 'max:160'],
             'email' => ['nullable', 'email', 'max:160'],
-            'telefono' => ['nullable', 'string', 'max:32'],
-            'acepta_marketing' => ['boolean'],
+            'phone' => ['nullable', 'string', 'max:32'],
+            'accepts_marketing' => ['boolean'],
         ]);
 
         $sale = Sale::where('id', $data['token'])
@@ -73,10 +73,10 @@ class CustomerController extends BaseApiController
 
         $customer = $sale->customer_id ? Customer::find($sale->customer_id) : new Customer();
         $customer->fill([
-            'nombre' => $data['nombre'],
+            'name' => $data['name'],
             'email' => $data['email'] ?? $customer->email,
-            'telefono' => $data['telefono'] ?? $customer->telefono,
-            'acepta_marketing' => $data['acepta_marketing'] ?? false,
+            'phone' => $data['phone'] ?? $customer->phone,
+            'accepts_marketing' => $data['accepts_marketing'] ?? false,
         ]);
         $customer->save();
 

@@ -6,7 +6,6 @@ use App\Models\Inventory;
 use App\Models\Product;
 use App\Models\Warehouse;
 use Illuminate\Database\DatabaseManager;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use RuntimeException;
 
 class InventoryService
@@ -15,7 +14,7 @@ class InventoryService
     {
     }
 
-    public function adjust(string $productId, string $warehouseId, int $delta, ?string $motivo = null): Inventory
+    public function adjust(string $productId, string $warehouseId, int $delta, ?string $reason = null): Inventory
     {
         if ($delta === 0) {
             throw new RuntimeException('delta_invalido');
@@ -35,17 +34,17 @@ class InventoryService
                 $inventory = new Inventory([
                     'product_id' => $product->id,
                     'warehouse_id' => $warehouseId,
-                    'existencias' => 0,
-                    'punto_reorden' => 0,
+                    'stock' => 0,
+                    'reorder_point' => 0,
                 ]);
             }
 
-            $futureStock = $inventory->existencias + $delta;
+            $futureStock = $inventory->stock + $delta;
             if ($futureStock < 0) {
                 throw new RuntimeException('inventario_insuficiente');
             }
 
-            $inventory->existencias = $futureStock;
+            $inventory->stock = $futureStock;
             $inventory->save();
 
             $this->refreshProductStock($product);
@@ -54,7 +53,7 @@ class InventoryService
         });
     }
 
-    public function assertSufficient(Product $product, Warehouse $warehouse, int $cantidad): void
+    public function assertSufficient(Product $product, Warehouse $warehouse, int $quantity): void
     {
         /** @var Inventory|null $inventory */
         $inventory = $product->inventories()
@@ -62,20 +61,20 @@ class InventoryService
             ->lockForUpdate()
             ->first();
 
-        if (!$inventory || $inventory->existencias < $cantidad) {
+        if (!$inventory || $inventory->stock < $quantity) {
             throw new RuntimeException('inventario_insuficiente');
         }
     }
 
     protected function refreshProductStock(Product $product): void
     {
-        $totalStock = $product->inventories()->sum('existencias');
+        $totalStock = $product->inventories()->sum('stock');
 
-        if ($totalStock === 0 && !$product->fecha_fin_stock) {
-            $product->fecha_fin_stock = now();
+        if ($totalStock === 0 && !$product->stock_end_date) {
+            $product->stock_end_date = now();
             $product->save();
-        } elseif ($totalStock > 0 && $product->fecha_fin_stock) {
-            $product->fecha_fin_stock = null;
+        } elseif ($totalStock > 0 && $product->stock_end_date) {
+            $product->stock_end_date = null;
             $product->save();
         }
     }

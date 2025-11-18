@@ -30,14 +30,14 @@ class SendReceiptJob implements ShouldQueue
             throw new RuntimeException('venta_no_encontrada');
         }
 
-        $channel = $this->options['canal'] ?? 'email';
-        $destino = $this->options['destino'] ?? $sale->customer?->email;
+        $channel = $this->options['channel'] ?? 'email';
+        $destination = $this->options['destination'] ?? $sale->customer?->email;
         $receipt = $renderer->html($sale);
 
         if ($channel === 'sms') {
-            $smsProvider->send($destino ?? '', strip_tags($receipt));
+            $smsProvider->send($destination ?? '', strip_tags($receipt));
         } else {
-            $mailer->send($destino ?? '', 'Recibo de compra ' . $sale->folio, $receipt);
+            $mailer->send($destination ?? '', 'Recibo de compra ' . $sale->folio, $receipt);
         }
 
         Log::info('receipt_sent', [

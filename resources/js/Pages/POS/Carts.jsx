@@ -23,15 +23,16 @@ const CartsPage = () => {
     const [payment, setPayment] = useState({ payment_method: "cash" });
 
     const loadCarts = async () => {
-        const { data } = await api.get("carts", { per_page: 50 });
-        setCarts(data);
-        setSelectedCart((prev) => prev || data[0]);
+        const response = await api.carts.list({ per_page: 50 });
+        const items = response.data.items || response.data;
+        setCarts(items);
+        setSelectedCart((prev) => prev || items[0]);
     };
 
     useEffect(() => {
         const bootstrap = async () => {
-            const [warehouseRes] = await Promise.all([api.get("warehouses")]);
-            setWarehouses(warehouseRes.data);
+            const [warehouseRes] = await Promise.all([api.warehouses.list()]);
+            setWarehouses(warehouseRes.data.items || warehouseRes.data);
             await loadCarts();
         };
         bootstrap();
@@ -40,25 +41,25 @@ const CartsPage = () => {
     useEffect(() => {
         const handler = setTimeout(async () => {
             if (productQuery.length === 0) return;
-            const { data } = await api.get("products", {
+            const response = await api.products.list({
                 query: productQuery,
                 per_page: 5,
             });
-            setProducts(data);
+            setProducts(response.data.items || response.data);
         }, 300);
 
         return () => clearTimeout(handler);
     }, [productQuery]);
 
     const createCart = async (warehouseId) => {
-        const { data } = await api.post("carts", { warehouse_id: warehouseId });
+        const { data } = await api.carts.create({ warehouse_id: warehouseId });
         await loadCarts();
         setSelectedCart(data);
     };
 
     const addItem = async (productId) => {
         if (!selectedCart) return;
-        const { data } = await api.post(`carts/${selectedCart.id}/items`, {
+        const { data } = await api.carts.addItem(selectedCart.id, {
             product_id: productId,
             quantity: 1,
         });
@@ -66,17 +67,14 @@ const CartsPage = () => {
     };
 
     const updateItem = async (itemId, quantity) => {
-        const { data } = await api.patch(
-            `carts/${selectedCart.id}/items/${itemId}`,
-            {
-                quantity,
-            }
-        );
+        const { data } = await api.carts.updateItem(selectedCart.id, itemId, {
+            quantity,
+        });
         updateCartState(data);
     };
 
     const applyDiscount = async (value) => {
-        const { data } = await api.patch(`carts/${selectedCart.id}`, {
+        const { data } = await api.carts.update(selectedCart.id, {
             discount_total: Number(value),
         });
         updateCartState(data);
@@ -87,10 +85,7 @@ const CartsPage = () => {
             payment_method: payment.payment_method,
             payment_details: payment.details || null,
         };
-        const { data } = await api.post(
-            `carts/${selectedCart.id}/checkout`,
-            payload
-        );
+        const { data } = await api.carts.checkout(selectedCart.id, payload);
         setPayment({ payment_method: "cash" });
         await loadCarts();
         alert(`Venta folio ${data.folio} confirmada`);

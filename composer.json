@@ -11,6 +11,7 @@
     "require": {
         "php": "^8.3",
         "brick/money": "^0.10",
+        "equidna/laravel-toolkit": "^1.0",
         "equidna/swift-auth": "^1.0",
         "inertiajs/inertia-laravel": "^1.0",
         "laravel/framework": "^12.0",
@@ -18,6 +19,7 @@
         "tightenco/ziggy": "^2.1"
     },
     "require-dev": {
+        "larastan/larastan": "^3.8",
         "squizlabs/php_codesniffer": "*"
     },
     "autoload": {
@@ -59,13 +61,6 @@
         "pre-package-uninstall": [
             "Illuminate\\Foundation\\ComposerScripts::prePackageUninstall"
         ]
-    },
-    "extra": {
-        "laravel": {
-            "dont-discover": [
-                "equidna/laravel-toolkit"
-            ]
-        }
     },
     "config": {
         "optimize-autoloader": true,

@@ -28,11 +28,11 @@ const ProductsPage = () => {
 
     const load = async () => {
         const [productRes, typeRes] = await Promise.all([
-            api.get("products", { per_page: 50 }),
-            api.get("product-types"),
+            api.products.list({ per_page: 50 }),
+            api.productTypes.list(),
         ]);
-        setProducts(productRes.data);
-        setTypes(typeRes.data);
+        setProducts(productRes.data.items || productRes.data);
+        setTypes(typeRes.data.items || typeRes.data);
     };
 
     useEffect(() => {
@@ -41,7 +41,7 @@ const ProductsPage = () => {
 
     const createProduct = async (event) => {
         event.preventDefault();
-        await api.post("products", form);
+        await api.products.create(form);
         setForm({
             short_description: "",
             long_description: "",

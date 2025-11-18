@@ -32,7 +32,7 @@ class FolioGenerator
             if (!$sequence) {
                 $sequence = FolioSequence::create([
                     'warehouse_id' => $warehouse->id,
-                    'prefix' => strtoupper(substr($warehouse->codigo, 0, 3)),
+                    'prefix' => strtoupper(substr($warehouse->code, 0, 3)),
                     'sequence' => 1,
                 ]);
             }

@@ -10,7 +10,7 @@ class ProductTypeController extends BaseApiController
     public function index(Request $request)
     {
         $types = ProductType::query()
-            ->orderBy('nombre')
+            ->orderBy('name')
             ->paginate($request->integer('per_page', 50));
 
         return $this->paginated($types, 'Tipos de producto listados');
@@ -19,8 +19,8 @@ class ProductTypeController extends BaseApiController
     public function store(Request $request)
     {
         $data = $request->validate([
-            'nombre' => ['required', 'string', 'max:120'],
-            'codigo' => ['required', 'string', 'max:32', 'unique:product_types,codigo'],
+            'name' => ['required', 'string', 'max:120'],
+            'code' => ['required', 'string', 'max:32', 'unique:product_types,code'],
         ]);
 
         $type = ProductType::create($data);
@@ -31,8 +31,8 @@ class ProductTypeController extends BaseApiController
     public function update(Request $request, ProductType $productType)
     {
         $data = $request->validate([
-            'nombre' => ['sometimes', 'string', 'max:120'],
-            'codigo' => ['sometimes', 'string', 'max:32', 'unique:product_types,codigo,' . $productType->id . ',id'],
+            'name' => ['sometimes', 'string', 'max:120'],
+            'code' => ['sometimes', 'string', 'max:32', 'unique:product_types,code,' . $productType->id . ',id'],
         ]);
 
         $productType->update($data);

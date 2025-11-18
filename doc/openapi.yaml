@@ -1,0 +1,1367 @@
+openapi: 3.0.3
+info:
+  title: POS Faro API
+  version: 1.0.0
+  description: >
+    HTTP+JSON API for the POS Faro platform. All endpoints (except `POST /auth/login`
+    and `POST /customers/register`) require a Bearer token issued by Swift Auth.
+servers:
+  - url: https://api.example.com/api/v1
+    description: Production
+  - url: http://localhost:8000/api/v1
+    description: Local development
+security:
+  - bearerAuth: []
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    ApiResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        message:
+          type: string
+        data:
+          nullable: true
+    PaginatedMetadata:
+      type: object
+      properties:
+        current_page:
+          type: integer
+        per_page:
+          type: integer
+        total:
+          type: integer
+    Warehouse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        code:
+          type: string
+        active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          nullable: true
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+    ProductType:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        code:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+          nullable: true
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+    Product:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        sku:
+          type: string
+        short_description:
+          type: string
+        long_description:
+          type: string
+          nullable: true
+        photo_url:
+          type: string
+          nullable: true
+        purchase_price:
+          type: number
+          format: float
+        sale_price:
+          type: number
+          format: float
+        entry_date:
+          type: string
+          format: date-time
+        stock_end_date:
+          type: string
+          format: date-time
+          nullable: true
+        product_type_id:
+          type: string
+          format: uuid
+        active:
+          type: boolean
+        type:
+          $ref: '#/components/schemas/ProductType'
+        created_at:
+          type: string
+          format: date-time
+          nullable: true
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+    InventoryRecord:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        product_id:
+          type: string
+          format: uuid
+        warehouse_id:
+          type: string
+          format: uuid
+        stock:
+          type: integer
+        reorder_point:
+          type: integer
+        product:
+          $ref: '#/components/schemas/Product'
+        warehouse:
+          $ref: '#/components/schemas/Warehouse'
+    CartItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        product_id:
+          type: string
+          format: uuid
+        quantity:
+          type: integer
+        unit_price:
+          type: number
+        discount:
+          type: number
+        subtotal:
+          type: number
+        product:
+          $ref: '#/components/schemas/Product'
+    Cart:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        visual_key:
+          type: string
+        user_id:
+          type: string
+        warehouse_id:
+          type: string
+        status:
+          type: string
+          enum: [active, paused, closed]
+        total_gross:
+          type: number
+        discount_total:
+          type: number
+        total_net:
+          type: number
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CartItem'
+        warehouse:
+          $ref: '#/components/schemas/Warehouse'
+    SaleItem:
+      type: object
+      properties:
+        id:
+          type: string
+        product_id:
+          type: string
+        sku:
+          type: string
+        description:
+          type: string
+        quantity:
+          type: integer
+        unit_price:
+          type: number
+        discount:
+          type: number
+        subtotal:
+          type: number
+    Customer:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        accepts_marketing:
+          type: boolean
+    Sale:
+      type: object
+      properties:
+        id:
+          type: string
+        folio:
+          type: string
+        warehouse_id:
+          type: string
+        user_id:
+          type: string
+        customer_id:
+          type: string
+          nullable: true
+        payment_method:
+          type: string
+          enum: [cash, card, transfer, mixed]
+        payment_details:
+          type: object
+          nullable: true
+        total_gross:
+          type: number
+        discount_total:
+          type: number
+        total_net:
+          type: number
+        paid_at:
+          type: string
+          format: date-time
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SaleItem'
+        customer:
+          $ref: '#/components/schemas/Customer'
+        warehouse:
+          $ref: '#/components/schemas/Warehouse'
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        uuid:
+          type: string
+          format: uuid
+        name:
+          type: string
+        email:
+          type: string
+        roles:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              slug:
+                type: string
+              name:
+                type: string
+    AuthRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+      required: [email, password]
+    WarehouseInput:
+      type: object
+      properties:
+        name:
+          type: string
+        code:
+          type: string
+        active:
+          type: boolean
+      required: [name, code]
+    ProductTypeInput:
+      type: object
+      properties:
+        name:
+          type: string
+        code:
+          type: string
+      required: [name, code]
+    ProductInput:
+      type: object
+      properties:
+        sku:
+          type: string
+        short_description:
+          type: string
+        long_description:
+          type: string
+        photo_url:
+          type: string
+        purchase_price:
+          type: number
+        sale_price:
+          type: number
+        entry_date:
+          type: string
+          format: date
+        product_type_id:
+          type: string
+        active:
+          type: boolean
+      required:
+        - short_description
+        - purchase_price
+        - sale_price
+        - entry_date
+        - product_type_id
+    InventoryAdjustRequest:
+      type: object
+      properties:
+        product_id:
+          type: string
+        warehouse_id:
+          type: string
+        delta:
+          type: integer
+        reason:
+          type: string
+      required: [product_id, warehouse_id, delta]
+    CartItemRequest:
+      type: object
+      properties:
+        product_id:
+          type: string
+        quantity:
+          type: integer
+        unit_price:
+          type: number
+        discount:
+          type: number
+      required: [product_id, quantity]
+    CartUpdateRequest:
+      type: object
+      properties:
+        discount_total:
+          type: number
+        status:
+          type: string
+          enum: [active, paused, closed]
+    CheckoutRequest:
+      type: object
+      properties:
+        payment_method:
+          type: string
+          enum: [cash, card, transfer, mixed]
+        payment_details:
+          type: object
+        customer_id:
+          type: string
+        receipt:
+          type: object
+      required: [payment_method]
+    CustomerInput:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        accepts_marketing:
+          type: boolean
+      required: [name]
+    RemoteRegistrationRequest:
+      allOf:
+        - $ref: '#/components/schemas/CustomerInput'
+        - type: object
+          properties:
+            token:
+              type: string
+          required: [token, name]
+    ReserveSkuRequest:
+      type: object
+      properties:
+        quantity:
+          type: integer
+        prefix:
+          type: string
+      required: [quantity]
+paths:
+  /auth/login:
+    post:
+      tags: [Auth]
+      security: []
+      summary: Issue a Swift Auth token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthRequest'
+      responses:
+        '200':
+          description: Authenticated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          token:
+                            type: string
+                          user:
+                            $ref: '#/components/schemas/User'
+        '401':
+          description: Invalid credentials
+  /warehouses:
+    get:
+      tags: [Warehouses]
+      summary: List warehouses
+      parameters:
+        - in: query
+          name: active
+          schema:
+            type: boolean
+        - in: query
+          name: per_page
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Paginated warehouses
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Warehouse'
+                          pagination:
+                            $ref: '#/components/schemas/PaginatedMetadata'
+    post:
+      tags: [Warehouses]
+      summary: Create warehouse
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WarehouseInput'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Warehouse'
+  /warehouses/{warehouseId}:
+    patch:
+      tags: [Warehouses]
+      summary: Update warehouse
+      parameters:
+        - in: path
+          name: warehouseId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WarehouseInput'
+      responses:
+        '200':
+          description: Updated warehouse
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Warehouse'
+  /product-types:
+    get:
+      tags: [Product Types]
+      summary: List product types
+      parameters:
+        - in: query
+          name: per_page
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Paginated product types
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/ProductType'
+                          pagination:
+                            $ref: '#/components/schemas/PaginatedMetadata'
+    post:
+      tags: [Product Types]
+      summary: Create product type
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductTypeInput'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ProductType'
+  /product-types/{productTypeId}:
+    patch:
+      tags: [Product Types]
+      summary: Update product type
+      parameters:
+        - in: path
+          name: productTypeId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductTypeInput'
+      responses:
+        '200':
+          description: Updated type
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ProductType'
+  /products:
+    get:
+      tags: [Products]
+      summary: List products
+      parameters:
+        - in: query
+          name: query
+          schema:
+            type: string
+        - in: query
+          name: product_type_id
+          schema:
+            type: string
+        - in: query
+          name: warehouse_id
+          schema:
+            type: string
+        - in: query
+          name: per_page
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Paginated products
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Product'
+                          pagination:
+                            $ref: '#/components/schemas/PaginatedMetadata'
+    post:
+      tags: [Products]
+      summary: Create product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductInput'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Product'
+  /products/{productId}:
+    get:
+      tags: [Products]
+      summary: Show product
+      parameters:
+        - in: path
+          name: productId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Product
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Product'
+    patch:
+      tags: [Products]
+      summary: Update product
+      parameters:
+        - in: path
+          name: productId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductInput'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Product'
+  /inventory:
+    get:
+      tags: [Inventory]
+      summary: List inventory records
+      parameters:
+        - in: query
+          name: warehouse_id
+          schema:
+            type: string
+        - in: query
+          name: product_id
+          schema:
+            type: string
+        - in: query
+          name: per_page
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Paginated inventory items
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/InventoryRecord'
+                          pagination:
+                            $ref: '#/components/schemas/PaginatedMetadata'
+  /inventory/adjust:
+    patch:
+      tags: [Inventory]
+      summary: Adjust inventory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InventoryAdjustRequest'
+      responses:
+        '200':
+          description: Updated inventory
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/InventoryRecord'
+  /skus/reserve:
+    post:
+      tags: [Catalog]
+      summary: Reserve SKUs from a seeded range
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReserveSkuRequest'
+      responses:
+        '200':
+          description: Reserved SKUs
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          range_id:
+                            type: string
+                          skus:
+                            type: array
+                            items:
+                              type: string
+  /carts:
+    get:
+      tags: [Carts]
+      summary: List carts
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+        - in: query
+          name: per_page
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Paginated carts
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Cart'
+                          pagination:
+                            $ref: '#/components/schemas/PaginatedMetadata'
+    post:
+      tags: [Carts]
+      summary: Create cart
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                warehouse_id:
+                  type: string
+              required: [warehouse_id]
+      responses:
+        '201':
+          description: Created cart
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Cart'
+  /carts/{cartId}:
+    patch:
+      tags: [Carts]
+      summary: Update cart metadata
+      parameters:
+        - in: path
+          name: cartId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CartUpdateRequest'
+      responses:
+        '200':
+          description: Updated cart
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Cart'
+  /carts/{cartId}/items:
+    post:
+      tags: [Carts]
+      summary: Add product to cart
+      parameters:
+        - in: path
+          name: cartId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CartItemRequest'
+      responses:
+        '200':
+          description: Updated cart
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Cart'
+  /carts/{cartId}/items/{itemId}:
+    patch:
+      tags: [Carts]
+      summary: Update cart item
+      parameters:
+        - in: path
+          name: cartId
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: itemId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CartItemRequest'
+      responses:
+        '200':
+          description: Updated cart
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Cart'
+    delete:
+      tags: [Carts]
+      summary: Remove cart item
+      parameters:
+        - in: path
+          name: cartId
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: itemId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Updated cart
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Cart'
+  /carts/{cartId}/checkout:
+    post:
+      tags: [Carts]
+      summary: Confirm sale for a cart
+      parameters:
+        - in: path
+          name: cartId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckoutRequest'
+      responses:
+        '200':
+          description: Sale confirmed
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Sale'
+  /sales:
+    get:
+      tags: [Sales]
+      summary: List sales
+      parameters:
+        - in: query
+          name: warehouse_id
+          schema:
+            type: string
+        - in: query
+          name: seller_id
+          schema:
+            type: string
+        - in: query
+          name: from
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: to
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: per_page
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Paginated sales
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Sale'
+                          pagination:
+                            $ref: '#/components/schemas/PaginatedMetadata'
+  /sales/{saleId}:
+    get:
+      tags: [Sales]
+      summary: Show sale
+      parameters:
+        - in: path
+          name: saleId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Sale
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Sale'
+  /sales/{saleId}/receipt:
+    post:
+      tags: [Sales]
+      summary: Resend sale receipt
+      parameters:
+        - in: path
+          name: saleId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                channel:
+                  type: string
+                  enum: [email, sms]
+                destination:
+                  type: string
+              required: [channel, destination]
+      responses:
+        '200':
+          description: Receipt queued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+  /customers:
+    get:
+      tags: [Customers]
+      summary: List customers
+      parameters:
+        - in: query
+          name: query
+          schema:
+            type: string
+        - in: query
+          name: per_page
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Paginated customers
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Customer'
+                          pagination:
+                            $ref: '#/components/schemas/PaginatedMetadata'
+    post:
+      tags: [Customers]
+      summary: Create customer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerInput'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Customer'
+  /customers/{customerId}:
+    patch:
+      tags: [Customers]
+      summary: Update customer
+      parameters:
+        - in: path
+          name: customerId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerInput'
+      responses:
+        '200':
+          description: Updated customer
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Customer'
+  /customers/register:
+    post:
+      tags: [Customers]
+      security: []
+      summary: Remote customer self-registration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RemoteRegistrationRequest'
+      responses:
+        '200':
+          description: Customer updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Customer'
+  /reports/daily:
+    get:
+      tags: [Reports]
+      summary: Daily KPIs
+      parameters:
+        - in: query
+          name: date
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: warehouse_id
+          schema:
+            type: string
+        - in: query
+          name: product_type_id
+          schema:
+            type: string
+      responses:
+        '200':
+          description: KPIs
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          date:
+                            type: string
+                          total_gross:
+                            type: number
+                          total_net:
+                            type: number
+                          sales:
+                            type: integer
+  /reports/weekly:
+    get:
+      tags: [Reports]
+      summary: Weekly comparison
+      parameters:
+        - in: query
+          name: week
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: warehouse_id
+          schema:
+            type: string
+        - in: query
+          name: product_type_id
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Weekly KPIs
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          week:
+                            type: string
+                          current:
+                            type: object
+                            properties:
+                              total:
+                                type: number
+                              sales:
+                                type: integer
+                          previous:
+                            type: object
+                            properties:
+                              total:
+                                type: number
+                              sales:
+                                type: integer
+  /reports/monthly:
+    get:
+      tags: [Reports]
+      summary: Monthly comparison
+      parameters:
+        - in: query
+          name: month
+          schema:
+            type: string
+        - in: query
+          name: warehouse_id
+          schema:
+            type: string
+        - in: query
+          name: product_type_id
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Monthly KPIs
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          month:
+                            type: string
+                          current:
+                            type: object
+                            properties:
+                              total:
+                                type: number
+                              sales:
+                                type: integer
+                          previous:
+                            type: object
+                            properties:
+                              total:
+                                type: number
+                              sales:
+                                type: integer
+  /reports/by-seller:
+    get:
+      tags: [Reports]
+      summary: Totals per seller
+      parameters:
+        - in: query
+          name: warehouse_id
+          schema:
+            type: string
+        - in: query
+          name: product_type_id
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Seller ranking
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            seller_name:
+                              type: string
+                            total:
+                              type: number
+                            sales:
+                              type: integer

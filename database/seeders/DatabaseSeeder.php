@@ -85,17 +85,17 @@ class DatabaseSeeder extends Seeder
                 Inventory::create([
                     'product_id' => $product->id,
                     'warehouse_id' => $warehouse->id,
-                    'existencias' => random_int(5, 30),
-                    'punto_reorden' => 5,
+                    'stock' => random_int(5, 30),
+                    'reorder_point' => 5,
                 ]);
             }
         }
 
         ReservedSkuRange::create([
-            'prefijo' => 'P',
-            'desde' => 1000,
-            'hasta' => 9999,
-            'proposito' => 'General',
+            'prefix' => 'P',
+            'from' => 1000,
+            'to' => 9999,
+            'purpose' => 'General',
         ]);
     }
 }

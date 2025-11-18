@@ -12,8 +12,8 @@ class InventoryController extends BaseApiController
     {
         $inventory = Inventory::query()
             ->with('product', 'warehouse')
-            ->when($request->filled('almacen_id'), fn ($q) => $q->where('warehouse_id', $request->input('almacen_id')))
-            ->when($request->filled('producto_id'), fn ($q) => $q->where('product_id', $request->input('producto_id')))
+            ->when($request->filled('warehouse_id'), fn($q) => $q->where('warehouse_id', $request->input('warehouse_id')))
+            ->when($request->filled('product_id'), fn($q) => $q->where('product_id', $request->input('product_id')))
             ->paginate($request->integer('per_page', 25));
 
         return $this->paginated($inventory, 'Inventario listado');
@@ -22,13 +22,13 @@ class InventoryController extends BaseApiController
     public function adjust(Request $request, InventoryService $inventoryService)
     {
         $data = $request->validate([
-            'producto_id' => ['required', 'exists:products,id'],
-            'almacen_id' => ['required', 'exists:warehouses,id'],
+            'product_id' => ['required', 'exists:products,id'],
+            'warehouse_id' => ['required', 'exists:warehouses,id'],
             'delta' => ['required', 'integer'],
-            'motivo' => ['nullable', 'string'],
+            'reason' => ['nullable', 'string'],
         ]);
 
-        $inventory = $inventoryService->adjust($data['producto_id'], $data['almacen_id'], $data['delta'], $data['motivo'] ?? null);
+        $inventory = $inventoryService->adjust($data['product_id'], $data['warehouse_id'], $data['delta'], $data['reason'] ?? null);
 
         return $this->success('Inventario actualizado', $inventory->load('product', 'warehouse'));
     }

@@ -1,18 +1,13 @@
-import { useCallback } from 'react';
-import axios from 'axios';
+import { useMemo } from 'react';
+import { createApiClient } from '../api/client';
+import useAuthStore from '../store/authStore';
 
 const useApi = () => {
-    const request = useCallback(async (config) => {
-        const response = await axios.request(config);
-        return response.data;
-    }, []);
+    const token = useAuthStore((state) => state.token);
 
-    return {
-        get: (url, params = {}) => request({ method: 'get', url, params }),
-        post: (url, data = {}) => request({ method: 'post', url, data }),
-        patch: (url, data = {}) => request({ method: 'patch', url, data }),
-        del: (url) => request({ method: 'delete', url }),
-    };
+    const client = useMemo(() => createApiClient({ token }), [token]);
+
+    return client;
 };
 
 export default useApi;

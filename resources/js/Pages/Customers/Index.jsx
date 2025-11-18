@@ -8,15 +8,15 @@ const CustomersPage = () => {
     const api = useApi();
     const [customers, setCustomers] = useState([]);
     const [form, setForm] = useState({
-        nombre: '',
+        name: '',
         email: '',
-        telefono: '',
-        acepta_marketing: true,
+        phone: '',
+        accepts_marketing: true,
     });
 
     const load = async () => {
-        const { data } = await api.get('customers', { per_page: 50 });
-        setCustomers(data);
+        const response = await api.customers.list({ per_page: 50 });
+        setCustomers(response.data.items || response.data);
     };
 
     useEffect(() => {
@@ -25,12 +25,12 @@ const CustomersPage = () => {
 
     const createCustomer = async (event) => {
         event.preventDefault();
-        await api.post('customers', form);
+        await api.customers.create(form);
         setForm({
-            nombre: '',
+            name: '',
             email: '',
-            telefono: '',
-            acepta_marketing: true,
+            phone: '',
+            accepts_marketing: true,
         });
         load();
     };
@@ -43,8 +43,8 @@ const CustomersPage = () => {
                         <h2 className="text-lg font-semibold text-slate-800">Registrar cliente</h2>
                         <Input
                             label="Nombre"
-                            value={form.nombre}
-                            onChange={(e) => setForm({ ...form, nombre: e.target.value })}
+                            value={form.name}
+                            onChange={(e) => setForm({ ...form, name: e.target.value })}
                             required
                         />
                         <Input
@@ -54,13 +54,13 @@ const CustomersPage = () => {
                             onChange={(e) => setForm({ ...form, email: e.target.value })}
                         />
                         <Input
-                            label="Teléfono"
-                            value={form.telefono}
-                            onChange={(e) => setForm({ ...form, telefono: e.target.value })}
+                            label="Telefono"
+                            value={form.phone}
+                            onChange={(e) => setForm({ ...form, phone: e.target.value })}
                         />
                         <Switch
-                            isSelected={form.acepta_marketing}
-                            onValueChange={(value) => setForm({ ...form, acepta_marketing: value })}
+                            isSelected={form.accepts_marketing}
+                            onValueChange={(value) => setForm({ ...form, accepts_marketing: value })}
                         >
                             Acepta marketing
                         </Switch>
@@ -72,13 +72,13 @@ const CustomersPage = () => {
                 <div className="lg:col-span-2">
                     <DataTable
                         columns={[
-                            { key: 'nombre', title: 'Nombre' },
+                            { key: 'name', title: 'Nombre' },
                             { key: 'email', title: 'Correo' },
-                            { key: 'telefono', title: 'Teléfono' },
+                            { key: 'phone', title: 'Telefono' },
                             {
-                                key: 'acepta_marketing',
+                                key: 'accepts_marketing',
                                 title: 'Marketing',
-                                render: (value) => (value ? 'Sí' : 'No'),
+                                render: (value) => (value ? 'Si' : 'No'),
                             },
                         ]}
                         data={customers}

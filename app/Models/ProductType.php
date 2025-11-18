@@ -21,7 +21,7 @@ class ProductType extends Model
     public $incrementing = false;
     protected $keyType = 'string';
 
-    protected $fillable = ['id', 'nombre', 'codigo'];
+    protected $fillable = ['id', 'name', 'code'];
 
     protected static function booted(): void
     {

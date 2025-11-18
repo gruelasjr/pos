@@ -33,11 +33,11 @@ class CheckoutService
             $cart->load(['items.product', 'warehouse', 'seller']);
 
             foreach ($cart->items as $item) {
-                $this->inventoryService->assertSufficient($item->product, $cart->warehouse, $item->cantidad);
+                $this->inventoryService->assertSufficient($item->product, $cart->warehouse, $item->quantity);
             }
 
             foreach ($cart->items as $item) {
-                $this->inventoryService->adjust($item->product_id, $cart->warehouse_id, -1 * $item->cantidad);
+                $this->inventoryService->adjust($item->product_id, $cart->warehouse_id, -1 * $item->quantity);
             }
 
             $folio = $this->folioGenerator->next($cart->warehouse);
@@ -47,13 +47,13 @@ class CheckoutService
                 'folio' => $folio,
                 'warehouse_id' => $cart->warehouse_id,
                 'user_id' => $cart->user_id,
-                'customer_id' => $payload['cliente_id'] ?? null,
-                'metodo_pago' => $payload['metodo_pago'],
-                'pagos_detalle' => $payload['pagos_detalle'] ?? null,
-                'total_bruto' => $cart->total_bruto,
-                'descuento_total' => $cart->descuento_total,
-                'total_neto' => $cart->total_neto,
-                'pagado_en' => now(),
+                'customer_id' => $payload['customer_id'] ?? null,
+                'payment_method' => $payload['payment_method'],
+                'payment_details' => $payload['payment_details'] ?? null,
+                'total_gross' => $cart->total_gross,
+                'discount_total' => $cart->discount_total,
+                'total_net' => $cart->total_net,
+                'paid_at' => now(),
             ]);
 
             foreach ($cart->items as $item) {
@@ -61,19 +61,19 @@ class CheckoutService
                     'sale_id' => $sale->id,
                     'product_id' => $item->product_id,
                     'sku' => $item->product->sku,
-                    'descripcion' => $item->product->descripcion_corta,
-                    'cantidad' => $item->cantidad,
-                    'precio_unitario' => $item->precio_unitario,
-                    'descuento' => $item->descuento,
+                    'description' => $item->product->short_description,
+                    'quantity' => $item->quantity,
+                    'unit_price' => $item->unit_price,
+                    'discount' => $item->discount,
                     'subtotal' => $item->subtotal,
                 ]);
             }
 
-            $cart->estado = 'cerrado';
+            $cart->status = 'closed';
             $cart->save();
             $cart->items()->delete();
 
-            SendReceiptJob::dispatch($sale->id, $payload['recibo'] ?? []);
+            SendReceiptJob::dispatch($sale->id, $payload['receipt'] ?? []);
 
             return $sale->load('items', 'customer', 'seller', 'warehouse');
         });

@@ -1,145 +1,193 @@
 # POS Faro
 
-POS Faro es una plataforma punto de venta (POS) web construida con Laravel 12, Inertia.js y React para tiendas que requieren control de inventario multi‑almacén, ventas por mostrador, administración de catálogos, clientes y reportes ejecutivos. El proyecto provee una API REST versionada (`/api/v1`) y una interfaz web responsiva pensada para tablets o escritorios táctiles.
+POS Faro is a Laravel 12 + Inertia/React point of sale platform built for multi warehouse retailers that need inventory discipline, simultaneous carts, rich catalog tooling, and executive reporting. The repository contains the JSON API under `/api/v1` and the Vite powered React SPA.
 
-## Tabla de contenidos
+## Table of contents
 
-1. [Características principales](#características-principales)
-2. [Arquitectura](#arquitectura)
-3. [Requisitos previos](#requisitos-previos)
-4. [Instalación y configuración](#instalación-y-configuración)
-5. [Scripts útiles](#scripts-útiles)
-6. [Flujos funcionales](#flujos-funcionales)
-7. [Estructura de carpetas](#estructura-de-carpetas)
-8. [Testing y aseguramiento de calidad](#testing-y-aseguramiento-de-calidad)
-9. [Roadmap corto](#roadmap-corto)
+1. [Core features](#core-features)
+2. [Architecture](#architecture)
+3. [Requirements](#requirements)
+4. [Quick start](#quick-start)
+5. [Environment configuration](#environment-configuration)
+6. [Database and sample data](#database-and-sample-data)
+7. [Running locally](#running-locally)
+8. [Useful scripts](#useful-scripts)
+9. [Quality, logging, and observability](#quality-logging-and-observability)
+10. [Deployment and maintenance](#deployment-and-maintenance)
+11. [Documentation and support](#documentation-and-support)
 
-## Características principales
+## Core features
 
--   **Inventario multi‑almacén**: seguimiento de existencias por sucursal con puntos de reorden, bloqueo de SKU reservados y fechas de agotamiento automáticas.
--   **POS con carritos simultáneos**: cada vendedor puede operar múltiples carritos identificados por una clave visual; se soportan descuentos por renglón o totales, pagos mixtos y generación de recibos.
--   **Catálogos completos**: CRUD para almacenes, tipos de producto y productos con búsqueda, filtros e integración futura para captura por cámara.
--   **Clientes y marketing**: registro rápido, opt-in de campañas y ligas de auto-registro desde los recibos.
--   **Reportes operativos**: dashboards diarios/semanales/mensuales, comparativos y ranking por vendedor, con exportaciones y filtros por almacén/tipo de producto.
--   **Observabilidad y seguridad**: logging estructurado JSON con `request-id`, RBAC vía Equidna Swift Auth, tokens Bearer emitidos por el proveedor de tokens del proyecto (Swift Auth o mecanismo equivalente), auditoría de cambios y colas para envíos de recibo.
+- Multi warehouse inventory with reorder points and automatic stock depletion timestamps.
+- Simultaneous POS carts per seller with discounts, mixed payments, and receipt jobs.
+- Catalog management for warehouses, product types, and products (SKU ranges handled by the backend).
+- Customer capture in store or remotely with marketing consent flags.
+- Daily, weekly, monthly, and seller focused reports at `/api/v1/reports`.
+- Swift Auth guard, RBAC, request id logging, and audit trails for sensitive events.
 
-## Arquitectura
+## Architecture
 
--   **Backend**: Laravel 12 (PHP 8.3), base de datos MySQL 8 (InnoDB, utf8mb4, strict).
--   **Frontend**: Inertia.js + React 18, TailwindCSS 3, HeroUI, Chart.js, Zustand para estado.
--   **Autenticación**: Equidna SwiftAuth gestiona acciones/roles y sesiones; el proyecto usa el proveedor de tokens integrado (Swift Auth) para la emisión/validación de tokens Bearer en el API.
--   **Toolkit de respuestas**: `equidna/toolkit` unifica el formato `{ status, message, data, errors }` configurable según contexto.
--   **Colas y jobs**: receipts enviados mediante jobs asincrónicos (`SendReceiptJob`).
--   **Internacionalización**: ES-MX como idioma predeterminado; copia y UI listas para llaves i18n futuras.
+| Layer      | Stack / Notes                                                                 |
+| ---------- | ----------------------------------------------------------------------------- |
+| Backend    | Laravel 12, PHP 8.3, MySQL 8, Redis optional                                  |
+| Frontend   | Inertia.js, React 18, HeroUI, TailwindCSS, Zustand, Chart.js                  |
+| Auth       | `equidna/swift-auth` guard and token issuer                                   |
+| Utilities  | `equidna/laravel-toolkit` responses, Folio generator, receipt renderer        |
+| Build      | Vite, npm 10+, Composer 2.5+                                                  |
 
-## Requisitos previos
+Folder highlights:
 
--- PHP 8.3+ con extensiones: OpenSSL, PDO, Mbstring, Tokenizer, XML, Ctype, JSON, BCMath, Fileinfo.
+- `app/Domain` - domain services (catalog, inventory, POS, sales).
+- `app/Http/Controllers/API/V1` - versioned API endpoints.
+- `resources/js` - React pages, layouts, hooks, and Zustand store.
+- `doc/requirements.md` - original product brief.
+- `doc/user-manual.md` - end user guide (added in this review).
 
--   Composer 2.5+
--   Node.js 20.19+ (o >=22.12) y npm 10+
--   MySQL 8.x
--   Redis opcional para colas (en local se usa base de datos).
+## Requirements
 
-## Instalación y configuración
+- PHP 8.3 with extensions: OpenSSL, PDO, Mbstring, Tokenizer, XML, Ctype, JSON, BCMath, Fileinfo.
+- Composer 2.5+
+- Node.js 20.19+ (or 22.12+) and npm 10+
+- MySQL 8.x
+- Redis optional (queues default to the database driver).
+
+## Quick start
 
 ```bash
 git clone <repo> pos-faro
 cd pos-faro
-composer install
 cp .env.example .env
+composer install
 php artisan key:generate
-
-# Configura .env:
-# DB_CONNECTION=mysql
-# DB_HOST=127.0.0.1
-# DB_DATABASE=pos
-# DB_USERNAME=pos
-# DB_PASSWORD=secret
-
 php artisan migrate --seed
+php artisan storage:link
 npm install
-npm run build    # o npm run dev para entorno local
+npm run build        # or npm run dev for watch mode
+php artisan serve
 ```
 
-### Configuración adicional
+Or run the helper:
 
--   `AUTH_GUARD=swift` (u otro guard configurado) protege el API con el guard/token provider configurado.
--   `LOG_STACK=daily` escribe logs JSON estructurados en `storage/logs/laravel.log`.
--   Variables para almacenamiento y notificaciones (`MEDIA_DISK`, `SMS_FROM`, `MAIL_*`) están definidas en `.env.example`. Ajusta según tu infraestructura (S3, proveedor SMTP, gateway SMS real).
-
-## Scripts útiles
-
-| Comando                              | Descripción                                                                          |
-| ------------------------------------ | ------------------------------------------------------------------------------------ |
-| `composer setup`                     | Instala dependencias PHP, publica `.env`, genera key, migra y ejecuta build front.   |
-| `composer dev`                       | Inicia servidor artisan, listener de colas, visor de logs (pail) y Vite en paralelo. |
-| `composer test` / `php artisan test` | (Removed) Tests are not included in this workspace.                                  |
-| `npm run dev`                        | Vite en modo hot reload.                                                             |
-| `npm run build`                      | Genera assets para producción.                                                       |
-
-## Flujos funcionales
-
-### Autenticación / Usuarios
-
--   `POST /api/v1/auth/login` con email/password devuelve token Bearer.
--   UI: pantalla de login (HeroUI) almacena sesión en localStorage vía Zustand.
-
-### POS
-
-1. Vendedor crea carrito indicando almacén.
-2. Añade productos por SKU o búsqueda; se puede editar cantidad/desc descuentos.
-3. Aplica descuentos globales y elige método de pago (efectivo, tarjeta, transferencia, mixto con desglose).
-4. Realiza checkout (`POST /carts/{id}/checkout`) con transacción que descuenta inventario, genera venta, items y job de recibo.
-
-### Catálogos & Clientes
-
--   CRUD de almacenes, tipos y productos desde UI (Inertia) con tablas HeroUI.
--   Clientes: listado con búsqueda, registro manual y endpoint `POST /customers/register` percibido desde recibo.
-
-### Reportes
-
--   Dashboard inicial muestra KPIs diarios, alertas de inventario y ranking de vendedores.
--   Pantallas dedicadas para reportes diarios/semanales/mensuales y por vendedor con gráficas (Chart.js) y tablas exportables.
-
-## Estructura de carpetas
-
-```
-app/
- ├─ Domain/         # Servicios de dominio (SKU, Inventario, POS, Sales, Shared)
- ├─ Models/         # Entidades Eloquent (Warehouse, Product, Cart, Sale…)
- ├─ Http/Controllers/API/V1 # Endpoints REST
- ├─ Http/Middleware # Inertia, logging y request context
- ├─ Jobs/           # SendReceiptJob
- ├─ Services/Notifications # Stubs mail/SMS
- └─ Support/        # Helpers (FolioGenerator, AuditLogger, ReceiptRenderer)
-
-packages/
- ├─ equidna/toolkit       # Macros de respuesta + middleware request-id
- └─ equidna/swift-auth    # Guard, tokens y middleware ability
-
-resources/js/
- ├─ Pages/                # Vistas Inertia (Dashboard, POS, Catalog, Reports)
- ├─ Layouts/AppLayout.jsx
- ├─ components/           # Tablas, tarjetitas de stats, etc.
- ├─ hooks/useApi.js       # Wrapper Axios
- ├─ store/authStore.js    # Zustand para token/usuario
- └─ utils/formatters.js
+```bash
+composer setup
 ```
 
-## Testing y aseguramiento de calidad
+### Demo credentials
 
-Automated tests and test tooling have been removed from this workspace. Tests may be reintroduced later; consult the project maintainers for the current testing strategy.
+Seed data provisions three Swift Auth users:
 
-Logging JSON + request-id facilita monitoreo en producción; `SendReceiptJob` corre en cola `database` por defecto.
+| Role    | Email               | Password |
+| ------- | ------------------- | -------- |
+| Admin   | `admin@pos.local`   | `secret` |
+| Seller  | `vendedor@pos.local`| `secret` |
+| Auditor | `auditor@pos.local` | `secret` |
 
-## Roadmap corto
+## Environment configuration
 
-1. **Integraciones reales**: conectar SMTP y proveedor SMS real; mover `Mailer`/`SmsProvider` a drivers configurables.
-2. **Puntos/marketing**: implementar página `/r/{token}` para campañas y registro auto gestionado.
-3. **Devoluciones y notas de crédito** (v1.1+ según requisitos).
-4. **App móvil**: reutilizar API /auth y catálogos para cliente móvil React Native/Flutter.
+Key `.env` variables:
 
----
+- `APP_LOCALE`, `APP_TIMEZONE` - defaults to `es_MX` and `America/Mexico_City`.
+- `DB_*` - MySQL connection.
+- `CACHE_STORE`, `QUEUE_CONNECTION`, `SESSION_DRIVER` - default to `database`. Switch to Redis for production.
+- `MEDIA_DISK` / `FILESYSTEM_DISK` - select `s3` or `public` based on asset storage.
+- `SWIFT_AUTH_*` - admin bootstrap data and SPA redirect URL for Swift Auth.
+- `SMS_FROM`, `MAIL_*` - channels for receipt notifications (stubs log by default).
+- `LOG_STACK=daily` - rotates JSON logs under `storage/logs`.
 
-¿Preguntas o sugerencias? Revisa `doc/requirements.md` para el contexto completo y consulta `action_plan.md` para el registro de decisiones y próximos pasos. ¡Buen deploy! 💡
+Review `.env.example` for the full list and adjust before deployments.
+
+## Database and sample data
+
+Migrations in `database/migrations/` cover warehouses, catalog entities, carts, sales, folio sequences, and audit logs. Seeders create:
+
+- Swift Auth roles (admin, vendedor, auditor) and demo users.
+- Two warehouses, product types, products, and stock per warehouse.
+- Reserved SKU ranges consumed by `SkuGeneratorService`.
+
+Reset data when needed:
+
+```bash
+php artisan migrate:fresh --seed
+```
+
+## Running locally
+
+### Backend runtime
+
+Use the convenience script:
+
+```bash
+composer dev
+```
+
+It runs:
+
+- `php artisan serve` - API and Inertia responses.
+- `php artisan queue:listen --tries=1` - background jobs (`SendReceiptJob`, etc.).
+- `php artisan pail --timeout=0` - structured log tailing.
+- `npm run dev` - Vite dev server.
+
+You can run individual processes manually, and remember to launch `php artisan schedule:work` if you add cron style tasks.
+
+### Frontend workflow
+
+- `npm run dev` - hot reload React and proxy `/api`.
+- `npm run build` - produce versioned assets in `public/build`.
+
+`resources/js/bootstrap.js` injects Axios defaults, the `/api/v1` base URL, and the Swift Auth bearer token from local storage.
+
+## Useful scripts
+
+| Command                | Description                                                                 |
+| ---------------------- | --------------------------------------------------------------------------- |
+| `composer setup`       | Installs composer deps, copies `.env`, runs key generation, migration, build|
+| `composer dev`         | Runs API server, queue worker, log tail, and Vite concurrently              |
+| `php artisan queue:work` | Production safe worker for receipts and async notifications               |
+| `php artisan optimize` | Cache config/routes/views for production builds                            |
+
+## Quality, logging, and observability
+
+- Static checks: Larastan (`vendor/bin/phpstan analyse`) and PHPCS (see `composer.json`).
+- Logging: JSON logs with request ids live in `storage/logs`, while `AuditLogger` persists sensitive events to `audit_logs`.
+- Jobs: `SendReceiptJob` renders HTML receipts via `ReceiptRenderer` and routes through stubbed mail/SMS services in `app/Services/Notifications`.
+- Response format: `equidna/laravel-toolkit` enforces `{ status, message, data, errors }` payloads across the API.
+
+## Deployment and maintenance
+
+1. Build artifacts - run `npm run build` and `php artisan optimize` during CI/CD.
+2. Migrations - execute `php artisan migrate --force` before redirecting traffic.
+3. Storage - ensure `storage/` and `bootstrap/cache` are writable and that `php artisan storage:link` has been executed once.
+4. Queues - keep `php artisan queue:work --tries=1` (or Horizon) alive; receipts depend on it.
+5. Scheduler - add `* * * * * php /path/artisan schedule:run` for upcoming periodic jobs (inventory sync, report snapshots, etc.).
+6. Backups - snapshot the MySQL database and `storage/app` if using local media.
+7. Secrets rotation - rotate Swift Auth tokens regularly; only change `APP_KEY` before the first deploy.
+8. Monitoring - ship the `stack` channel or `storage/logs` to your log platform of choice.
+
+Maintenance tips:
+
+- Revisit dependency updates monthly (`composer update`, `npm update`) and rerun the static checks afterward.
+- Cross reference `doc/requirements.md` before tackling roadmap items to stay aligned with the agreed scope.
+- Document operational runbooks (queue restarts, cache clears) alongside your infra automation scripts.
+
+## API contract & SDK
+
+- `doc/openapi.yaml` defines the HTTP contract (OpenAPI 3.0). Keep it updated when controllers change.
+- Generate strongly typed helpers for the React app by running `npm run openapi:types`. The command regenerates `resources/js/api/types.ts` from the spec.
+- `resources/js/api/client.ts` exports `createApiClient`, a typed Axios wrapper with convenience methods (`warehouses.list()`, `carts.checkout()`, etc.). Example usage:
+
+```ts
+import { createApiClient } from '@/api/client';
+
+const api = createApiClient({ token });
+const warehouses = await api.warehouses.list({ per_page: 50 });
+```
+
+## Documentation and support
+
+- [doc/requirements.md](doc/requirements.md) - original functional and technical specification.
+- [doc/user-manual.md](doc/user-manual.md) - end user guide covering login, POS flows, catalogs, customers, and reports.
+- API reference lives in the controller PHPDoc blocks inside `app/Http/Controllers/API/V1`.
+
+For questions open an issue, ping the maintainer on your internal tracker, or follow the escalation channel defined by your team.
+
+Happy selling, and keep the queues running.

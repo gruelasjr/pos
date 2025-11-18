@@ -38,23 +38,23 @@ class SkuGeneratorService
      *
      * Throws when no ranges are available or input is invalid.
      *
-     * @param  int         $cantidad  Number of SKUs to reserve (must be > 0).
-     * @param  string|null $prefijo   Optional prefix to filter ranges.
-     * @return array{rango_id: int, skus: string[]}  Reserved range ID and SKUs.
+     * @param  int         $quantity  Number of SKUs to reserve (must be > 0).
+     * @param  string|null $prefix    Optional prefix to filter ranges.
+     * @return array{range_id: string, skus: string[]}  Reserved range ID and SKUs.
      * @throws RuntimeException       When no ranges are available or input is invalid.
      */
-    public function reserve(int $cantidad, ?string $prefijo = null): array
+    public function reserve(int $quantity, ?string $prefix = null): array
     {
-        if ($cantidad <= 0) {
+        if ($quantity <= 0) {
             throw new RuntimeException('cantidad_invalida');
         }
 
-        return $this->db->transaction(function () use ($cantidad, $prefijo) {
+        return $this->db->transaction(function () use ($quantity, $prefix) {
             $rangeQuery = ReservedSkuRange::query()
-                ->when($prefijo, fn($q) => $q->where('prefijo', $prefijo))
+                ->when($prefix, fn($q) => $q->where('prefix', $prefix))
                 ->where(function ($q) {
-                    $q->whereNull('usado_hasta')
-                        ->orWhereColumn('usado_hasta', '<', 'hasta');
+                    $q->whereNull('used_up_to')
+                        ->orWhereColumn('used_up_to', '<', 'to');
                 })
                 ->orderBy('updated_at');
 
@@ -65,12 +65,12 @@ class SkuGeneratorService
                 throw new RuntimeException('sin_rangos_disponibles');
             }
 
-            $skus = $this->buildSkus($range, $cantidad);
-            $range->usado_hasta = $this->maxNumeric($skus);
+            $skus = $this->buildSkus($range, $quantity);
+            $range->used_up_to = $this->maxNumeric($skus);
             $range->save();
 
             return [
-                'rango_id' => $range->id,
+                'range_id' => $range->id,
                 'skus' => $skus,
             ];
         });
@@ -82,18 +82,18 @@ class SkuGeneratorService
      * Throws when the range is exhausted.
      *
      * @param  ReservedSkuRange $range     Range to use for SKUs.
-     * @param  int              $cantidad  Number of SKUs to build.
+     * @param  int              $quantity  Number of SKUs to build.
      * @return string[]                   List of generated SKUs.
      * @throws RuntimeException           When the range is exhausted.
      */
-    protected function buildSkus(ReservedSkuRange $range, int $cantidad): array
+    protected function buildSkus(ReservedSkuRange $range, int $quantity): array
     {
         $skus = [];
-        $prefix = $range->prefijo ?? '';
-        $current = $range->usado_hasta ? $range->usado_hasta + 1 : $range->desde;
+        $prefix = $range->prefix ?? '';
+        $current = $range->used_up_to ? $range->used_up_to + 1 : $range->from;
 
-        while (count($skus) < $cantidad) {
-            if ($current > $range->hasta) {
+        while (count($skus) < $quantity) {
+            if ($current > $range->to) {
                 throw new RuntimeException('rango_agotado');
             }
 

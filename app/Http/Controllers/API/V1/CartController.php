@@ -52,7 +52,7 @@ class CartController extends BaseApiController
             'product_id' => ['required', 'exists:products,id'],
             'quantity' => ['required', 'integer', 'min:1'],
             'unit_price' => ['nullable', 'numeric', 'min:0'],
-            'descuento' => ['nullable', 'numeric', 'min:0'],
+            'discount' => ['nullable', 'numeric', 'min:0'],
         ]);
 
         $cart = $this->cartService->addItem(
@@ -60,7 +60,7 @@ class CartController extends BaseApiController
             Product::findOrFail($data['product_id']),
             $data['quantity'],
             $data['unit_price'] ?? null,
-            $data['descuento'] ?? null
+            $data['discount'] ?? null
         );
 
         return $this->success('Producto agregado al carrito', $cart);
@@ -73,7 +73,7 @@ class CartController extends BaseApiController
         $data = $request->validate([
             'quantity' => ['nullable', 'integer', 'min:1'],
             'unit_price' => ['nullable', 'numeric', 'min:0'],
-            'descuento' => ['nullable', 'numeric', 'min:0'],
+            'discount' => ['nullable', 'numeric', 'min:0'],
         ]);
 
         $cart = $this->cartService->updateItem($cart, $itemId, $data);

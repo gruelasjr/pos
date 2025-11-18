@@ -28,14 +28,14 @@ class CartItem extends Model
         'product_id',
         'quantity',
         'unit_price',
-        'descuento',
+        'discount',
         'subtotal',
     ];
 
     protected $casts = [
         'quantity' => 'integer',
         'unit_price' => 'decimal:2',
-        'descuento' => 'decimal:2',
+        'discount' => 'decimal:2',
         'subtotal' => 'decimal:2',
     ];
 
@@ -58,7 +58,7 @@ class CartItem extends Model
 
     public function computeSubtotal(): void
     {
-        $subtotal = ($this->unit_price * $this->quantity) - $this->descuento;
+        $subtotal = ($this->unit_price * $this->quantity) - $this->discount;
         $this->subtotal = max(0, $subtotal);
     }
 }

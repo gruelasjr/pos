@@ -15,13 +15,13 @@ class Warehouse extends Model
 
     protected $fillable = [
         'id',
-        'nombre',
-        'codigo',
-        'activo',
+        'name',
+        'code',
+        'active',
     ];
 
     protected $casts = [
-        'activo' => 'boolean',
+        'active' => 'boolean',
     ];
 
     protected static function booted(): void

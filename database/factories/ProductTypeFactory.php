@@ -14,8 +14,8 @@ class ProductTypeFactory extends Factory
     {
         return [
             'id' => Str::uuid()->toString(),
-            'nombre' => fake()->word(),
-            'codigo' => strtoupper(fake()->lexify('TP???')),
+            'name' => fake()->word(),
+            'code' => strtoupper(fake()->lexify('TP???')),
         ];
     }
 }

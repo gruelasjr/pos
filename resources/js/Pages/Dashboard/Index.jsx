@@ -18,16 +18,16 @@ const Dashboard = () => {
             try {
                 const [dailyRes, weeklyRes, sellerRes, inventoryRes] =
                     await Promise.all([
-                        api.get("reports/daily"),
-                        api.get("reports/weekly"),
-                        api.get("reports/by-seller"),
-                        api.get("inventory", { per_page: 5 }),
+                        api.reports.daily(),
+                        api.reports.weekly(),
+                        api.reports.bySeller(),
+                        api.inventory.list({ per_page: 5 }),
                     ]);
                 setDaily(dailyRes.data);
                 setWeekly(weeklyRes.data);
                 setSellers(sellerRes.data);
                 setAlerts(
-                    inventoryRes.data.filter(
+                    (inventoryRes.data.items || inventoryRes.data).filter(
                         (item) => item.stock <= item.reorder_point
                     )
                 );
@@ -59,19 +59,19 @@ const Dashboard = () => {
                 />
                 <StatCard
                     label="Semana (MXN)"
-                    value={formatCurrency(weekly?.actual?.total || 0)}
-                    hint={`${weekly?.actual?.sales || 0} ventas`}
+                    value={formatCurrency(weekly?.current?.total || 0)}
+                    hint={`${weekly?.current?.sales || 0} ventas`}
                     trend={computeTrend(weekly)}
                 />
                 <StatCard
-                    label="Inventario crítico"
+                    label="Inventario critico"
                     value={alerts.length}
                     hint="Productos por debajo del punto de reorden"
                 />
                 <StatCard
                     label="Vendedores activos"
                     value={sellers.length}
-                    hint="Resumen por desempeño"
+                    hint="Resumen por desempeno"
                 />
             </div>
 
@@ -88,10 +88,10 @@ const Dashboard = () => {
                                 title: "Total vendido",
                                 render: (value) => formatCurrency(value),
                             },
-                            { key: "ventas", title: "Tickets" },
+                            { key: "sales", title: "Tickets" },
                         ]}
                         data={sellers}
-                        emptyMessage="Aún no hay ventas."
+                        emptyMessage="Aun no hay ventas."
                     />
                 </div>
                 <div>
@@ -108,7 +108,7 @@ const Dashboard = () => {
                             },
                             {
                                 key: "warehouse",
-                                title: "Almacén",
+                                title: "Almacen",
                                 render: (_, row) => row.warehouse.name,
                             },
                             { key: "stock", title: "Existencias" },
@@ -124,16 +124,16 @@ const Dashboard = () => {
 };
 
 const computeTrend = (weekly) => {
-    if (!weekly?.actual?.total || !weekly?.anterior?.total) {
+    if (!weekly?.current?.total || !weekly?.previous?.total) {
         return 0;
     }
 
-    const previous = weekly.anterior.total;
+    const previous = weekly.previous.total;
     if (previous === 0) {
         return 100;
     }
 
-    return Math.round(((weekly.actual.total - previous) / previous) * 100);
+    return Math.round(((weekly.current.total - previous) / previous) * 100);
 };
 
 export default Dashboard;

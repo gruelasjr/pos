@@ -15,14 +15,14 @@ class Customer extends Model
 
     protected $fillable = [
         'id',
-        'nombre',
+        'name',
         'email',
-        'telefono',
-        'acepta_marketing',
+        'phone',
+        'accepts_marketing',
     ];
 
     protected $casts = [
-        'acepta_marketing' => 'boolean',
+        'accepts_marketing' => 'boolean',
     ];
 
     protected static function booted(): void

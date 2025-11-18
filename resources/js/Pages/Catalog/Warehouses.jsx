@@ -10,8 +10,8 @@ const WarehousesPage = () => {
     const [form, setForm] = useState({ name: "", code: "", active: true });
 
     const loadWarehouses = async () => {
-        const { data } = await api.get("warehouses");
-        setWarehouses(data);
+        const response = await api.warehouses.list();
+        setWarehouses(response.data.items || response.data);
     };
 
     useEffect(() => {
@@ -20,7 +20,7 @@ const WarehousesPage = () => {
 
     const createWarehouse = async (event) => {
         event.preventDefault();
-        await api.post("warehouses", form);
+        await api.warehouses.create(form);
         setForm({ name: "", code: "", active: true });
         loadWarehouses();
     };

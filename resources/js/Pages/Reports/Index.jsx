@@ -50,10 +50,10 @@ const ReportsPage = () => {
             ? { warehouse_id: filters.warehouse_id }
             : {};
         const [dailyRes, weeklyRes, monthlyRes, sellerRes] = await Promise.all([
-            api.get("reports/daily", { ...params, date: filters.date }),
-            api.get("reports/weekly", params),
-            api.get("reports/monthly", params),
-            api.get("reports/by-seller", params),
+            api.reports.daily({ ...params, date: filters.date }),
+            api.reports.weekly(params),
+            api.reports.monthly(params),
+            api.reports.bySeller(params),
         ]);
         setDaily(dailyRes.data);
         setWeekly(weeklyRes.data);
@@ -63,8 +63,8 @@ const ReportsPage = () => {
 
     useEffect(() => {
         const bootstrap = async () => {
-            const { data } = await api.get("warehouses");
-            setWarehouses(data);
+            const response = await api.warehouses.list();
+            setWarehouses(response.data.items || response.data);
         };
         bootstrap();
     }, []);
@@ -86,7 +86,7 @@ const ReportsPage = () => {
                         }
                     />
                     <Select
-                        label="Almacén"
+                        label="Almacen"
                         selectedKeys={
                             filters.warehouse_id ? [filters.warehouse_id] : []
                         }
@@ -115,7 +115,7 @@ const ReportsPage = () => {
                     <Card>
                         <CardBody className="space-y-2">
                             <p className="text-sm text-slate-500">
-                                Ventas del día {daily?.date}
+                                Ventas del dia {daily?.date}
                             </p>
                             <p className="text-3xl font-semibold">
                                 {formatCurrency(daily?.total_net || 0)}
@@ -137,8 +137,8 @@ const ReportsPage = () => {
                     <Card>
                         <CardBody>
                             <p className="text-sm text-slate-500">
-                                Mes {monthly?.mes} total{" "}
-                                {formatCurrency(monthly?.actual?.total || 0)}
+                                Mes {monthly?.month} total{" "}
+                                {formatCurrency(monthly?.current?.total || 0)}
                             </p>
                         </CardBody>
                     </Card>
@@ -147,7 +147,7 @@ const ReportsPage = () => {
                     <DataTable
                         columns={[
                             { key: "seller_name", title: "Vendedor" },
-                            { key: "ventas", title: "Tickets" },
+                            { key: "sales", title: "Tickets" },
                             {
                                 key: "total",
                                 title: "Total",
@@ -155,7 +155,7 @@ const ReportsPage = () => {
                             },
                         ]}
                         data={sellerReport}
-                        emptyMessage="Sin información disponible."
+                        emptyMessage="Sin informacion disponible."
                     />
                 </Tab>
             </Tabs>
@@ -169,7 +169,7 @@ const WeeklyChart = ({ weekly }) => {
         datasets: [
             {
                 label: "Total ventas",
-                data: [weekly.actual?.total || 0, weekly.anterior?.total || 0],
+                data: [weekly.current?.total || 0, weekly.previous?.total || 0],
                 borderColor: "#2563eb",
                 backgroundColor: "rgba(37, 99, 235, 0.2)",
             },
