@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Session configuration.
+ *
+ * Provides session driver, lifetime and cookie settings.
+ *
+ * PHP 8.1+
+ *
+ * @package   Config
+ */
+
 use Illuminate\Support\Str;
 
 return [
@@ -129,7 +139,7 @@ return [
 
     'cookie' => env(
         'SESSION_COOKIE',
-        Str::slug((string) env('APP_NAME', 'laravel')).'-session'
+        Str::slug((string) env('APP_NAME', 'laravel')) . '-session'
     ),
 
     /*

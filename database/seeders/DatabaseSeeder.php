@@ -1,5 +1,35 @@
 <?php
 
+/**
+ * Database seeder entrypoint.
+ *
+ * Seeds initial application data for development and testing.
+ *
+ * PHP 8.1+
+ *
+ * @package   Database\Seeders
+ */
+
+/**
+ * Database seeder entrypoint.
+ *
+ * Seeds initial application data for local development and CI.
+ *
+ * PHP 8.1+
+ *
+ * @package   Database\Seeders
+ */
+
+/**
+ * Database seeder for local/demo data.
+ *
+ * Seeds roles, demo users, warehouses, products and inventory.
+ *
+ * PHP 8.1+
+ *
+ * @package   Database\Seeders
+ */
+
 namespace Database\Seeders;
 
 use App\Models\Inventory;
@@ -19,6 +49,8 @@ class DatabaseSeeder extends Seeder
 
     /**
      * Seed the application's database.
+     *
+     * @return void
      */
     public function run(): void
     {

@@ -1,6 +1,16 @@
 <?php
 
 /**
+ * Service: SKU generator.
+ *
+ * Generates SKU strings and reserves ranges for catalog items.
+ *
+ * PHP 8.1+
+ *
+ * @package   App\Domain\Catalog
+ */
+
+/**
  * Provides SKU range reservation and generation for products.
  *
  * PHP 8.1+
@@ -14,12 +24,30 @@ use App\Models\Product;
 use App\Models\ReservedSkuRange;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Support\Collection;
-use RuntimeException;
+use Equidna\Toolkit\Exceptions\UnprocessableEntityException;
+use Equidna\Toolkit\Exceptions\NotFoundException;
+use Equidna\Toolkit\Exceptions\ConflictException;
 
 /**
  * Coordinates SKU range reservation and generation for products.
  *
  * Ensures atomicity and uniqueness of SKUs using database transactions and range locking.
+ */
+/**
+ * Transactional guarantees:
+ *
+ * This service reserves SKU ranges and updates `ReservedSkuRange` within
+ * database transactions and uses `lockForUpdate()` to avoid concurrent
+ * allocations. It depends on the reserved ranges and product tables
+ * being available on the same database connection to guarantee
+ * correctness under concurrency.
+ */
+/**
+ * Service: SKU generation and reservation.
+ *
+ * Generates unique SKUs and manages reserved SKU ranges.
+ *
+ * @package   App\Domain\Catalog
  */
 class SkuGeneratorService
 {
@@ -41,12 +69,13 @@ class SkuGeneratorService
      * @param  int         $quantity  Number of SKUs to reserve (must be > 0).
      * @param  string|null $prefix    Optional prefix to filter ranges.
      * @return array{range_id: string, skus: string[]}  Reserved range ID and SKUs.
-     * @throws RuntimeException       When no ranges are available or input is invalid.
+     * @throws \Equidna\Toolkit\Exceptions\UnprocessableEntityException When input is invalid.
+     * @throws \Equidna\Toolkit\Exceptions\NotFoundException When no ranges are available.
      */
     public function reserve(int $quantity, ?string $prefix = null): array
     {
         if ($quantity <= 0) {
-            throw new RuntimeException('cantidad_invalida');
+            throw new UnprocessableEntityException('cantidad_invalida');
         }
 
         return $this->db->transaction(function () use ($quantity, $prefix) {
@@ -62,7 +91,7 @@ class SkuGeneratorService
             $range = $rangeQuery->lockForUpdate()->first();
 
             if (!$range) {
-                throw new RuntimeException('sin_rangos_disponibles');
+                throw new NotFoundException('sin_rangos_disponibles');
             }
 
             $skus = $this->buildSkus($range, $quantity);
@@ -84,7 +113,7 @@ class SkuGeneratorService
      * @param  ReservedSkuRange $range     Range to use for SKUs.
      * @param  int              $quantity  Number of SKUs to build.
      * @return string[]                   List of generated SKUs.
-     * @throws RuntimeException           When the range is exhausted.
+     * @throws \Equidna\Toolkit\Exceptions\ConflictException When the range is exhausted.
      */
     protected function buildSkus(ReservedSkuRange $range, int $quantity): array
     {
@@ -94,7 +123,7 @@ class SkuGeneratorService
 
         while (count($skus) < $quantity) {
             if ($current > $range->to) {
-                throw new RuntimeException('rango_agotado');
+                throw new ConflictException('rango_agotado');
             }
 
             $candidateNumber = $current;

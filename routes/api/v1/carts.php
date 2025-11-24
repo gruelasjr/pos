@@ -1,6 +1,26 @@
 <?php
 
 /**
+ * API routes: carts (v1)
+ *
+ * Route definitions for cart operations used by the POS API v1.
+ *
+ * PHP 8.1+
+ *
+ * @package   Routes\API\V1
+ */
+
+/**
+ * API v1 routes for carts.
+ *
+ * Endpoints to manage shopping carts and checkout operations.
+ *
+ * PHP 8.1+
+ *
+ * @package   Routes\API\V1
+ */
+
+/**
  * API v1 - Cart routes.
  *
  * PHP 8.1+

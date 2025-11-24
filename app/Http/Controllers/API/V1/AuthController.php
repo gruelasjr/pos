@@ -1,15 +1,51 @@
 <?php
 
+/**
+ * Controller: Authentication endpoints (API v1).
+ *
+ * Handles login, logout and token issuance for the POS API.
+ *
+ * PHP 8.1+
+ *
+ * @package   App\Http\Controllers\API\V1
+ */
+
+/**
+ * Authentication controller for API v1.
+ *
+ * Handles login and token issuance.
+ *
+ * PHP 8.1+
+ *
+ * @package   App\Http\Controllers\API\V1
+ */
+
 namespace App\Http\Controllers\API\V1;
 
 use App\Models\User;
-use Equidna\SwifthAuth\Facades\SwiftAuth;
+use Equidna\SwiftAuth\Facades\SwiftAuth;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
+/**
+ * Controller responsible for authentication endpoints.
+ */
+/**
+ * Authentication controller.
+ *
+ * Provides login and token management endpoints for API clients.
+ *
+ * @package   App\Http\Controllers\API\V1
+ */
 class AuthController extends BaseApiController
 {
+    /**
+     * Login a user and return an API token.
+     *
+     * @param  Request $request
+     * @return JsonResponse
+     */
     public function login(Request $request): JsonResponse
     {
         $data = $request->validate([

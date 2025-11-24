@@ -1,6 +1,16 @@
 <?php
 
 /**
+ * API v1 routes for customers.
+ *
+ * Customer listing, creation and registration endpoints.
+ *
+ * PHP 8.1+
+ *
+ * @package   Routes\API\V1
+ */
+
+/**
  * API v1 - Customer routes.
  *
  * PHP 8.1+

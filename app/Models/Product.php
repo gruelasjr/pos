@@ -1,6 +1,16 @@
 <?php
 
 /**
+ * Model: Product.
+ *
+ * Represents a sellable product in the POS catalog.
+ *
+ * PHP 8.1+
+ *
+ * @package   App\Models
+ */
+
+/**
  * Product model.
  *
  * PHP 8.1+
@@ -17,6 +27,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Support\Str;
 
+/**
+ * Represents a sellable product in the catalog.
+ *
+ * @package   App\Models
+ */
 class Product extends Model
 {
     use HasFactory;

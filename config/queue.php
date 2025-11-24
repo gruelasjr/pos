@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Queue configuration.
+ *
+ * Defines queue connections, default driver and failed job handling.
+ *
+ * PHP 8.1+
+ *
+ * @package   Config
+ */
+
 return [
 
     /*

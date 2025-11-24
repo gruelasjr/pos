@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Config: application settings.
+ *
+ * Contains application name, environment and provider configuration.
+ *
+ * PHP 8.1+
+ *
+ * @package   Config
+ */
+
 return [
 
     /*

@@ -1,5 +1,33 @@
 <?php
 
+/**
+ * Migration: create jobs table.
+ *
+ * Adds the jobs table used by the framework queue worker.
+ *
+ * PHP 8.1+
+ *
+ * @package   Database\Migrations
+ */
+
+/**
+ * Migration: create jobs table.
+ *
+ * Adds the queue jobs table used by the database queue driver.
+ *
+ * PHP 8.1+
+ *
+ * @package   Database\Migrations
+ */
+
+/**
+ * Create jobs, job_batches and failed_jobs tables.
+ *
+ * PHP 8.1+
+ *
+ * @package   Database\Migrations
+ */
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -8,6 +36,8 @@ return new class extends Migration
 {
     /**
      * Run the migrations.
+     *
+     * @return void
      */
     public function up(): void
     {
@@ -47,6 +77,8 @@ return new class extends Migration
 
     /**
      * Reverse the migrations.
+     *
+     * @return void
      */
     public function down(): void
     {

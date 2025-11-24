@@ -1,6 +1,16 @@
 <?php
 
 /**
+ * Helper: render receipts to HTML for printing or emailing.
+ *
+ * Centralizes receipt markup rendering logic used by the POS and notifications.
+ *
+ * PHP 8.1+
+ *
+ * @package   App\Support
+ */
+
+/**
  * Receipt rendering utilities.
  *
  * PHP 8.1+
@@ -12,26 +22,18 @@ namespace App\Support;
 
 use App\Models\Sale;
 
+/**
+ * Helper to render receipts as HTML.
+ *
+ * Produces printable and email-ready HTML for sale receipts.
+ *
+ * @package   App\Support
+ */
 class ReceiptRenderer
 {
     public function html(Sale $sale): string
     {
-        $rows = $sale->items->map(function ($item) {
-            return sprintf(
-                '<tr><td>%s</td><td>%d</td><td>$%0.2f</td><td>$%0.2f</td></tr>',
-                e($item->description),
-                $item->quantity,
-                $item->unit_price,
-                $item->subtotal
-            );
-        })->join('');
-
-        return <<<HTML
-            <h1>Recibo {$sale->folio}</h1>
-            <p>Almacén: {$sale->warehouse->name}</p>
-            <p>Vendedor: {$sale->seller->name}</p>
-            <table>{$rows}</table>
-            <p>Total: {$sale->total_net}</p>
-        HTML;
+        // Render the receipt using a Blade view to ensure proper escaping
+        return view('emails.receipt', ['sale' => $sale])->render();
     }
 }

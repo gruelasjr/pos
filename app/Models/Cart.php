@@ -1,6 +1,16 @@
 <?php
 
 /**
+ * Model: Cart.
+ *
+ * Represents a shopping cart with items prior to checkout.
+ *
+ * PHP 8.1+
+ *
+ * @package   App\Models
+ */
+
+/**
  * Cart model.
  *
  * PHP 8.1+
@@ -16,6 +26,22 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
+/**
+ * Represents a shopping cart with items prior to checkout.
+ *
+ * @property string                                                          $id
+ * @property string                                                          $warehouse_id
+ * @property string                                                          $user_id
+ * @property string                                                          $status
+ * @property string                                                          $total_gross
+ * @property string                                                          $discount_total
+ * @property string                                                          $total_net
+ * @property-read Warehouse                                                  $warehouse
+ * @property-read User                                                       $seller
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, CartItem> $items
+ *
+ * @package   App\Models
+ */
 class Cart extends Model
 {
     use HasFactory;
@@ -65,9 +91,9 @@ class Cart extends Model
 
     public function recalculateTotals(): void
     {
-        $bruto = $this->items->sum(fn(CartItem $item) => $item->subtotal);
-        $this->total_gross = $bruto;
-        $descuento = $this->discount_total ?? 0;
-        $this->total_net = max(0, $bruto - $descuento);
+        $bruto = $this->items->sum(fn(CartItem $item) => (float) $item->subtotal);
+        $this->total_gross = (string) $bruto;
+        $descuento = (float) ($this->discount_total ?? 0);
+        $this->total_net = (string) max(0, $bruto - $descuento);
     }
 }

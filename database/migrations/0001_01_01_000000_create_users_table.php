@@ -1,5 +1,25 @@
 <?php
 
+/**
+ * Migration: create users table.
+ *
+ * Defines the initial users table schema for authentication and identity.
+ *
+ * PHP 8.1+
+ *
+ * @package   Database\Migrations
+ */
+
+/**
+ * Create users, password reset tokens and sessions tables.
+ *
+ * Database migrations for initial user-related tables.
+ *
+ * PHP 8.1+
+ *
+ * @package   Database\Migrations
+ */
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -8,6 +28,8 @@ return new class extends Migration
 {
     /**
      * Run the migrations.
+     *
+     * @return void
      */
     public function up(): void
     {
@@ -42,6 +64,8 @@ return new class extends Migration
 
     /**
      * Reverse the migrations.
+     *
+     * @return void
      */
     public function down(): void
     {

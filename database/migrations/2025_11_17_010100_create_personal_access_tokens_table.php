@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Migration: create personal access tokens table.
+ *
+ * Adds personal access tokens storage for API authentication.
+ *
+ * PHP 8.1+
+ *
+ * @package   Database\Migrations
+ */
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;

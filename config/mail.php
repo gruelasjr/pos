@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Mail configuration.
+ *
+ * Configures mailers, default sender and transports.
+ *
+ * PHP 8.1+
+ *
+ * @package   Config
+ */
+
 return [
 
     /*

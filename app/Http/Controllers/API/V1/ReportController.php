@@ -1,11 +1,39 @@
 <?php
 
+/**
+ * Controller: Reports (API v1).
+ *
+ * Provides reporting endpoints for sales, inventory and revenue summaries.
+ *
+ * PHP 8.1+
+ *
+ * @package   App\Http\Controllers\API\V1
+ */
+
+/**
+ * API controller for sales reports and summaries.
+ *
+ * PHP 8.1+
+ *
+ * @package   App\Http\Controllers\API\V1
+ */
+
 namespace App\Http\Controllers\API\V1;
 
 use App\Models\Sale;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 
+/**
+ * Controller for generating sales reports (daily/weekly/monthly).
+ */
+/**
+ * Report controller.
+ *
+ * Provides endpoints to retrieve sales and inventory reports.
+ *
+ * @package   App\Http\Controllers\API\V1
+ */
 class ReportController extends BaseApiController
 {
     public function daily(Request $request)

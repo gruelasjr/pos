@@ -1,10 +1,40 @@
 <?php
 
+/**
+ * Controller: Warehouse endpoints (API v1).
+ *
+ * Manages warehouses and their settings used by the POS.
+ *
+ * PHP 8.1+
+ *
+ * @package   App\Http\Controllers\API\V1
+ */
+
+/**
+ * API controller for warehouses.
+ *
+ * PHP 8.1+
+ *
+ * @package   App\Http\Controllers\API\V1
+ */
+
 namespace App\Http\Controllers\API\V1;
 
 use App\Models\Warehouse;
 use Illuminate\Http\Request;
 
+/**
+ * Controller for warehouse API endpoints.
+ *
+ * Handles listing, creation and updates of warehouses.
+ */
+/**
+ * Warehouse resource controller.
+ *
+ * Handles CRUD operations for warehouses in the POS API.
+ *
+ * @package   App\Http\Controllers\API\V1
+ */
 class WarehouseController extends BaseApiController
 {
     public function index(Request $request)

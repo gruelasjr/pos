@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Service: Checkout orchestration.
+ *
+ * Coordinates sale creation, payment processing and post-sale side effects.
+ *
+ * PHP 8.1+
+ *
+ * @package   App\Domain\Sales
+ */
+
 namespace App\Domain\Sales;
 
 use App\Domain\Inventory\InventoryService;
@@ -12,21 +22,27 @@ use App\Models\Warehouse;
 use App\Support\FolioGenerator;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Support\Facades\Log;
-use RuntimeException;
+use Equidna\Toolkit\Exceptions\UnprocessableEntityException;
 
+/**
+ * Service: checkout orchestration.
+ *
+ * Orchestrates checkout, payment application, inventory adjustments and sale persistence.
+ *
+ * @package   App\Domain\Sales
+ */
 class CheckoutService
 {
     public function __construct(
         private DatabaseManager $db,
         private InventoryService $inventoryService,
         private FolioGenerator $folioGenerator
-    ) {
-    }
+    ) {}
 
     public function checkout(Cart $cart, array $payload): Sale
     {
         if ($cart->items()->count() === 0) {
-            throw new RuntimeException('carrito_vacio');
+            throw new UnprocessableEntityException('carrito_vacio');
         }
 
         return $this->db->transaction(function () use ($cart, $payload) {

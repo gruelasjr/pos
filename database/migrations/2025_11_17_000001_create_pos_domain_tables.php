@@ -1,5 +1,26 @@
 <?php
 
+/**
+ * Migration: create POS domain tables.
+ *
+ * Creates domain-specific tables used by the POS sub-system (products, sales,
+ * inventories and related entities).
+ *
+ * PHP 8.1+
+ *
+ * @package   Database\Migrations
+ */
+
+/**
+ * Migration: create POS domain tables.
+ *
+ * Adds tables required by the POS domain (products, sales, inventories, etc.).
+ *
+ * PHP 8.1+
+ *
+ * @package   Database\Migrations
+ */
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -143,7 +164,8 @@ return new class extends Migration
 
         Schema::create('folio_sequences', function (Blueprint $table) {
             $table->id();
-            $table->foreignUuid('warehouse_id')->constrained('warehouses')->unique();
+            $table->foreignUuid('warehouse_id')->constrained('warehouses');
+            $table->unique('warehouse_id');
             $table->string('prefix', 8)->default('POS');
             $table->unsignedBigInteger('sequence')->default(1);
             $table->timestamps();

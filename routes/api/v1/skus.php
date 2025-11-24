@@ -1,6 +1,16 @@
 <?php
 
 /**
+ * API v1 routes for SKU reservation.
+ *
+ * Routes to reserve and query SKU ranges.
+ *
+ * PHP 8.1+
+ *
+ * @package   Routes\API\V1
+ */
+
+/**
  * API v1 - SKU routes.
  *
  * PHP 8.1+

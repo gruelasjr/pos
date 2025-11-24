@@ -1,5 +1,25 @@
 <?php
 
+/**
+ * Controller: Cart management endpoints (API v1).
+ *
+ * Handles cart creation, updates and retrieval for the point-of-sale API.
+ *
+ * PHP 8.1+
+ *
+ * @package   App\Http\Controllers\API\V1
+ */
+
+/**
+ * Cart API controller.
+ *
+ * Handles cart CRUD and checkout endpoints for API v1.
+ *
+ * PHP 8.1+
+ *
+ * @package   App\Http\Controllers\API\V1
+ */
+
 namespace App\Http\Controllers\API\V1;
 
 use App\Domain\POS\CartService;
@@ -9,7 +29,18 @@ use App\Models\Product;
 use App\Models\Warehouse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Equidna\Toolkit\Exceptions\ForbiddenException;
 
+/**
+ * Controller exposing cart management endpoints.
+ */
+/**
+ * Cart controller.
+ *
+ * Provides cart management endpoints (create, update, checkout) for the API.
+ *
+ * @package   App\Http\Controllers\API\V1
+ */
 class CartController extends BaseApiController
 {
     public function __construct(
@@ -19,6 +50,12 @@ class CartController extends BaseApiController
         //
     }
 
+    /**
+     * List carts with pagination and optional filters.
+     *
+     * @param  Request $request
+     * @return mixed
+     */
     public function index(Request $request)
     {
         $user = $request->user();
@@ -33,6 +70,12 @@ class CartController extends BaseApiController
         return $this->paginated($carts, 'Carritos listados');
     }
 
+    /**
+     * Create a new cart for the authenticated user.
+     *
+     * @param  Request $request
+     * @return mixed
+     */
     public function store(Request $request)
     {
         $data = $request->validate([
@@ -44,6 +87,13 @@ class CartController extends BaseApiController
         return $this->success('Carrito creado', $cart->load('warehouse'));
     }
 
+    /**
+     * Add a product to a cart.
+     *
+     * @param  Request $request
+     * @param  Cart    $cart
+     * @return mixed
+     */
     public function addItem(Request $request, Cart $cart)
     {
         $this->authorizeCart($request, $cart);
@@ -66,6 +116,14 @@ class CartController extends BaseApiController
         return $this->success('Producto agregado al carrito', $cart);
     }
 
+    /**
+     * Update an item quantity/price in a cart.
+     *
+     * @param  Request $request
+     * @param  Cart    $cart
+     * @param  string  $itemId
+     * @return mixed
+     */
     public function updateItem(Request $request, Cart $cart, string $itemId)
     {
         $this->authorizeCart($request, $cart);
@@ -81,6 +139,14 @@ class CartController extends BaseApiController
         return $this->success('Producto actualizado en el carrito', $cart);
     }
 
+    /**
+     * Remove an item from the cart.
+     *
+     * @param  Request $request
+     * @param  Cart    $cart
+     * @param  string  $itemId
+     * @return mixed
+     */
     public function deleteItem(Request $request, Cart $cart, string $itemId)
     {
         $this->authorizeCart($request, $cart);
@@ -90,6 +156,13 @@ class CartController extends BaseApiController
         return $this->success('Producto eliminado del carrito', $cart);
     }
 
+    /**
+     * Update cart-level fields such as discount or status.
+     *
+     * @param  Request $request
+     * @param  Cart    $cart
+     * @return mixed
+     */
     public function updateCart(Request $request, Cart $cart)
     {
         $this->authorizeCart($request, $cart);
@@ -104,6 +177,13 @@ class CartController extends BaseApiController
         return $this->success('Carrito actualizado', $cart);
     }
 
+    /**
+     * Checkout a cart and create a sale.
+     *
+     * @param  Request $request
+     * @param  Cart    $cart
+     * @return mixed
+     */
     public function checkout(Request $request, Cart $cart)
     {
         $this->authorizeCart($request, $cart);
@@ -120,6 +200,13 @@ class CartController extends BaseApiController
         return $this->success('Venta confirmada', $sale);
     }
 
+    /**
+     * Ensure the authenticated user is allowed to act on the cart.
+     *
+     * @param  Request $request
+     * @param  Cart    $cart
+     * @return void
+     */
     protected function authorizeCart(Request $request, Cart $cart): void
     {
         $user = $request->user();
@@ -128,6 +215,6 @@ class CartController extends BaseApiController
             return;
         }
 
-        abort(403, 'No autorizado');
+        throw new ForbiddenException('No autorizado');
     }
 }

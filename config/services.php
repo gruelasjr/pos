@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Third-party services configuration.
+ *
+ * Stores credentials for external services (mail, SES, Slack, etc.).
+ *
+ * PHP 8.1+
+ *
+ * @package   Config
+ */
+
 return [
 
     /*

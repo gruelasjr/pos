@@ -1,10 +1,40 @@
 <?php
 
+/**
+ * Controller: Product type management (API v1).
+ *
+ * Manages CRUD operations for product types used by the POS catalog.
+ *
+ * PHP 8.1+
+ *
+ * @package   App\Http\Controllers\API\V1
+ */
+
+/**
+ * Product type controller for API v1.
+ *
+ * Manages product type CRUD operations.
+ *
+ * PHP 8.1+
+ *
+ * @package   App\Http\Controllers\API\V1
+ */
+
 namespace App\Http\Controllers\API\V1;
 
 use App\Models\ProductType;
 use Illuminate\Http\Request;
 
+/**
+ * Controller handling product type endpoints.
+ */
+/**
+ * Product type controller.
+ *
+ * Manages product type CRUD operations for the POS API.
+ *
+ * @package   App\Http\Controllers\API\V1
+ */
 class ProductTypeController extends BaseApiController
 {
     public function index(Request $request)

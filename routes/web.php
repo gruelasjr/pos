@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Web routes loader.
+ *
+ * Registers web routes for the application.
+ *
+ * PHP 8.1+
+ *
+ * @package   Routes
+ */
+
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 

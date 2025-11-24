@@ -1,10 +1,28 @@
 <?php
 
+/**
+ * Inertia middleware providing shared props and versioning.
+ *
+ * PHP 8.1+
+ *
+ * @package   App\Http\Middleware
+ */
+
 namespace App\Http\Middleware;
 
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
+/**
+ * Inertia middleware that exposes shared properties and versioning.
+ */
+/**
+ * Middleware: handle Inertia requests.
+ *
+ * Adjusts Inertia-specific request/response behavior for the application.
+ *
+ * @package   App\Http\Middleware
+ */
 class HandleInertiaRequests extends Middleware
 {
     protected $rootView = 'app';
@@ -18,7 +36,7 @@ class HandleInertiaRequests extends Middleware
     {
         return array_merge(parent::share($request), [
             'flash' => [
-                'success' => fn () => $request->session()->get('success'),
+                'success' => fn() => $request->session()->get('success'),
             ],
         ]);
     }

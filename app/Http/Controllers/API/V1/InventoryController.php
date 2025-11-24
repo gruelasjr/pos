@@ -1,20 +1,57 @@
 <?php
 
+/**
+ * Controller: Inventory endpoints (API v1).
+ *
+ * Provides inventory queries and adjustments for warehouses and products.
+ *
+ * PHP 8.1+
+ *
+ * @package   App\Http\Controllers\API\V1
+ */
+
+/**
+ * API controller for inventory endpoints and adjustments.
+ *
+ * PHP 8.1+
+ *
+ * @package   App\Http\Controllers\API\V1
+ */
+
 namespace App\Http\Controllers\API\V1;
 
 use App\Domain\Inventory\InventoryService;
 use App\Models\Inventory;
 use Illuminate\Http\Request;
 
+/**
+ * Controller for inventory endpoints.
+ *
+ * Handles listing and adjustment operations for inventory.
+ */
+/**
+ * Inventory controller.
+ *
+ * Handles inventory queries and adjustments for products and warehouses.
+ *
+ * @package   App\Http\Controllers\API\V1
+ */
 class InventoryController extends BaseApiController
 {
     public function index(Request $request)
     {
         $inventory = Inventory::query()
-            ->with('product', 'warehouse')
-            ->when($request->filled('warehouse_id'), fn($q) => $q->where('warehouse_id', $request->input('warehouse_id')))
-            ->when($request->filled('product_id'), fn($q) => $q->where('product_id', $request->input('product_id')))
-            ->paginate($request->integer('per_page', 25));
+            ->with('product', 'warehouse');
+
+        if ($request->filled('warehouse_id')) {
+            $inventory->where('warehouse_id', $request->input('warehouse_id'));
+        }
+
+        if ($request->filled('product_id')) {
+            $inventory->where('product_id', $request->input('product_id'));
+        }
+
+        $inventory = $inventory->paginate($request->integer('per_page', 25));
 
         return $this->paginated($inventory, 'Inventario listado');
     }

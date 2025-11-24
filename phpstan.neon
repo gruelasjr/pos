@@ -1,0 +1,31 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    level: 5
+
+    paths:
+        - app
+        - database/migrations
+        - database/seeders
+        - database/factories
+        - routes
+
+    treatPhpDocTypesAsCertain: false
+    reportUnmatchedIgnoredErrors: false
+
+    # Bootstrap files to load Laravel and application dependencies
+    bootstrapFiles:
+        - vendor/autoload.php
+        - bootstrap/app.php
+
+    # Scan vendor directory for better type inference
+    scanDirectories:
+        - vendor
+
+    excludePaths:
+        - vendor/*
+        - storage/*
+        - bootstrap/cache/*
+
+

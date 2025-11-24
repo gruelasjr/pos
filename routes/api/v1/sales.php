@@ -1,6 +1,16 @@
 <?php
 
 /**
+ * API v1 routes for sales.
+ *
+ * Registers endpoints for listing, showing and managing sales.
+ *
+ * PHP 8.1+
+ *
+ * @package   Routes\API\V1
+ */
+
+/**
  * API v1 - Sales routes.
  *
  * PHP 8.1+

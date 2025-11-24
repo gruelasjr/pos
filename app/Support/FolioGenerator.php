@@ -1,6 +1,16 @@
 <?php
 
 /**
+ * Helper: folio sequence generator.
+ *
+ * Generates and reserves sequential folio numbers for receipts and documents.
+ *
+ * PHP 8.1+
+ *
+ * @package   App\Support
+ */
+
+/**
  * Folio generation utilities.
  *
  * PHP 8.1+
@@ -14,6 +24,13 @@ use App\Models\FolioSequence;
 use App\Models\Warehouse;
 use Illuminate\Database\DatabaseManager;
 
+/**
+ * Utility: generate and reserve folio sequences.
+ *
+ * Provides next folio numbers per warehouse for receipts and documents.
+ *
+ * @package   App\Support
+ */
 class FolioGenerator
 {
     public function __construct(private DatabaseManager $db)

@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * User model factory.
+ *
+ * PHP 8.1+
+ *
+ * @package   Database\Factories
+ */
+
 namespace Database\Factories;
 
 use App\Models\Role;

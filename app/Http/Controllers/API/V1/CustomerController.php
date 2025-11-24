@@ -1,5 +1,23 @@
 <?php
 
+/**
+ * Controller: Customer endpoints (API v1).
+ *
+ * Manages customer records used in sales and loyalty features.
+ *
+ * PHP 8.1+
+ *
+ * @package   App\Http\Controllers\API\V1
+ */
+
+/**
+ * API controller for customer management endpoints.
+ *
+ * PHP 8.1+
+ *
+ * @package   App\Http\Controllers\API\V1
+ */
+
 namespace App\Http\Controllers\API\V1;
 
 use App\Models\Customer;
@@ -7,6 +25,18 @@ use App\Models\Sale;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+/**
+ * Controller for customer endpoints (list, create, update, register).
+ *
+ * Provides JSON responses and customer registration helpers.
+ */
+/**
+ * Customer controller.
+ *
+ * Manages customers used in sales and registration flows.
+ *
+ * @package   App\Http\Controllers\API\V1
+ */
 class CustomerController extends BaseApiController
 {
     public function index(Request $request): JsonResponse

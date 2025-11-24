@@ -1,11 +1,39 @@
 <?php
 
+/**
+ * Controller: Product endpoints (API v1).
+ *
+ * Handles product listing, retrieval and catalog operations for the POS API.
+ *
+ * PHP 8.1+
+ *
+ * @package   App\Http\Controllers\API\V1
+ */
+
+/**
+ * API controller for product catalog management.
+ *
+ * PHP 8.1+
+ *
+ * @package   App\Http\Controllers\API\V1
+ */
+
 namespace App\Http\Controllers\API\V1;
 
 use App\Domain\Catalog\SkuGeneratorService;
 use App\Models\Product;
 use Illuminate\Http\Request;
 
+/**
+ * Controller for product catalog endpoints.
+ */
+/**
+ * Product controller.
+ *
+ * Provides product catalog endpoints for listing and management.
+ *
+ * @package   App\Http\Controllers\API\V1
+ */
 class ProductController extends BaseApiController
 {
     public function index(Request $request)

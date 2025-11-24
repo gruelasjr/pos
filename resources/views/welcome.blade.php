@@ -1,5 +1,18 @@
+<!doctype html>
+<?php
+/**
+ * View: welcome page (Blade template).
+ *
+ * Public landing page used by the application.
+ *
+ * PHP 8.1+
+ *
+ * @package   Resources\Views
+ */
+?>
+<html lang="en">
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="en">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">

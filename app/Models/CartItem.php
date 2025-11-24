@@ -1,6 +1,16 @@
 <?php
 
 /**
+ * Model: CartItem.
+ *
+ * Item contained in a `Cart` with quantity and unit prices.
+ *
+ * PHP 8.1+
+ *
+ * @package   App\Models
+ */
+
+/**
  * Cart item model.
  *
  * PHP 8.1+
@@ -15,6 +25,21 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
 
+/**
+ * Item belonging to a `Cart` with quantity and pricing.
+ *
+ * @property string   $id
+ * @property string   $cart_id
+ * @property string   $product_id
+ * @property int      $quantity
+ * @property float    $unit_price
+ * @property float    $discount
+ * @property float    $subtotal
+ * @property-read Cart    $cart
+ * @property-read Product $product
+ *
+ * @package   App\Models
+ */
 class CartItem extends Model
 {
     use HasFactory;

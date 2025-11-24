@@ -1,5 +1,36 @@
 <?php
 
+/**
+ * Bootstrap: framework application instance.
+ *
+ * Creates and configures the Laravel application instance used by the
+ * front controllers and CLI commands.
+ *
+ * PHP 8.1+
+ *
+ * @package   Bootstrap
+ */
+
+/**
+ * Application bootstrap file.
+ *
+ * Creates and configures the application instance.
+ *
+ * PHP 8.1+
+ *
+ * @package   Bootstrap
+ */
+
+/**
+ * Application bootstrap factory.
+ *
+ * Configures application routing, middleware and exception handling.
+ *
+ * PHP 8.1+
+ *
+ * @package   Bootstrap
+ */
+
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\RequestLogging;
 use Equidna\Toolkit\Helpers\ResponseHelper;

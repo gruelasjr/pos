@@ -1,6 +1,16 @@
 <?php
 
 /**
+ * API routes loader.
+ *
+ * Registers top-level API routes for the application.
+ *
+ * PHP 8.1+
+ *
+ * @package   Routes
+ */
+
+/**
  * API routes loader. Splits API v1 into per-area route files.
  *
  * PHP 8.1+

@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Migration: create roles table.
+ *
+ * Adds roles table used for application authorization.
+ *
+ * PHP 8.1+
+ *
+ * @package   Database\Migrations
+ */
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;

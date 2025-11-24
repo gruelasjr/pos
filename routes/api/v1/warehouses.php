@@ -1,6 +1,16 @@
 <?php
 
 /**
+ * API v1 routes for warehouses.
+ *
+ * Registers warehouse-related endpoints used by the API.
+ *
+ * PHP 8.1+
+ *
+ * @package   Routes\API\V1
+ */
+
+/**
  * API v1 - Warehouse routes.
  *
  * PHP 8.1+

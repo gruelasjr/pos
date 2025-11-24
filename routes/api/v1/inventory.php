@@ -1,6 +1,16 @@
 <?php
 
 /**
+ * API v1 routes for inventory.
+ *
+ * Endpoints to list and adjust inventory.
+ *
+ * PHP 8.1+
+ *
+ * @package   Routes\API\V1
+ */
+
+/**
  * API v1 - Inventory routes.
  *
  * PHP 8.1+

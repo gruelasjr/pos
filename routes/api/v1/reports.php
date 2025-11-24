@@ -1,6 +1,16 @@
 <?php
 
 /**
+ * API v1 routes for reports.
+ *
+ * Endpoints for daily/weekly/monthly sales reports.
+ *
+ * PHP 8.1+
+ *
+ * @package   Routes\API\V1
+ */
+
+/**
  * API v1 - Reports routes.
  *
  * PHP 8.1+
