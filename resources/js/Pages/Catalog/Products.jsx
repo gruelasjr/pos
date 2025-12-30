@@ -1,15 +1,8 @@
-import {
-    Button,
-    Card,
-    CardBody,
-    Input,
-    Select,
-    SelectItem,
-    Textarea,
-} from "@heroui/react";
+import { Button, Card, CardBody } from "../../components/atoms";
+import { FormField } from "../../components/molecules";
 import { useEffect, useState } from "react";
 import AppLayout from "../../Layouts/AppLayout";
-import DataTable from "../../components/DataTable";
+import DataTable from "../../components/organisms/DataTable";
 import useApi from "../../hooks/useApi";
 import { formatCurrency } from "../../utils/formatters";
 
@@ -62,10 +55,11 @@ const ProductsPage = () => {
                         className="space-y-3"
                         onSubmit={createProduct}
                     >
-                        <h2 className="text-lg font-semibold text-slate-800">
+                        <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
                             Nuevo producto
                         </h2>
-                        <Textarea
+                        <FormField
+                            as="textarea"
                             label="Descripción corta"
                             maxLength={160}
                             value={form.short_description}
@@ -77,7 +71,8 @@ const ProductsPage = () => {
                             }
                             required
                         />
-                        <Textarea
+                        <FormField
+                            as="textarea"
                             label="Descripción larga"
                             value={form.long_description}
                             onChange={(e) =>
@@ -88,7 +83,7 @@ const ProductsPage = () => {
                             }
                         />
                         <div className="grid grid-cols-2 gap-3">
-                            <Input
+                            <FormField
                                 label="Precio compra"
                                 type="number"
                                 value={form.purchase_price}
@@ -100,7 +95,7 @@ const ProductsPage = () => {
                                 }
                                 required
                             />
-                            <Input
+                            <FormField
                                 label="Precio venta"
                                 type="number"
                                 value={form.sale_price}
@@ -113,7 +108,7 @@ const ProductsPage = () => {
                                 required
                             />
                         </div>
-                        <Input
+                        <FormField
                             label="Fecha ingreso"
                             type="date"
                             value={form.entry_date}
@@ -122,29 +117,25 @@ const ProductsPage = () => {
                             }
                             required
                         />
-                        <Select
+                        <FormField
+                            as="select"
                             label="Tipo"
-                            selectedKeys={
-                                form.product_type_id
-                                    ? [form.product_type_id]
-                                    : []
-                            }
-                            onSelectionChange={(keys) =>
+                            value={form.product_type_id}
+                            onChange={(e) =>
                                 setForm({
                                     ...form,
-                                    product_type_id: extractKey(keys),
+                                    product_type_id: e.target.value,
                                 })
                             }
                         >
+                            <option value="">Selecciona un tipo</option>
                             {types.map((type) => (
-                                <SelectItem key={type.id}>
+                                <option key={type.id} value={type.id}>
                                     {type.name}
-                                </SelectItem>
+                                </option>
                             ))}
-                        </Select>
-                        <Button color="primary" type="submit">
-                            Guardar
-                        </Button>
+                        </FormField>
+                        <Button type="submit">Guardar</Button>
                     </CardBody>
                 </Card>
                 <div className="lg:col-span-2">
@@ -175,13 +166,6 @@ const ProductsPage = () => {
             </div>
         </AppLayout>
     );
-};
-
-const extractKey = (keys) => {
-    if (!keys) return "";
-    if (typeof keys === "string") return keys;
-    if (Array.isArray(keys)) return keys[0];
-    return Array.from(keys)[0] || "";
 };
 
 export default ProductsPage;

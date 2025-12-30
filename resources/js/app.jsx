@@ -1,28 +1,31 @@
-import './bootstrap';
-import '../css/app.css';
-import { createInertiaApp } from '@inertiajs/react';
-import { createRoot } from 'react-dom/client';
-import { HeroUIProvider } from '@heroui/react';
-import { router } from '@inertiajs/react';
-import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
-import { InertiaProgress } from '@inertiajs/progress';
+import "./bootstrap";
+import "../css/app.css";
+import { createInertiaApp } from "@inertiajs/react";
+import { createRoot } from "react-dom/client";
+import { router } from "@inertiajs/react";
+import { resolvePageComponent } from "laravel-vite-plugin/inertia-helpers";
+import { InertiaProgress } from "@inertiajs/progress";
+import { ThemeProvider } from "./context/ThemeContext";
 
-const appName = import.meta.env.VITE_APP_NAME || 'POS';
+const appName = import.meta.env.VITE_APP_NAME || "POS";
 
 createInertiaApp({
     title: (title) => `${title} - ${appName}`,
     resolve: (name) =>
-        resolvePageComponent(`./Pages/${name}.jsx`, import.meta.glob('./Pages/**/*.jsx')),
+        resolvePageComponent(
+            `./Pages/${name}.jsx`,
+            import.meta.glob("./Pages/**/*.jsx")
+        ),
     setup({ el, App, props }) {
         createRoot(el).render(
-            <HeroUIProvider locale="es-MX">
+            <ThemeProvider>
                 <App {...props} />
-            </HeroUIProvider>,
+            </ThemeProvider>
         );
     },
 });
 
 InertiaProgress.init({
-    color: '#2563eb',
+    color: "var(--color-primary-600)",
     showSpinner: true,
 });

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import AppLayout from "../../Layouts/AppLayout";
-import StatCard from "../../components/StatCard";
-import DataTable from "../../components/DataTable";
+import StatCard from "../../components/molecules/StatCard";
+import DataTable from "../../components/organisms/DataTable";
 import useApi from "../../hooks/useApi";
 import { formatCurrency, formatDate } from "../../utils/formatters";
 
@@ -42,7 +42,7 @@ const Dashboard = () => {
     if (loading) {
         return (
             <AppLayout title="Dashboard">
-                <p className="text-sm text-slate-500">
+                <p className="text-sm text-[var(--color-text-secondary)]">
                     Cargando indicadores...
                 </p>
             </AppLayout>

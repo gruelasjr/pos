@@ -1,17 +1,9 @@
 import { useEffect, useState } from "react";
-import {
-    Button,
-    Card,
-    CardBody,
-    Input,
-    Select,
-    SelectItem,
-    Tabs,
-    Tab,
-} from "@heroui/react";
+import { Button, Card, CardBody, Input } from "../../components/atoms";
 import AppLayout from "../../Layouts/AppLayout";
 import useApi from "../../hooks/useApi";
 import { formatCurrency } from "../../utils/formatters";
+import { FormField } from "../../components/molecules";
 
 const CartsPage = () => {
     const api = useApi();
@@ -104,48 +96,49 @@ const CartsPage = () => {
                 <div className="lg:col-span-1 space-y-4">
                     <Card>
                         <CardBody className="space-y-3">
-                            <p className="font-semibold text-slate-700">
+                            <p className="font-semibold text-[var(--color-text-primary)]">
                                 Crear carrito
                             </p>
-                            <Select
+                            <FormField
+                                as="select"
                                 label="Almacén"
-                                placeholder="Selecciona"
-                                onSelectionChange={(keys) => {
-                                    const id = extractKey(keys);
+                                value=""
+                                onChange={(e) => {
+                                    const id = e.target.value;
                                     if (id) createCart(id);
                                 }}
                             >
+                                <option value="">Selecciona</option>
                                 {warehouses.map((warehouse) => (
-                                    <SelectItem
+                                    <option
                                         key={warehouse.id}
-                                        textValue={warehouse.name}
+                                        value={warehouse.id}
                                     >
                                         {warehouse.name}
-                                    </SelectItem>
+                                    </option>
                                 ))}
-                            </Select>
+                            </FormField>
                         </CardBody>
                     </Card>
                     <div className="space-y-3">
                         {carts.map((cart) => (
                             <Card
                                 key={cart.id}
-                                isPressable
-                                onPress={() => setSelectedCart(cart)}
                                 className={
                                     selectedCart?.id === cart.id
-                                        ? "border-blue-500 border-2"
-                                        : ""
+                                        ? "border-[var(--color-primary-600)] border-2 cursor-pointer"
+                                        : "cursor-pointer"
                                 }
+                                onClick={() => setSelectedCart(cart)}
                             >
                                 <CardBody>
-                                    <p className="text-sm text-slate-500">
+                                    <p className="text-sm text-[var(--color-text-secondary)]">
                                         {cart.visual_key}
                                     </p>
-                                    <p className="text-lg font-semibold">
+                                    <p className="text-lg font-semibold text-[var(--color-text-primary)]">
                                         {formatCurrency(cart.total_net)}
                                     </p>
-                                    <p className="text-xs text-slate-400">
+                                    <p className="text-xs text-[var(--color-text-tertiary)]">
                                         {cart.items?.length || 0} artículos
                                     </p>
                                 </CardBody>
@@ -159,18 +152,18 @@ const CartsPage = () => {
                             <CardBody className="space-y-4">
                                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                                     <div>
-                                        <p className="text-sm text-slate-500">
+                                        <p className="text-sm text-[var(--color-text-secondary)]">
                                             {selectedCart.warehouse?.name}
                                         </p>
-                                        <h2 className="text-2xl font-semibold">
+                                        <h2 className="text-2xl font-semibold text-[var(--color-text-primary)]">
                                             Carrito {selectedCart.visual_key}
                                         </h2>
                                     </div>
                                     <div className="text-right">
-                                        <p className="text-sm text-slate-500">
+                                        <p className="text-sm text-[var(--color-text-secondary)]">
                                             Total neto
                                         </p>
-                                        <p className="text-3xl font-bold text-blue-600">
+                                        <p className="text-3xl font-bold text-[var(--color-primary-600)]">
                                             {formatCurrency(
                                                 selectedCart.total_net
                                             )}
@@ -179,7 +172,7 @@ const CartsPage = () => {
                                 </div>
 
                                 <div className="grid gap-4 md:grid-cols-2">
-                                    <Input
+                                    <FormField
                                         label="Buscar producto"
                                         placeholder="SKU o descripción"
                                         value={productQuery}
@@ -187,37 +180,44 @@ const CartsPage = () => {
                                             setProductQuery(e.target.value)
                                         }
                                     />
-                                    <Select
+                                    <FormField
+                                        as="select"
                                         label="Resultados"
-                                        placeholder="Selecciona producto"
-                                        onSelectionChange={(keys) => {
-                                            const productId = extractKey(keys);
+                                        value=""
+                                        onChange={(e) => {
+                                            const productId = e.target.value;
                                             if (productId) addItem(productId);
                                         }}
                                     >
+                                        <option value="">
+                                            Selecciona producto
+                                        </option>
                                         {products.map((product) => (
-                                            <SelectItem key={product.id}>
+                                            <option
+                                                key={product.id}
+                                                value={product.id}
+                                            >
                                                 {product.short_description} (
                                                 {product.sku})
-                                            </SelectItem>
+                                            </option>
                                         ))}
-                                    </Select>
+                                    </FormField>
                                 </div>
 
                                 <div className="space-y-2">
                                     {selectedCart.items?.map((item) => (
                                         <div
                                             key={item.id}
-                                            className="flex items-center justify-between bg-slate-50 rounded-lg px-3 py-2"
+                                            className="flex items-center justify-between bg-[var(--color-bg-secondary)] rounded-lg px-3 py-2"
                                         >
                                             <div>
-                                                <p className="font-medium">
+                                                <p className="font-medium text-[var(--color-text-primary)]">
                                                     {
                                                         item.product
                                                             .short_description
                                                     }
                                                 </p>
-                                                <p className="text-xs text-slate-500">
+                                                <p className="text-xs text-[var(--color-text-secondary)]">
                                                     {formatCurrency(
                                                         item.unit_price
                                                     )}{" "}
@@ -226,7 +226,7 @@ const CartsPage = () => {
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <Input
-                                                    size="sm"
+                                                    className="w-20"
                                                     type="number"
                                                     value={item.quantity}
                                                     onChange={(e) =>
@@ -238,7 +238,7 @@ const CartsPage = () => {
                                                         )
                                                     }
                                                 />
-                                                <p className="text-sm font-semibold">
+                                                <p className="text-sm font-semibold text-[var(--color-text-primary)]">
                                                     {formatCurrency(
                                                         item.subtotal
                                                     )}
@@ -249,7 +249,7 @@ const CartsPage = () => {
                                 </div>
 
                                 <div className="grid gap-4 md:grid-cols-2">
-                                    <Input
+                                    <FormField
                                         type="number"
                                         label="Descuento total"
                                         value={selectedCart.discount_total}
@@ -257,14 +257,15 @@ const CartsPage = () => {
                                             applyDiscount(e.target.value)
                                         }
                                     />
-                                    <Select
+                                    <FormField
+                                        as="select"
                                         label="Método de pago"
-                                        selectedKeys={[payment.payment_method]}
-                                        onSelectionChange={(keys) =>
+                                        value={payment.payment_method}
+                                        onChange={(e) =>
                                             setPayment((prev) => ({
                                                 ...prev,
                                                 payment_method:
-                                                    extractKey(keys),
+                                                    e.target.value || "cash",
                                             }))
                                         }
                                     >
@@ -277,21 +278,24 @@ const CartsPage = () => {
                                             },
                                             { key: "mixed", label: "mixto" },
                                         ].map((method) => (
-                                            <SelectItem key={method.key}>
+                                            <option
+                                                key={method.key}
+                                                value={method.key}
+                                            >
                                                 {method.label}
-                                            </SelectItem>
+                                            </option>
                                         ))}
-                                    </Select>
+                                    </FormField>
                                 </div>
 
-                                <Button color="success" onPress={checkout}>
+                                <Button variant="success" onClick={checkout}>
                                     Confirmar pago ·{" "}
                                     {formatCurrency(selectedCart.total_neto)}
                                 </Button>
                             </CardBody>
                         </Card>
                     ) : (
-                        <p className="text-sm text-slate-500">
+                        <p className="text-sm text-[var(--color-text-secondary)]">
                             Selecciona un carrito para comenzar.
                         </p>
                     )}
@@ -299,13 +303,6 @@ const CartsPage = () => {
             </div>
         </AppLayout>
     );
-};
-
-const extractKey = (keys) => {
-    if (!keys) return null;
-    if (typeof keys === "string") return keys;
-    if (Array.isArray(keys)) return keys[0];
-    return Array.from(keys)[0];
 };
 
 export default CartsPage;

@@ -1,7 +1,8 @@
-import { Button, Card, CardBody, Input, Switch } from "@heroui/react";
+import { Button, Card, CardBody, Toggle } from "../../components/atoms";
 import { useEffect, useState } from "react";
 import AppLayout from "../../Layouts/AppLayout";
-import DataTable from "../../components/DataTable";
+import DataTable from "../../components/organisms/DataTable";
+import { FormField } from "../../components/molecules";
 import useApi from "../../hooks/useApi";
 
 const WarehousesPage = () => {
@@ -34,10 +35,10 @@ const WarehousesPage = () => {
                         className="space-y-3"
                         onSubmit={createWarehouse}
                     >
-                        <h2 className="text-lg font-semibold text-slate-800">
+                        <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
                             Nuevo almacén
                         </h2>
-                        <Input
+                        <FormField
                             label="Nombre"
                             value={form.name}
                             onChange={(e) =>
@@ -45,7 +46,7 @@ const WarehousesPage = () => {
                             }
                             required
                         />
-                        <Input
+                        <FormField
                             label="Código"
                             value={form.code}
                             onChange={(e) =>
@@ -53,17 +54,14 @@ const WarehousesPage = () => {
                             }
                             required
                         />
-                        <Switch
-                            isSelected={form.active}
-                            onValueChange={(value) =>
+                        <Toggle
+                            checked={form.active}
+                            onChange={(value) =>
                                 setForm({ ...form, active: value })
                             }
-                        >
-                            Activo
-                        </Switch>
-                        <Button color="primary" type="submit">
-                            Guardar
-                        </Button>
+                            label="Activo"
+                        />
+                        <Button type="submit">Guardar</Button>
                     </CardBody>
                 </Card>
                 <div className="lg:col-span-2">

@@ -1,14 +1,4 @@
 import { useEffect, useState } from "react";
-import {
-    Button,
-    Card,
-    CardBody,
-    Input,
-    Select,
-    SelectItem,
-    Tabs,
-    Tab,
-} from "@heroui/react";
 import { Line } from "react-chartjs-2";
 import {
     Chart,
@@ -21,7 +11,9 @@ import {
 } from "chart.js";
 import AppLayout from "../../Layouts/AppLayout";
 import useApi from "../../hooks/useApi";
-import DataTable from "../../components/DataTable";
+import { Button, Card, CardBody } from "../../components/atoms";
+import { FormField } from "../../components/molecules";
+import DataTable from "../../components/organisms/DataTable";
 import { formatCurrency } from "../../utils/formatters";
 
 Chart.register(
@@ -40,6 +32,7 @@ const ReportsPage = () => {
         warehouse_id: "",
         date: new Date().toISOString().slice(0, 10),
     });
+    const [activeTab, setActiveTab] = useState("daily");
     const [daily, setDaily] = useState(null);
     const [weekly, setWeekly] = useState(null);
     const [monthly, setMonthly] = useState(null);
@@ -77,7 +70,7 @@ const ReportsPage = () => {
         <AppLayout title="Reportes">
             <Card className="mb-6">
                 <CardBody className="flex flex-col gap-3 md:flex-row md:items-end">
-                    <Input
+                    <FormField
                         type="date"
                         label="Fecha"
                         value={filters.date}
@@ -85,80 +78,100 @@ const ReportsPage = () => {
                             setFilters({ ...filters, date: e.target.value })
                         }
                     />
-                    <Select
-                        label="Almacen"
-                        selectedKeys={
-                            filters.warehouse_id ? [filters.warehouse_id] : []
-                        }
-                        onSelectionChange={(keys) =>
+                    <FormField
+                        as="select"
+                        label="Almac�n"
+                        value={filters.warehouse_id}
+                        onChange={(e) =>
                             setFilters({
                                 ...filters,
-                                warehouse_id: extractKey(keys) || "",
+                                warehouse_id: e.target.value,
                             })
                         }
                     >
-                        <SelectItem key="">Todos</SelectItem>
+                        <option value="">Todos</option>
                         {warehouses.map((warehouse) => (
-                            <SelectItem key={warehouse.id}>
+                            <option key={warehouse.id} value={warehouse.id}>
                                 {warehouse.name}
-                            </SelectItem>
+                            </option>
                         ))}
-                    </Select>
-                    <Button variant="ghost" onPress={loadReports}>
+                    </FormField>
+                    <Button variant="ghost" onClick={loadReports}>
                         Actualizar
                     </Button>
                 </CardBody>
             </Card>
 
-            <Tabs>
-                <Tab key="daily" title="Diario">
-                    <Card>
-                        <CardBody className="space-y-2">
-                            <p className="text-sm text-slate-500">
-                                Ventas del dia {daily?.date}
-                            </p>
-                            <p className="text-3xl font-semibold">
-                                {formatCurrency(daily?.total_net || 0)}
-                            </p>
-                            <p className="text-sm text-slate-500">
-                                {daily?.sales || 0} tickets emitidos
-                            </p>
-                        </CardBody>
-                    </Card>
-                </Tab>
-                <Tab key="weekly" title="Semanal">
-                    <Card>
-                        <CardBody>
-                            {weekly && <WeeklyChart weekly={weekly} />}
-                        </CardBody>
-                    </Card>
-                </Tab>
-                <Tab key="monthly" title="Mensual">
-                    <Card>
-                        <CardBody>
-                            <p className="text-sm text-slate-500">
-                                Mes {monthly?.month} total{" "}
-                                {formatCurrency(monthly?.current?.total || 0)}
-                            </p>
-                        </CardBody>
-                    </Card>
-                </Tab>
-                <Tab key="seller" title="Por vendedor">
-                    <DataTable
-                        columns={[
-                            { key: "seller_name", title: "Vendedor" },
-                            { key: "sales", title: "Tickets" },
-                            {
-                                key: "total",
-                                title: "Total",
-                                render: (value) => formatCurrency(value),
-                            },
-                        ]}
-                        data={sellerReport}
-                        emptyMessage="Sin informacion disponible."
-                    />
-                </Tab>
-            </Tabs>
+            <div className="flex flex-wrap gap-2 mb-4">
+                {[
+                    { key: "daily", label: "Diario" },
+                    { key: "weekly", label: "Semanal" },
+                    { key: "monthly", label: "Mensual" },
+                    { key: "seller", label: "Por vendedor" },
+                ].map((tab) => (
+                    <Button
+                        key={tab.key}
+                        size="sm"
+                        variant={
+                            activeTab === tab.key ? "primary" : "secondary"
+                        }
+                        onClick={() => setActiveTab(tab.key)}
+                    >
+                        {tab.label}
+                    </Button>
+                ))}
+            </div>
+
+            {activeTab === "daily" && (
+                <Card>
+                    <CardBody className="space-y-2">
+                        <p className="text-sm text-[var(--color-text-secondary)]">
+                            Ventas del d�a {daily?.date}
+                        </p>
+                        <p className="text-3xl font-semibold text-[var(--color-text-primary)]">
+                            {formatCurrency(daily?.total_net || 0)}
+                        </p>
+                        <p className="text-sm text-[var(--color-text-secondary)]">
+                            {daily?.sales || 0} tickets emitidos
+                        </p>
+                    </CardBody>
+                </Card>
+            )}
+
+            {activeTab === "weekly" && (
+                <Card>
+                    <CardBody>
+                        {weekly && <WeeklyChart weekly={weekly} />}
+                    </CardBody>
+                </Card>
+            )}
+
+            {activeTab === "monthly" && (
+                <Card>
+                    <CardBody>
+                        <p className="text-sm text-[var(--color-text-secondary)]">
+                            Mes {monthly?.month} total{" "}
+                            {formatCurrency(monthly?.current?.total || 0)}
+                        </p>
+                    </CardBody>
+                </Card>
+            )}
+
+            {activeTab === "seller" && (
+                <DataTable
+                    columns={[
+                        { key: "seller_name", title: "Vendedor" },
+                        { key: "sales", title: "Tickets" },
+                        {
+                            key: "total",
+                            title: "Total",
+                            render: (value) => formatCurrency(value),
+                        },
+                    ]}
+                    data={sellerReport}
+                    emptyMessage="Sin informacion disponible."
+                />
+            )}
         </AppLayout>
     );
 };
@@ -180,22 +193,3 @@ const WeeklyChart = ({ weekly }) => {
 };
 
 export default ReportsPage;
-
-const extractKey = (keys) => {
-    if (!keys) return "";
-    if (typeof keys === "string") {
-        return keys;
-    }
-
-    if (Array.isArray(keys)) {
-        return keys[0];
-    }
-
-    const iterator = keys?.values ? keys.values() : null;
-    if (iterator) {
-        const next = iterator.next();
-        return next.value ?? "";
-    }
-
-    return Array.from(keys || [])[0] || "";
-};
