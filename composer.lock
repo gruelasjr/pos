@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "6ba45cc3345d28e5b244547b98e86712",
+    "content-hash": "ab684b287c7b482a989dd70b41ed78f1",
     "packages": [
         {
             "name": "brick/math",
@@ -759,16 +759,16 @@
         },
         {
             "name": "equidna/swift-auth",
-            "version": "2.0.0",
+            "version": "3.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/EquidnaMX/swift-auth.git",
-                "reference": "1c63d65077e48d29274b754f5afde83702c82690"
+                "reference": "b01e790135aea553e54753d79d96ccfa8830511e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/EquidnaMX/swift-auth/zipball/1c63d65077e48d29274b754f5afde83702c82690",
-                "reference": "1c63d65077e48d29274b754f5afde83702c82690",
+                "url": "https://api.github.com/repos/EquidnaMX/swift-auth/zipball/b01e790135aea553e54753d79d96ccfa8830511e",
+                "reference": "b01e790135aea553e54753d79d96ccfa8830511e",
                 "shasum": ""
             },
             "require": {
@@ -779,7 +779,6 @@
                 "laragear/webauthn": "^4.0",
                 "laravel/framework": "^11.21 || ^12.0",
                 "laravel/helpers": "^1.8",
-                "laravel/sanctum": "^4.2",
                 "php": "^8.2 || ^8.3 || ^8.4"
             },
             "require-dev": {
@@ -823,9 +822,9 @@
             "description": "Bottled authentication for Laravel projects",
             "support": {
                 "issues": "https://github.com/EquidnaMX/swift-auth/issues",
-                "source": "https://github.com/EquidnaMX/swift-auth/tree/2.0.0"
+                "source": "https://github.com/EquidnaMX/swift-auth/tree/3.0.0"
             },
-            "time": "2025-12-15T18:15:54+00:00"
+            "time": "2025-12-31T01:25:54+00:00"
         },
         {
             "name": "fruitcake/php-cors",
@@ -1373,16 +1372,16 @@
         },
         {
             "name": "inertiajs/inertia-laravel",
-            "version": "v2.0.16",
+            "version": "v2.0.17",
             "source": {
                 "type": "git",
                 "url": "https://github.com/inertiajs/inertia-laravel.git",
-                "reference": "c060177e1b5120e70d1c26fe7c1007a8c8238f0d"
+                "reference": "d6bc70b27fc43aac50ba3af6439ad9e761e19c7e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/inertiajs/inertia-laravel/zipball/c060177e1b5120e70d1c26fe7c1007a8c8238f0d",
-                "reference": "c060177e1b5120e70d1c26fe7c1007a8c8238f0d",
+                "url": "https://api.github.com/repos/inertiajs/inertia-laravel/zipball/d6bc70b27fc43aac50ba3af6439ad9e761e19c7e",
+                "reference": "d6bc70b27fc43aac50ba3af6439ad9e761e19c7e",
                 "shasum": ""
             },
             "require": {
@@ -1437,9 +1436,9 @@
             ],
             "support": {
                 "issues": "https://github.com/inertiajs/inertia-laravel/issues",
-                "source": "https://github.com/inertiajs/inertia-laravel/tree/v2.0.16"
+                "source": "https://github.com/inertiajs/inertia-laravel/tree/v2.0.17"
             },
-            "time": "2025-12-17T21:57:59+00:00"
+            "time": "2025-12-30T08:22:07+00:00"
         },
         {
             "name": "laminas/laminas-diactoros",
@@ -4284,16 +4283,16 @@
         },
         {
             "name": "psy/psysh",
-            "version": "v0.12.17",
+            "version": "v0.12.18",
             "source": {
                 "type": "git",
                 "url": "https://github.com/bobthecow/psysh.git",
-                "reference": "85fbbd9f3064e157fc21fe4362b2b5c19f2ea631"
+                "reference": "ddff0ac01beddc251786fe70367cd8bbdb258196"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/bobthecow/psysh/zipball/85fbbd9f3064e157fc21fe4362b2b5c19f2ea631",
-                "reference": "85fbbd9f3064e157fc21fe4362b2b5c19f2ea631",
+                "url": "https://api.github.com/repos/bobthecow/psysh/zipball/ddff0ac01beddc251786fe70367cd8bbdb258196",
+                "reference": "ddff0ac01beddc251786fe70367cd8bbdb258196",
                 "shasum": ""
             },
             "require": {
@@ -4357,9 +4356,9 @@
             ],
             "support": {
                 "issues": "https://github.com/bobthecow/psysh/issues",
-                "source": "https://github.com/bobthecow/psysh/tree/v0.12.17"
+                "source": "https://github.com/bobthecow/psysh/tree/v0.12.18"
             },
-            "time": "2025-12-15T04:55:34+00:00"
+            "time": "2025-12-17T14:35:46+00:00"
         },
         {
             "name": "ralouphie/getallheaders",
@@ -8349,16 +8348,16 @@
         },
         {
             "name": "phpunit/php-code-coverage",
-            "version": "12.5.1",
+            "version": "12.5.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/php-code-coverage.git",
-                "reference": "c467c59a4f6e04b942be422844e7a6352fa01b57"
+                "reference": "4a9739b51cbcb355f6e95659612f92e282a7077b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/php-code-coverage/zipball/c467c59a4f6e04b942be422844e7a6352fa01b57",
-                "reference": "c467c59a4f6e04b942be422844e7a6352fa01b57",
+                "url": "https://api.github.com/repos/sebastianbergmann/php-code-coverage/zipball/4a9739b51cbcb355f6e95659612f92e282a7077b",
+                "reference": "4a9739b51cbcb355f6e95659612f92e282a7077b",
                 "shasum": ""
             },
             "require": {
@@ -8373,7 +8372,7 @@
                 "sebastian/environment": "^8.0.3",
                 "sebastian/lines-of-code": "^4.0",
                 "sebastian/version": "^6.0",
-                "theseer/tokenizer": "^2.0"
+                "theseer/tokenizer": "^2.0.1"
             },
             "require-dev": {
                 "phpunit/phpunit": "^12.5.1"
@@ -8414,7 +8413,7 @@
             "support": {
                 "issues": "https://github.com/sebastianbergmann/php-code-coverage/issues",
                 "security": "https://github.com/sebastianbergmann/php-code-coverage/security/policy",
-                "source": "https://github.com/sebastianbergmann/php-code-coverage/tree/12.5.1"
+                "source": "https://github.com/sebastianbergmann/php-code-coverage/tree/12.5.2"
             },
             "funding": [
                 {
@@ -8434,7 +8433,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-12-08T07:17:58+00:00"
+            "time": "2025-12-24T07:03:04+00:00"
         },
         {
             "name": "phpunit/php-file-iterator",

@@ -52,5 +52,14 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         \Illuminate\Http\Resources\Json\JsonResource::withoutWrapping();
+
+        // Load migrations from organized subdirectories
+        // Swift-auth is loaded by vendor/equidna/swift-auth/src/Providers/SwiftAuthServiceProvider.php
+        // We only load our custom swift-auth migrations here
+        $this->loadMigrationsFrom([
+            database_path('migrations/swift-auth'),
+            database_path('migrations/pos'),
+            database_path('migrations/bird-flock'),
+        ]);
     }
 }
