@@ -17,6 +17,10 @@ return new class extends Migration {
             config('bird-flock.tables.prefix', 'bird_flock_') . 'outbound_messages'
         );
 
+        if (Schema::hasTable($tableName)) {
+            return;
+        }
+
         Schema::create($tableName, function (Blueprint $table) {
             $table->char('id_outboundMessage', 26)->primary();
             $table->enum('channel', ['sms', 'whatsapp', 'email']);

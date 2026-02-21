@@ -23,4 +23,4 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('sales', [SaleController::class, 'index']);
 Route::get('sales/{sale}', [SaleController::class, 'show']);
-Route::post('sales/{sale}/receipt', [SaleController::class, 'sendReceipt']);
+Route::post('sales/{sale}/receipt', [SaleController::class, 'sendReceipt'])->middleware('role:admin,vendedor');

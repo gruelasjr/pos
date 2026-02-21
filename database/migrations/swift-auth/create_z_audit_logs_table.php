@@ -22,8 +22,13 @@ return new class extends Migration
     public function up(): void
     {
         $prefix = (string) config('swift-auth.table_prefix', 'swift_auth_');
+        $tableName = $prefix . 'AuditLogs';
 
-        Schema::create($prefix . 'AuditLogs', function (Blueprint $table) use ($prefix) {
+        if (Schema::hasTable($tableName)) {
+            return;
+        }
+
+        Schema::create($tableName, function (Blueprint $table) use ($prefix) {
             $table->uuid('id')->primary();
             $table->string('event');
             $table->nullableMorphs('auditable');

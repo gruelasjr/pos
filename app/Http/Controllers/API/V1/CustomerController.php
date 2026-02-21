@@ -22,6 +22,7 @@ namespace App\Http\Controllers\API\V1;
 
 use App\Models\Customer;
 use App\Models\Sale;
+use App\Support\AuditLogger;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -55,7 +56,7 @@ class CustomerController extends BaseApiController
         return $this->paginated($customers, 'Clientes listados');
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(Request $request, AuditLogger $auditLogger): JsonResponse
     {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:160'],
@@ -66,10 +67,15 @@ class CustomerController extends BaseApiController
 
         $customer = Customer::create($data);
 
+        $auditLogger->log('customer.created', $request->user(), Customer::class, $customer->id, [
+            'email' => $customer->email,
+            'accepts_marketing' => $customer->accepts_marketing,
+        ]);
+
         return $this->success('Cliente registrado', $customer);
     }
 
-    public function update(Request $request, Customer $customer): JsonResponse
+    public function update(Request $request, Customer $customer, AuditLogger $auditLogger): JsonResponse
     {
         $data = $request->validate([
             'name' => ['sometimes', 'string', 'max:160'],
@@ -80,10 +86,14 @@ class CustomerController extends BaseApiController
 
         $customer->update($data);
 
+        $auditLogger->log('customer.updated', $request->user(), Customer::class, $customer->id, [
+            'changes' => $data,
+        ]);
+
         return $this->success('Cliente actualizado', $customer);
     }
 
-    public function register(Request $request): JsonResponse
+    public function register(Request $request, AuditLogger $auditLogger): JsonResponse
     {
         $data = $request->validate([
             'token' => ['required', 'string'],
@@ -112,6 +122,11 @@ class CustomerController extends BaseApiController
 
         $sale->customer_id = $customer->id;
         $sale->save();
+
+        $auditLogger->log('customer.registered_from_receipt', $request->user(), Customer::class, $customer->id, [
+            'sale_id' => $sale->id,
+            'token' => $data['token'],
+        ]);
 
         return $this->success('Cliente actualizado desde registro remoto', $customer);
     }

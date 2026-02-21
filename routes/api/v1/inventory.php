@@ -22,4 +22,4 @@ use App\Http\Controllers\API\V1\InventoryController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('inventory', [InventoryController::class, 'index']);
-Route::patch('inventory/adjust', [InventoryController::class, 'adjust']);
+Route::patch('inventory/adjust', [InventoryController::class, 'adjust'])->middleware('role:admin');

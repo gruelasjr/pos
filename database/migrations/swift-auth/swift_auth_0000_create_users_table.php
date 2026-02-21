@@ -19,8 +19,13 @@ return new class extends Migration {
     public function up(): void
     {
         $prefix = (string) config('swift-auth.table_prefix', 'swift-auth_');
+        $tableName = $prefix . 'Users';
 
-        Schema::create($prefix . 'Users', function (Blueprint $table) {
+        if (Schema::hasTable($tableName)) {
+            return;
+        }
+
+        Schema::create($tableName, function (Blueprint $table) {
             $table->id('id_user');
             $table->string('name');
             $table->string('email')->unique();

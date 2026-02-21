@@ -20,7 +20,10 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('api/v1')->group(function () {
+Route::prefix('v1')->group(function () {
+    require __DIR__ . '/api/v1/auth.php';
+    require __DIR__ . '/api/v1/customers_public.php';
+
     Route::middleware('SwiftAuth.RequireAuthentication')->group(function () {
         require __DIR__ . '/api/v1/warehouses.php';
         require __DIR__ . '/api/v1/product_types.php';
@@ -29,7 +32,13 @@ Route::prefix('api/v1')->group(function () {
         require __DIR__ . '/api/v1/skus.php';
         require __DIR__ . '/api/v1/carts.php';
         require __DIR__ . '/api/v1/sales.php';
+        require __DIR__ . '/api/v1/returns.php';
+        require __DIR__ . '/api/v1/cash_sessions.php';
         require __DIR__ . '/api/v1/customers.php';
+        require __DIR__ . '/api/v1/promotions.php';
+        require __DIR__ . '/api/v1/loyalty.php';
+        require __DIR__ . '/api/v1/coupons.php';
+        require __DIR__ . '/api/v1/outbox.php';
         require __DIR__ . '/api/v1/reports.php';
     });
 });

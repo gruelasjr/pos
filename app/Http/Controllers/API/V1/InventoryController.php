@@ -22,6 +22,7 @@ namespace App\Http\Controllers\API\V1;
 
 use App\Domain\Inventory\InventoryService;
 use App\Models\Inventory;
+use App\Support\AuditLogger;
 use Illuminate\Http\Request;
 
 /**
@@ -56,7 +57,7 @@ class InventoryController extends BaseApiController
         return $this->paginated($inventory, 'Inventario listado');
     }
 
-    public function adjust(Request $request, InventoryService $inventoryService)
+    public function adjust(Request $request, InventoryService $inventoryService, AuditLogger $auditLogger)
     {
         $data = $request->validate([
             'product_id' => ['required', 'exists:products,id'],
@@ -66,6 +67,13 @@ class InventoryController extends BaseApiController
         ]);
 
         $inventory = $inventoryService->adjust($data['product_id'], $data['warehouse_id'], $data['delta'], $data['reason'] ?? null);
+
+        $auditLogger->log('inventory.adjusted', $request->user(), Inventory::class, $inventory->id, [
+            'product_id' => $data['product_id'],
+            'warehouse_id' => $data['warehouse_id'],
+            'delta' => $data['delta'],
+            'reason' => $data['reason'] ?? null,
+        ]);
 
         return $this->success('Inventario actualizado', $inventory->load('product', 'warehouse'));
     }

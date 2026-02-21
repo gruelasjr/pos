@@ -40,7 +40,7 @@ use Equidna\Toolkit\Exceptions\UnprocessableEntityException;
  */
 class CartService
 {
-    public function __construct(private DatabaseManager $db)
+    public function __construct(private DatabaseManager $db, private PromotionEngine $promotionEngine)
     {
         // No body
     }
@@ -94,7 +94,7 @@ class CartService
             $item->save();
 
             $cart->load('items');
-            $cart->recalculateTotals();
+            $this->recalculateWithPromotions($cart);
             $cart->save();
 
             $cart = $cart->refresh();
@@ -138,7 +138,7 @@ class CartService
             $item->save();
 
             $cart->load('items');
-            $cart->recalculateTotals();
+            $this->recalculateWithPromotions($cart);
             $cart->save();
 
             $cart = $cart->refresh();
@@ -160,7 +160,7 @@ class CartService
         return $this->db->transaction(function () use ($cart, $itemId) {
             $cart->items()->where('id', $itemId)->delete();
             $cart->load('items');
-            $cart->recalculateTotals();
+            $this->recalculateWithPromotions($cart);
             $cart->save();
 
             $cart = $cart->refresh();
@@ -180,12 +180,21 @@ class CartService
     public function updateCart(Cart $cart, array $payload): Cart
     {
         $cart->fill($payload);
-        $cart->recalculateTotals();
+        $this->recalculateWithPromotions($cart);
         $cart->save();
 
         $cart = $cart->refresh();
         $cart->load('items.product', 'warehouse', 'seller');
 
         return $cart;
+    }
+
+    protected function recalculateWithPromotions(Cart $cart): void
+    {
+        $cart->recalculateTotals();
+        $promotion = $this->promotionEngine->apply($cart);
+        $cart->promotion_discount = $promotion['promotion_discount'];
+        $cart->applied_promotions = $promotion['applied_promotions'];
+        $cart->recalculateTotals();
     }
 }

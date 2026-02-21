@@ -19,28 +19,34 @@ return new class extends Migration {
     public function up(): void
     {
         $prefix = (string) config('swift-auth.table_prefix', 'swift-auth_');
+        $rolesTable = $prefix . 'Roles';
+        $usersTable = $prefix . 'Users';
+        $pivotTable = $prefix . 'UsersRoles';
 
-        Schema::create($prefix . 'Roles', function (Blueprint $table) {
-            $table->id('id_role');
-            $table->string('name')->unique();
-            $table->string('description')->nullable();
-            $table->json('actions')->nullable(); // MySQL doesn't allow default values on JSON columns
-            $table->timestamps();
+        if (!Schema::hasTable($rolesTable)) {
+            Schema::create($rolesTable, function (Blueprint $table) {
+                $table->id('id_role');
+                $table->string('name')->unique();
+                $table->string('description')->nullable();
+                $table->json('actions')->nullable();
+                $table->timestamps();
 
-            // Performance indexes
-            $table->index('name');
-        });
-        Schema::create($prefix . 'UsersRoles', function (Blueprint $table) use ($prefix) {
-            $table->unsignedBigInteger('id_user');
-            $table->unsignedBigInteger('id_role');
-            $table->primary(['id_user', 'id_role']);
-            $table->foreign('id_user')->references('id_user')->on($prefix . 'Users')->onDelete('cascade');
-            $table->foreign('id_role')->references('id_role')->on($prefix . 'Roles')->onDelete('cascade');
+                $table->index('name');
+            });
+        }
 
-            // Performance indexes on foreign keys
-            $table->index('id_user');
-            $table->index('id_role');
-        });
+        if (!Schema::hasTable($pivotTable) && Schema::hasTable($usersTable) && Schema::hasTable($rolesTable)) {
+            Schema::create($pivotTable, function (Blueprint $table) use ($usersTable, $rolesTable) {
+                $table->unsignedBigInteger('id_user');
+                $table->unsignedBigInteger('id_role');
+                $table->primary(['id_user', 'id_role']);
+                $table->foreign('id_user')->references('id_user')->on($usersTable)->onDelete('cascade');
+                $table->foreign('id_role')->references('id_role')->on($rolesTable)->onDelete('cascade');
+
+                $table->index('id_user');
+                $table->index('id_role');
+            });
+        }
     }
 
     /**

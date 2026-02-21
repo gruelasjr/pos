@@ -21,6 +21,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::hasTable('folio_sequences')) {
+            return;
+        }
+
         Schema::create('folio_sequences', function (Blueprint $table) {
             $table->id();
             $table->foreignUuid('warehouse_id')->constrained('warehouses');

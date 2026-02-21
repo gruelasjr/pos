@@ -110,6 +110,43 @@ class ReportController extends BaseApiController
         return $this->success('Reporte por vendedor', $data);
     }
 
+    public function dailyExport(Request $request)
+    {
+        $date = Carbon::parse($request->input('date', now()->toDateString()))->toDateString();
+        $query = $this->baseQuery($request)
+            ->whereDate('paid_at', $date);
+
+        $rows = [[
+            'date',
+            'total_gross',
+            'total_net',
+            'sales_count',
+        ], [
+            $date,
+            (string) $query->sum('total_gross'),
+            (string) $query->sum('total_net'),
+            (string) $query->count(),
+        ]];
+
+        return $this->csvResponse('daily_report_' . $date . '.csv', $rows);
+    }
+
+    public function bySellerExport(Request $request)
+    {
+        $data = $this->baseQuery($request)
+            ->join('users', 'sales.user_id', '=', 'users.id')
+            ->selectRaw('users.id as id, users.name as seller_name, SUM(sales.total_net) as total, COUNT(*) as sales')
+            ->groupBy('users.id', 'users.name')
+            ->get();
+
+        $rows = [['seller_id', 'seller_name', 'sales_count', 'total_net']];
+        foreach ($data as $row) {
+            $rows[] = [(string) $row->id, (string) $row->seller_name, (string) $row->sales, (string) $row->total];
+        }
+
+        return $this->csvResponse('by_seller_report.csv', $rows);
+    }
+
     protected function baseQuery(Request $request)
     {
         return Sale::query()
@@ -122,5 +159,22 @@ class ReportController extends BaseApiController
                     $sub->where('product_type_id', $request->input('product_type_id'));
                 });
             });
+    }
+
+    protected function csvResponse(string $filename, array $rows)
+    {
+        $content = '';
+        foreach ($rows as $row) {
+            $content .= implode(',', array_map(function ($value) {
+                $escaped = str_replace('"', '""', (string) $value);
+
+                return '"' . $escaped . '"';
+            }, $row)) . "\n";
+        }
+
+        return response($content, 200, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename=' . $filename,
+        ]);
     }
 }

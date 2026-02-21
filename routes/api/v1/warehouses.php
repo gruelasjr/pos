@@ -22,5 +22,5 @@ use App\Http\Controllers\API\V1\WarehouseController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('warehouses', [WarehouseController::class, 'index']);
-Route::post('warehouses', [WarehouseController::class, 'store']);
-Route::patch('warehouses/{warehouse}', [WarehouseController::class, 'update']);
+Route::post('warehouses', [WarehouseController::class, 'store'])->middleware('role:admin');
+Route::patch('warehouses/{warehouse}', [WarehouseController::class, 'update'])->middleware('role:admin');

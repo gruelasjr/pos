@@ -19,8 +19,13 @@ return new class extends Migration {
     public function up(): void
     {
         $prefix = (string) config('swift-auth.table_prefix', 'swift-auth_');
+        $tableName = $prefix . 'RememberTokens';
 
-        Schema::create($prefix . 'RememberTokens', function (Blueprint $table) {
+        if (Schema::hasTable($tableName)) {
+            return;
+        }
+
+        Schema::create($tableName, function (Blueprint $table) {
             $table->id('id_remember_token');
             $table->unsignedBigInteger('id_user');
             $table->string('selector')->unique();

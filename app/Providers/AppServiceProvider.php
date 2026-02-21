@@ -23,6 +23,12 @@
 
 namespace App\Providers;
 
+use App\Services\Integrations\ERPConnector;
+use App\Services\Integrations\FiscalProvider;
+use App\Services\Integrations\PaymentGateway;
+use App\Services\Integrations\Stubs\StubERPConnector;
+use App\Services\Integrations\Stubs\StubFiscalProvider;
+use App\Services\Integrations\Stubs\StubPaymentGateway;
 use Illuminate\Support\ServiceProvider;
 
 /**
@@ -41,7 +47,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(PaymentGateway::class, StubPaymentGateway::class);
+        $this->app->bind(FiscalProvider::class, StubFiscalProvider::class);
+        $this->app->bind(ERPConnector::class, StubERPConnector::class);
     }
 
     /**

@@ -26,7 +26,9 @@ use App\Domain\POS\CartService;
 use App\Domain\Sales\CheckoutService;
 use App\Models\Cart;
 use App\Models\Product;
+use App\Models\Sale;
 use App\Models\Warehouse;
+use App\Support\AuditLogger;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Equidna\Toolkit\Exceptions\ForbiddenException;
@@ -184,7 +186,7 @@ class CartController extends BaseApiController
      * @param  Cart    $cart
      * @return mixed
      */
-    public function checkout(Request $request, Cart $cart)
+    public function checkout(Request $request, Cart $cart, AuditLogger $auditLogger)
     {
         $this->authorizeCart($request, $cart);
 
@@ -196,6 +198,12 @@ class CartController extends BaseApiController
         ]);
 
         $sale = $this->checkoutService->checkout($cart, $data);
+
+        $auditLogger->log('sale.checkout_confirmed', $request->user(), Sale::class, $sale->id, [
+            'folio' => $sale->folio,
+            'payment_method' => $sale->payment_method,
+            'total_net' => $sale->total_net,
+        ]);
 
         return $this->success('Venta confirmada', $sale);
     }

@@ -21,4 +21,4 @@
 use App\Http\Controllers\API\V1\SkuController;
 use Illuminate\Support\Facades\Route;
 
-Route::post('skus/reserve', [SkuController::class, 'reserve']);
+Route::post('skus/reserve', [SkuController::class, 'reserve'])->middleware('role:admin');

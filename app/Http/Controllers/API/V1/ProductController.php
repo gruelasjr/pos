@@ -22,6 +22,7 @@ namespace App\Http\Controllers\API\V1;
 
 use App\Domain\Catalog\SkuGeneratorService;
 use App\Models\Product;
+use App\Support\AuditLogger;
 use Illuminate\Http\Request;
 
 /**
@@ -59,7 +60,7 @@ class ProductController extends BaseApiController
         return $this->paginated($products, 'Productos listados');
     }
 
-    public function store(Request $request, SkuGeneratorService $skuGenerator)
+    public function store(Request $request, SkuGeneratorService $skuGenerator, AuditLogger $auditLogger)
     {
         $data = $request->validate([
             'sku' => ['nullable', 'string', 'max:64', 'unique:products,sku'],
@@ -79,6 +80,12 @@ class ProductController extends BaseApiController
 
         $product = Product::create($data);
 
+        $auditLogger->log('product.created', $request->user(), Product::class, $product->id, [
+            'sku' => $product->sku,
+            'short_description' => $product->short_description,
+            'product_type_id' => $product->product_type_id,
+        ]);
+
         return $this->success('Producto creado', $product->load('type'));
     }
 
@@ -87,7 +94,7 @@ class ProductController extends BaseApiController
         return $this->success('Detalle de producto', $product->load('type', 'inventories'));
     }
 
-    public function update(Request $request, Product $product)
+    public function update(Request $request, Product $product, AuditLogger $auditLogger)
     {
         $data = $request->validate([
             'short_description' => ['sometimes', 'string', 'max:160'],
@@ -102,6 +109,10 @@ class ProductController extends BaseApiController
         ]);
 
         $product->update($data);
+
+        $auditLogger->log('product.updated', $request->user(), Product::class, $product->id, [
+            'changes' => $data,
+        ]);
 
         return $this->success('Producto actualizado', $product->load('type'));
     }

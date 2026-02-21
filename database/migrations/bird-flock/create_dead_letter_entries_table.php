@@ -12,6 +12,10 @@ return new class extends Migration {
             env('BIRD_FLOCK_TABLE_PREFIX', 'bird_flock_') . 'dead_letters'
         );
 
+        if (Schema::hasTable($tableName)) {
+            return;
+        }
+
         Schema::create($tableName, function (Blueprint $table) {
             $table->ulid('id')->primary();
             $table->char('message_id', 26);

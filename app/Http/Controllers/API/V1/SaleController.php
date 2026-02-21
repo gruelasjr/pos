@@ -22,6 +22,7 @@ namespace App\Http\Controllers\API\V1;
 
 use App\Jobs\SendReceiptJob;
 use App\Models\Sale;
+use App\Support\AuditLogger;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -68,7 +69,7 @@ class SaleController extends BaseApiController
         return $this->success('Detalle de venta', $sale->load('items', 'customer', 'warehouse', 'seller'));
     }
 
-    public function sendReceipt(Request $request, Sale $sale)
+    public function sendReceipt(Request $request, Sale $sale, AuditLogger $auditLogger)
     {
         $data = $request->validate([
             'channel' => ['required', Rule::in(['email', 'sms'])],
@@ -76,6 +77,11 @@ class SaleController extends BaseApiController
         ]);
 
         SendReceiptJob::dispatch($sale->id, $data);
+
+        $auditLogger->log('sale.receipt_scheduled', $request->user(), Sale::class, $sale->id, [
+            'channel' => $data['channel'],
+            'destination' => $data['destination'],
+        ]);
 
         return $this->success('Recibo programado', ['scheduled' => true]);
     }

@@ -57,12 +57,16 @@ class Cart extends Model
         'status',
         'total_gross',
         'discount_total',
+        'promotion_discount',
+        'applied_promotions',
         'total_net',
     ];
 
     protected $casts = [
         'total_gross' => 'decimal:2',
         'discount_total' => 'decimal:2',
+        'promotion_discount' => 'decimal:2',
+        'applied_promotions' => 'array',
         'total_net' => 'decimal:2',
     ];
 
@@ -94,6 +98,7 @@ class Cart extends Model
         $bruto = $this->items->sum(fn(CartItem $item) => (float) $item->subtotal);
         $this->total_gross = (string) $bruto;
         $descuento = (float) ($this->discount_total ?? 0);
-        $this->total_net = (string) max(0, $bruto - $descuento);
+        $promo = (float) ($this->promotion_discount ?? 0);
+        $this->total_net = (string) max(0, $bruto - $descuento - $promo);
     }
 }

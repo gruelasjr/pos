@@ -39,6 +39,7 @@ use Illuminate\Support\Str;
  * @property string                                                          $warehouse_id
  * @property string                                                          $user_id
  * @property string                                                          $customer_id
+ * @property string|null                                                     $cash_session_id
  * @property string                                                          $payment_method
  * @property array<string, mixed>|null                                       $payment_details
  * @property string                                                          $total_gross
@@ -64,6 +65,7 @@ class Sale extends Model
         'warehouse_id',
         'user_id',
         'customer_id',
+        'cash_session_id',
         'payment_method',
         'payment_details',
         'total_gross',
@@ -120,6 +122,11 @@ class Sale extends Model
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    public function cashSession(): BelongsTo
+    {
+        return $this->belongsTo(CashSession::class);
     }
 
     /**

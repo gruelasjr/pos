@@ -22,6 +22,5 @@ use App\Http\Controllers\API\V1\CustomerController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('customers', [CustomerController::class, 'index']);
-Route::post('customers', [CustomerController::class, 'store']);
-Route::patch('customers/{customer}', [CustomerController::class, 'update']);
-Route::post('customers/register', [CustomerController::class, 'register']);
+Route::post('customers', [CustomerController::class, 'store'])->middleware('role:admin,vendedor');
+Route::patch('customers/{customer}', [CustomerController::class, 'update'])->middleware('role:admin,vendedor');

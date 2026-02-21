@@ -24,7 +24,7 @@ class SecurityHelpers
      */
     public static function redact(array $payload): array
     {
-        if ((bool) config('security.log_sensitive', false)) {
+        if (self::shouldLogSensitive()) {
             return $payload;
         }
 
@@ -70,5 +70,18 @@ class SecurityHelpers
         }
 
         return $redacted;
+    }
+
+    protected static function shouldLogSensitive(): bool
+    {
+        try {
+            if (!function_exists('config')) {
+                return false;
+            }
+
+            return (bool) config('security.log_sensitive', false);
+        } catch (\Throwable) {
+            return false;
+        }
     }
 }

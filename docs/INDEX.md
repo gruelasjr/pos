@@ -8,24 +8,25 @@ Welcome to the POS Faro documentation. All project documentation is consolidated
 
 ### For Everyone
 
--   **[README.md](../README.md)** - Project overview, quick start, tech stack (start here!)
--   **[USER_GUIDE.md](./USER_GUIDE.md)** - How to use the POS application (login, POS, reports, troubleshooting)
+- **[README.md](../README.md)** - Project overview, quick start, tech stack (start here!)
+- **[USER_GUIDE.md](./USER_GUIDE.md)** - How to use the POS application (login, POS, reports, troubleshooting)
 
 ### For Developers
 
--   **[ARCHITECTURE.md](./ARCHITECTURE.md)** - System design, tech stack details, API architecture, deployment
--   **[DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md)** - Component library (atoms, molecules, organisms), theme system, usage guide
--   **[REQUIREMENTS.md](./REQUIREMENTS.md)** - Technical specification, entities, business rules, API endpoints
+- **[ARCHITECTURE.md](./ARCHITECTURE.md)** - System design, tech stack details, API architecture, deployment
+- **[DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md)** - Component library (atoms, molecules, organisms), theme system, usage guide
+- **[REQUIREMENTS.md](./REQUIREMENTS.md)** - Technical specification, entities, business rules, API endpoints
 
 ### For Operations & DevOps
 
--   **[ARCHITECTURE.md](./ARCHITECTURE.md#deployment--maintenance)** - Deployment checklist, monitoring, scaling
--   **[../doc/openapi.yaml](../doc/openapi.yaml)** - OpenAPI 3.0 API specification
+- **[ARCHITECTURE.md](./ARCHITECTURE.md#deployment--maintenance)** - Deployment checklist, monitoring, scaling
+- **[../doc/openapi.yaml](../doc/openapi.yaml)** - OpenAPI 3.0 API specification
 
 ### For Project Managers
 
--   **[REQUIREMENTS.md](./REQUIREMENTS.md)** - Scope, features, roadmap
--   **[MIGRATION.md](./MIGRATION.md)** - Completed HeroUI migration status
+- **[REQUIREMENTS.md](./REQUIREMENTS.md)** - Scope, features, roadmap
+- **[MIGRATION.md](./MIGRATION.md)** - Completed HeroUI migration status
+- **[EXECUTION_PLAN_P0_P2.md](./EXECUTION_PLAN_P0_P2.md)** - Plan operativo P1/P2 con épicas, KPIs y DoD
 
 ---
 
@@ -40,22 +41,22 @@ Welcome to the POS Faro documentation. All project documentation is consolidated
 
 ### Development
 
--   **Component Development**: See [DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md)
--   **API Development**: See [ARCHITECTURE.md](./ARCHITECTURE.md#api-architecture) + [../doc/openapi.yaml](../doc/openapi.yaml)
--   **Database**: See [REQUIREMENTS.md](./REQUIREMENTS.md#3-core-entities)
--   **Authentication**: See [ARCHITECTURE.md](./ARCHITECTURE.md#authentication)
+- **Component Development**: See [DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md)
+- **API Development**: See [ARCHITECTURE.md](./ARCHITECTURE.md#api-architecture) + [../doc/openapi.yaml](../doc/openapi.yaml)
+- **Database**: See [REQUIREMENTS.md](./REQUIREMENTS.md#3-core-entities)
+- **Authentication**: See [ARCHITECTURE.md](./ARCHITECTURE.md#authentication)
 
 ### Deployment
 
--   **Pre-Deploy**: See [ARCHITECTURE.md](./ARCHITECTURE.md#deployment--maintenance)
--   **CI/CD Pipeline**: See [ARCHITECTURE.md](./ARCHITECTURE.md#builddeployment)
--   **Production Checklist**: See [ARCHITECTURE.md](./ARCHITECTURE.md#production-checklist)
+- **Pre-Deploy**: See [ARCHITECTURE.md](./ARCHITECTURE.md#deployment--maintenance)
+- **CI/CD Pipeline**: See [ARCHITECTURE.md](./ARCHITECTURE.md#builddeployment)
+- **Production Checklist**: See [ARCHITECTURE.md](./ARCHITECTURE.md#production-checklist)
 
 ### Operations
 
--   **Queue Management**: See [ARCHITECTURE.md](./ARCHITECTURE.md#queue-worker)
--   **Monitoring**: See [ARCHITECTURE.md](./ARCHITECTURE.md#monitoring--troubleshooting)
--   **Troubleshooting**: See [USER_GUIDE.md](./USER_GUIDE.md#troubleshooting)
+- **Queue Management**: See [ARCHITECTURE.md](./ARCHITECTURE.md#queue-worker)
+- **Monitoring**: See [ARCHITECTURE.md](./ARCHITECTURE.md#monitoring--troubleshooting)
+- **Troubleshooting**: See [USER_GUIDE.md](./USER_GUIDE.md#troubleshooting)
 
 ---
 
@@ -65,17 +66,17 @@ Welcome to the POS Faro documentation. All project documentation is consolidated
 
 All UI uses a custom component library following atomic design principles:
 
--   **Atoms**: Button, Card, Text, Input, Badge, Toggle
--   **Molecules**: FormField, Modal, Navbar, StatCard, ThemeToggle
--   **Organisms**: DataTable, AppLayout
+- **Atoms**: Button, Card, Text, Input, Badge, Toggle
+- **Molecules**: FormField, Modal, Navbar, StatCard, ThemeToggle
+- **Organisms**: DataTable, AppLayout
 
 → Details: [DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md)
 
 ### Dark/Light Theme
 
--   CSS custom properties for all colors
--   Instant theme toggle via React Context
--   All components automatically adapt
+- CSS custom properties for all colors
+- Instant theme toggle via React Context
+- All components automatically adapt
 
 → Details: [DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md#theme-system)
 
@@ -83,10 +84,10 @@ All UI uses a custom component library following atomic design principles:
 
 Business logic organized by domain:
 
--   Catalog (products, warehouses, types)
--   Inventory (stock, reorder rules)
--   POS (carts, checkout)
--   Sales (transactions, fulfillment)
+- Catalog (products, warehouses, types)
+- Inventory (stock, reorder rules)
+- POS (carts, checkout)
+- Sales (transactions, fulfillment)
 
 → Details: [ARCHITECTURE.md](./ARCHITECTURE.md#3-domain-driven-design-backend)
 
@@ -134,79 +135,88 @@ All endpoints under `/api/v1/` with standard response format:
 
 ### ARCHITECTURE.md
 
--   System design and tech stack
--   Directory structure
--   Architectural decisions (ADS, theme system, DDD)
--   API and frontend architecture
--   Build, deployment, and monitoring
--   **Audience**: Developers, DevOps
+- System design and tech stack
+- Directory structure
+- Architectural decisions (ADS, theme system, DDD)
+- API and frontend architecture
+- Build, deployment, and monitoring
+- **Audience**: Developers, DevOps
 
 ### DESIGN_SYSTEM.md
 
--   Component library (atoms, molecules, organisms)
--   Design tokens and CSS variables
--   Theme system (light/dark modes)
--   Component usage examples
--   Extending the system
--   **Audience**: Frontend developers, UI designers
+- Component library (atoms, molecules, organisms)
+- Design tokens and CSS variables
+- Theme system (light/dark modes)
+- Component usage examples
+- Extending the system
+- **Audience**: Frontend developers, UI designers
 
 ### REQUIREMENTS.md
 
--   Functional and technical specification
--   Core entities and database schema
--   Business rules (inventory, discounts, checkout, etc.)
--   API endpoints (RESTful)
--   UI workflows
--   Security and performance considerations
--   Acceptance criteria and roadmap
--   **Audience**: Product managers, developers, QA
+- Functional and technical specification
+- Core entities and database schema
+- Business rules (inventory, discounts, checkout, etc.)
+- API endpoints (RESTful)
+- UI workflows
+- Security and performance considerations
+- Acceptance criteria and roadmap
+- **Audience**: Product managers, developers, QA
 
 ### USER_GUIDE.md
 
--   Step-by-step application usage
--   Login, POS, catalog, reports workflows
--   Troubleshooting common issues
--   Browser requirements
--   Demo credentials
--   **Audience**: End users, support staff
+- Step-by-step application usage
+- Login, POS, catalog, reports workflows
+- Troubleshooting common issues
+- Browser requirements
+- Demo credentials
+- **Audience**: End users, support staff
 
 ### MIGRATION.md
 
--   HeroUI phase-out history
--   ADS migration status
--   Component replacements
--   Bundle size and performance impact
--   Lessons learned
--   **Audience**: Developers, project leads
+- HeroUI phase-out history
+- ADS migration status
+- Component replacements
+- Bundle size and performance impact
+- Lessons learned
+- **Audience**: Developers, project leads
+
+### EXECUTION_PLAN_P0_P2.md
+
+- Ejecución detallada por fases P1/P2
+- Épicas, historias, entregables técnicos y DoD
+- KPIs operativos/comerciales y matriz de priorización
+- Plan sugerido por sprints
+- **Audience**: Product, Engineering, Operations
 
 ---
 
 ## 🔗 Related Resources
 
--   **API Specification**: [doc/openapi.yaml](../doc/openapi.yaml) (OpenAPI 3.0)
--   **Legacy Docs**: [doc/](../doc/) (archived; see `/docs` instead)
--   **Project Root**: [README.md](../README.md)
+- **API Specification**: [doc/openapi.yaml](../doc/openapi.yaml) (OpenAPI 3.0)
+- **Legacy Docs**: [doc/](../doc/) (archived; see `/docs` instead)
+- **Project Root**: [README.md](../README.md)
 
 ---
 
 ## 📞 Support
 
--   **Questions about usage?** → [USER_GUIDE.md](./USER_GUIDE.md#getting-help)
--   **Questions about development?** → [ARCHITECTURE.md](./ARCHITECTURE.md)
--   **Questions about design?** → [DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md)
--   **Bugs or features?** → Open an issue in your tracker
+- **Questions about usage?** → [USER_GUIDE.md](./USER_GUIDE.md#getting-help)
+- **Questions about development?** → [ARCHITECTURE.md](./ARCHITECTURE.md)
+- **Questions about design?** → [DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md)
+- **Bugs or features?** → Open an issue in your tracker
 
 ---
 
 ## ✅ Documentation Status
 
-| Document                               | Status      | Last Updated |
-| -------------------------------------- | ----------- | ------------ |
-| [ARCHITECTURE.md](./ARCHITECTURE.md)   | ✅ Current  | Dec 2025     |
-| [DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md) | ✅ Current  | Dec 2025     |
-| [REQUIREMENTS.md](./REQUIREMENTS.md)   | ✅ Current  | Dec 2025     |
-| [USER_GUIDE.md](./USER_GUIDE.md)       | ✅ Current  | Dec 2025     |
-| [MIGRATION.md](./MIGRATION.md)         | ✅ Complete | Dec 2025     |
-| [README.md](../README.md)              | ✅ Current  | Dec 2025     |
+| Document                                             | Status      | Last Updated |
+| ---------------------------------------------------- | ----------- | ------------ |
+| [ARCHITECTURE.md](./ARCHITECTURE.md)                 | ✅ Current  | Dec 2025     |
+| [DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md)               | ✅ Current  | Dec 2025     |
+| [REQUIREMENTS.md](./REQUIREMENTS.md)                 | ✅ Current  | Dec 2025     |
+| [USER_GUIDE.md](./USER_GUIDE.md)                     | ✅ Current  | Dec 2025     |
+| [MIGRATION.md](./MIGRATION.md)                       | ✅ Complete | Dec 2025     |
+| [EXECUTION_PLAN_P0_P2.md](./EXECUTION_PLAN_P0_P2.md) | ✅ Current  | Feb 2026     |
+| [README.md](../README.md)                            | ✅ Current  | Dec 2025     |
 
 **Consolidation**: ✅ Complete — no duplicates, all outdated references removed

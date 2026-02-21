@@ -14,13 +14,13 @@ createInertiaApp({
     resolve: (name) =>
         resolvePageComponent(
             `./Pages/${name}.jsx`,
-            import.meta.glob("./Pages/**/*.jsx")
+            import.meta.glob("./Pages/**/*.jsx"),
         ),
     setup({ el, App, props }) {
         createRoot(el).render(
             <ThemeProvider>
                 <App {...props} />
-            </ThemeProvider>
+            </ThemeProvider>,
         );
     },
 });
@@ -29,3 +29,11 @@ InertiaProgress.init({
     color: "var(--color-primary-600)",
     showSpinner: true,
 });
+
+if (typeof window !== "undefined" && "serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+        navigator.serviceWorker.register("/sw.js").catch(() => {
+            // noop
+        });
+    });
+}

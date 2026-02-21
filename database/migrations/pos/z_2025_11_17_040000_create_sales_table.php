@@ -21,11 +21,15 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::hasTable('sales')) {
+            return;
+        }
+
         Schema::create('sales', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('folio', 32)->unique();
             $table->foreignUuid('warehouse_id')->constrained('warehouses');
-            $table->foreignId('user_id')->constrained('swift_auth_Users');
+            $table->foreignId('user_id')->constrained('swift_auth_Users', 'id_user');
             $table->foreignUuid('customer_id')->nullable()->constrained('customers');
             $table->enum('payment_method', ['cash', 'card', 'transfer', 'mixed']);
             $table->json('payment_details')->nullable();

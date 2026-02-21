@@ -12,16 +12,16 @@
 
 namespace App\Domain\Sales;
 
+use App\Domain\POS\CashSessionService;
+use App\Domain\Shared\OutboxPublisher;
 use App\Domain\Inventory\InventoryService;
 use App\Jobs\SendReceiptJob;
+use App\Models\CashSession;
 use App\Models\Cart;
 use App\Models\Sale;
 use App\Models\SaleItem;
-use App\Models\User;
-use App\Models\Warehouse;
 use App\Support\FolioGenerator;
 use Illuminate\Database\DatabaseManager;
-use Illuminate\Support\Facades\Log;
 use Equidna\Toolkit\Exceptions\UnprocessableEntityException;
 
 /**
@@ -36,7 +36,10 @@ class CheckoutService
     public function __construct(
         private DatabaseManager $db,
         private InventoryService $inventoryService,
-        private FolioGenerator $folioGenerator
+        private FolioGenerator $folioGenerator,
+        private CashSessionService $cashSessionService,
+        private LoyaltyService $loyaltyService,
+        private OutboxPublisher $outboxPublisher
     ) {}
 
     public function checkout(Cart $cart, array $payload): Sale
@@ -58,12 +61,19 @@ class CheckoutService
 
             $folio = $this->folioGenerator->next($cart->warehouse);
 
+            $openCashSession = CashSession::query()
+                ->where('user_id', $cart->user_id)
+                ->where('warehouse_id', $cart->warehouse_id)
+                ->where('status', 'open')
+                ->first();
+
             /** @var Sale $sale */
             $sale = Sale::create([
                 'folio' => $folio,
                 'warehouse_id' => $cart->warehouse_id,
                 'user_id' => $cart->user_id,
                 'customer_id' => $payload['customer_id'] ?? null,
+                'cash_session_id' => $openCashSession?->id,
                 'payment_method' => $payload['payment_method'],
                 'payment_details' => $payload['payment_details'] ?? null,
                 'total_gross' => $cart->total_gross,
@@ -88,6 +98,26 @@ class CheckoutService
             $cart->status = 'closed';
             $cart->save();
             $cart->items()->delete();
+
+            if ($openCashSession) {
+                $this->cashSessionService->registerMovement(
+                    $openCashSession->id,
+                    'sale',
+                    (float) $sale->total_net,
+                    Sale::class,
+                    $sale->id,
+                    'checkout'
+                );
+            }
+
+            $this->loyaltyService->accrueFromSale($sale);
+
+            $this->outboxPublisher->publish('sale.confirmed', [
+                'sale_id' => $sale->id,
+                'folio' => $sale->folio,
+                'customer_id' => $sale->customer_id,
+                'total_net' => $sale->total_net,
+            ], Sale::class, $sale->id);
 
             SendReceiptJob::dispatch($sale->id, $payload['receipt'] ?? []);
 

@@ -25,8 +25,13 @@ return new class extends Migration
     public function up(): void
     {
         $prefix = (string) config('swift-auth.table_prefix', 'swift_auth_');
+        $tableName = $prefix . 'ApiTokens';
 
-        Schema::create($prefix . 'ApiTokens', function (Blueprint $table) use ($prefix) {
+        if (Schema::hasTable($tableName)) {
+            return;
+        }
+
+        Schema::create($tableName, function (Blueprint $table) use ($prefix) {
             $table->id();
             $table->unsignedBigInteger('id_user');
             $table->string('name');
