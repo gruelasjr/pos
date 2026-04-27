@@ -195,7 +195,11 @@ class CartController extends BaseApiController
             'payment_details' => ['nullable', 'array'],
             'customer_id' => ['nullable', 'exists:customers,id'],
             'receipt' => ['nullable', 'array'],
+            'fiscal' => ['nullable', 'array'],
+            'fiscal.issue_invoice' => ['nullable', 'boolean'],
+            'fiscal.customer' => ['nullable', 'array'],
         ]);
+        $data['idempotency_key'] = $request->header('X-Idempotency-Key');
 
         $sale = $this->checkoutService->checkout($cart, $data);
 

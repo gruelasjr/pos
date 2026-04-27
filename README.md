@@ -195,6 +195,7 @@ See [docs/DESIGN_SYSTEM.md](./docs/DESIGN_SYSTEM.md) for component API and usage
 | [docs/DESIGN_SYSTEM.md](./docs/DESIGN_SYSTEM.md) | ADS component library, theme system, usage guide               |
 | [docs/PRODUCTION.md](./docs/PRODUCTION.md)       | Production checklist, release gate, runtime operations         |
 | [docs/SECURITY.md](./docs/SECURITY.md)           | Authentication, roles, idempotency, public registration tokens |
+| [docs/INTEGRATIONS.md](./docs/INTEGRATIONS.md)   | Payments, fiscalization, receipt printer, cash drawer, barcode |
 | [docs/TESTING.md](./docs/TESTING.md)             | Test commands, coverage areas, CI recommendations              |
 | [docs/REQUIREMENTS.md](./docs/REQUIREMENTS.md)   | Functional spec, entities, business rules, API endpoints       |
 | [docs/USER_GUIDE.md](./docs/USER_GUIDE.md)       | End-user guide: login, POS, catalogs, reports, troubleshooting |

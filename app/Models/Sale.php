@@ -70,10 +70,24 @@ class Sale extends Model
         'cash_session_id',
         'payment_method',
         'payment_details',
+        'payment_status',
+        'payment_provider',
+        'payment_reference',
+        'payment_authorization_code',
+        'payment_authorized_at',
         'total_gross',
         'discount_total',
         'total_net',
         'paid_at',
+        'fiscal_status',
+        'fiscal_provider',
+        'fiscal_reference',
+        'fiscal_uuid',
+        'fiscal_issued_at',
+        'receipt_print_status',
+        'receipt_printed_at',
+        'cash_drawer_status',
+        'cash_drawer_opened_at',
         'customer_registration_token_hash',
         'customer_registration_expires_at',
         'customer_registration_used_at',
@@ -85,6 +99,10 @@ class Sale extends Model
         'discount_total' => 'decimal:2',
         'total_net' => 'decimal:2',
         'paid_at' => 'datetime',
+        'payment_authorized_at' => 'datetime',
+        'fiscal_issued_at' => 'datetime',
+        'receipt_printed_at' => 'datetime',
+        'cash_drawer_opened_at' => 'datetime',
         'customer_registration_expires_at' => 'datetime',
         'customer_registration_used_at' => 'datetime',
     ];
@@ -170,5 +188,10 @@ class Sale extends Model
     public function items(): HasMany
     {
         return $this->hasMany(SaleItem::class);
+    }
+
+    public function integrationEvents(): HasMany
+    {
+        return $this->hasMany(PosIntegrationEvent::class);
     }
 }

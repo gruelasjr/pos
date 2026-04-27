@@ -22,6 +22,7 @@ namespace App\Http\Controllers\API\V1;
 
 use App\Jobs\SendReceiptJob;
 use App\Models\Sale;
+use App\Services\Integrations\SaleIntegrationService;
 use App\Support\AuditLogger;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -66,7 +67,10 @@ class SaleController extends BaseApiController
 
     public function show(Sale $sale)
     {
-        return $this->success('Detalle de venta', $sale->load('items', 'customer', 'warehouse', 'seller'));
+        return $this->success(
+            'Detalle de venta',
+            $sale->load('items', 'customer', 'warehouse', 'seller', 'integrationEvents')
+        );
     }
 
     public function sendReceipt(Request $request, Sale $sale, AuditLogger $auditLogger)
@@ -89,5 +93,36 @@ class SaleController extends BaseApiController
         ]);
 
         return $this->success('Recibo programado', ['scheduled' => true]);
+    }
+
+    public function printReceipt(Sale $sale, SaleIntegrationService $integrations)
+    {
+        $response = $integrations->printReceipt($sale);
+
+        return $this->success('Recibo enviado a impresora', $response);
+    }
+
+    public function issueFiscalDocument(
+        Request $request,
+        Sale $sale,
+        SaleIntegrationService $integrations,
+        AuditLogger $auditLogger
+    ) {
+        $data = $request->validate([
+            'customer' => ['nullable', 'array'],
+        ]);
+
+        $response = $integrations->issueFiscalDocument($sale, [
+            'fiscal' => [
+                'issue_invoice' => true,
+                'customer' => $data['customer'] ?? null,
+            ],
+        ]);
+
+        $auditLogger->log('sale.fiscal_document_issued', $request->user(), Sale::class, $sale->id, [
+            'fiscal_uuid' => $sale->refresh()->fiscal_uuid,
+        ]);
+
+        return $this->success('Documento fiscal emitido', $response);
     }
 }

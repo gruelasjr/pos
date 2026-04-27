@@ -20,8 +20,12 @@ use App\Models\CashSession;
 use App\Models\Cart;
 use App\Models\Sale;
 use App\Models\SaleItem;
+use App\Services\Integrations\Exceptions\PaymentDeclinedException;
+use App\Services\Integrations\IntegrationEventRecorder;
+use App\Services\Integrations\SaleIntegrationService;
 use App\Support\FolioGenerator;
 use Illuminate\Database\DatabaseManager;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Equidna\Toolkit\Exceptions\UnprocessableEntityException;
 
 /**
@@ -39,7 +43,9 @@ class CheckoutService
         private FolioGenerator $folioGenerator,
         private CashSessionService $cashSessionService,
         private LoyaltyService $loyaltyService,
-        private OutboxPublisher $outboxPublisher
+        private OutboxPublisher $outboxPublisher,
+        private SaleIntegrationService $integrations,
+        private IntegrationEventRecorder $integrationEvents
     ) {
     }
 
@@ -49,27 +55,28 @@ class CheckoutService
             throw new UnprocessableEntityException('carrito_vacio');
         }
 
-        return $this->db->transaction(function () use ($cart, $payload) {
-            $cart->load(['items.product', 'warehouse', 'seller']);
+        try {
+            return $this->db->transaction(function () use ($cart, $payload) {
+                $cart->load(['items.product', 'warehouse', 'seller']);
 
-            foreach ($cart->items as $item) {
-                $this->inventoryService->assertSufficient($item->product, $cart->warehouse, $item->quantity);
-            }
+                foreach ($cart->items as $item) {
+                    $this->inventoryService->assertSufficient($item->product, $cart->warehouse, $item->quantity);
+                }
 
-            foreach ($cart->items as $item) {
-                $this->inventoryService->adjust($item->product_id, $cart->warehouse_id, -1 * $item->quantity);
-            }
+                foreach ($cart->items as $item) {
+                    $this->inventoryService->adjust($item->product_id, $cart->warehouse_id, -1 * $item->quantity);
+                }
 
-            $folio = $this->folioGenerator->next($cart->warehouse);
+                $folio = $this->folioGenerator->next($cart->warehouse);
 
-            $openCashSession = CashSession::query()
+                $openCashSession = CashSession::query()
                 ->where('user_id', $cart->user_id)
                 ->where('warehouse_id', $cart->warehouse_id)
                 ->where('status', 'open')
                 ->first();
 
             /** @var Sale $sale */
-            $sale = Sale::create([
+                $sale = Sale::create([
                 'folio' => $folio,
                 'warehouse_id' => $cart->warehouse_id,
                 'user_id' => $cart->user_id,
@@ -81,12 +88,13 @@ class CheckoutService
                 'discount_total' => $cart->discount_total,
                 'total_net' => $cart->total_net,
                 'paid_at' => now(),
-            ]);
+                ]);
 
-            $registrationToken = $sale->issueCustomerRegistrationToken();
+                $registrationToken = $sale->issueCustomerRegistrationToken();
+                $this->integrations->capturePayment($sale, $payload);
 
-            foreach ($cart->items as $item) {
-                SaleItem::create([
+                foreach ($cart->items as $item) {
+                    SaleItem::create([
                     'sale_id' => $sale->id,
                     'product_id' => $item->product_id,
                     'sku' => $item->product->sku,
@@ -95,42 +103,67 @@ class CheckoutService
                     'unit_price' => $item->unit_price,
                     'discount' => $item->discount,
                     'subtotal' => $item->subtotal,
-                ]);
-            }
+                    ]);
+                }
 
-            $cart->status = 'closed';
-            $cart->save();
-            $cart->items()->delete();
+                $sale->load('items', 'customer', 'seller', 'warehouse');
+                $this->integrations->issueFiscalDocument($sale, $payload);
+                $this->integrations->printReceipt($sale, $registrationToken);
+                $this->integrations->openCashDrawer($sale);
 
-            if ($openCashSession) {
-                $this->cashSessionService->registerMovement(
-                    $openCashSession->id,
-                    'sale',
-                    (float) $sale->total_net,
-                    Sale::class,
-                    $sale->id,
-                    'checkout'
-                );
-            }
+                $cart->status = 'closed';
+                $cart->save();
+                $cart->items()->delete();
 
-            $this->loyaltyService->accrueFromSale($sale);
+                if ($openCashSession) {
+                    $this->cashSessionService->registerMovement(
+                        $openCashSession->id,
+                        'sale',
+                        (float) $sale->total_net,
+                        Sale::class,
+                        $sale->id,
+                        'checkout'
+                    );
+                }
 
-            $this->outboxPublisher->publish('sale.confirmed', [
+                $this->loyaltyService->accrueFromSale($sale);
+
+                $this->outboxPublisher->publish('sale.confirmed', [
                 'sale_id' => $sale->id,
                 'folio' => $sale->folio,
                 'customer_id' => $sale->customer_id,
                 'total_net' => $sale->total_net,
-            ], Sale::class, $sale->id);
+                ], Sale::class, $sale->id);
 
-            SendReceiptJob::dispatch($sale->id, [
+                SendReceiptJob::dispatch($sale->id, [
                 ...($payload['receipt'] ?? []),
                 'registration_token' => $registrationToken,
-            ]);
+                ]);
 
-            $sale = $sale->load('items', 'customer', 'seller', 'warehouse');
-            $sale->plainCustomerRegistrationToken = $registrationToken;
+                $sale = $sale->refresh()->load('items', 'customer', 'seller', 'warehouse');
+                $sale->plainCustomerRegistrationToken = $registrationToken;
 
-            return $sale;
-        });
+                return $sale;
+            });
+        } catch (PaymentDeclinedException $exception) {
+            $this->integrationEvents->failure(
+                null,
+                'payment.charge',
+                $exception->provider(),
+                $exception->requestPayload(),
+                'payment_declined',
+                $exception->responsePayload()
+            );
+
+            throw new HttpResponseException(response()->json([
+                'success' => false,
+                'message' => 'pago_rechazado',
+                'data' => null,
+                'error' => [
+                    'message' => 'pago_rechazado',
+                    'details' => ['payment' => ['pago_rechazado']],
+                ],
+            ], 422));
+        }
     }
 }

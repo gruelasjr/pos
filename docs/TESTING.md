@@ -25,6 +25,7 @@ npm run test:e2e
 - Public customer registration with single-use secure tokens.
 - Browser checkout flow: seller session, cart creation, product selection, and payment confirmation.
 - Theme persistence: toggle, reload, navigation, keyboard access, and logout/session-clear behavior.
+- Mock payment decline rollback, fiscal issuance, manual cash drawer opening, and barcode parsing.
 
 ## Test Database
 

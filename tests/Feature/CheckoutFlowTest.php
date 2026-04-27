@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Jobs\SendReceiptJob;
 use App\Models\Inventory;
+use App\Models\PosIntegrationEvent;
 use App\Models\Sale;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -59,6 +60,12 @@ class CheckoutFlowTest extends TestCase
             ]);
 
         $this->assertSame(1, Sale::count());
+        $sale = Sale::firstOrFail();
+        $this->assertSame('approved', $sale->payment_status);
+        $this->assertSame('mock-payment', $sale->payment_provider);
+        $this->assertSame('printed', $sale->receipt_print_status);
+        $this->assertSame('opened', $sale->cash_drawer_status);
+        $this->assertSame(3, PosIntegrationEvent::count());
         $this->assertSame(
             4,
             Inventory::query()

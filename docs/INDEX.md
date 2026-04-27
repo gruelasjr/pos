@@ -15,6 +15,7 @@ Welcome to the POS Faro documentation. All project documentation is consolidated
 
 - **[ARCHITECTURE.md](./ARCHITECTURE.md)** - System design, tech stack details, API architecture, deployment
 - **[DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md)** - Component library (atoms, molecules, organisms), theme system, usage guide
+- **[INTEGRATIONS.md](./INTEGRATIONS.md)** - Payment, fiscal, printer, cash drawer and barcode provider contracts
 - **[REQUIREMENTS.md](./REQUIREMENTS.md)** - Technical specification, entities, business rules, API endpoints
 - **[TESTING.md](./TESTING.md)** - Test commands, coverage areas, CI expectations
 
@@ -216,6 +217,7 @@ All endpoints under `/api/v1/` with standard response format:
 | ---------------------------------------------------- | ----------- | ------------ |
 | [ARCHITECTURE.md](./ARCHITECTURE.md)                 | ✅ Current  | Dec 2025     |
 | [DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md)               | ✅ Current  | Dec 2025     |
+| [INTEGRATIONS.md](./INTEGRATIONS.md)                 | ✅ Current  | Apr 2026     |
 | [REQUIREMENTS.md](./REQUIREMENTS.md)                 | ✅ Current  | Dec 2025     |
 | [USER_GUIDE.md](./USER_GUIDE.md)                     | ✅ Current  | Dec 2025     |
 | [MIGRATION.md](./MIGRATION.md)                       | ✅ Complete | Dec 2025     |

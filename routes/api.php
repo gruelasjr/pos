@@ -34,6 +34,7 @@ Route::prefix('v1')->group(function () {
         require __DIR__ . '/api/v1/sales.php';
         require __DIR__ . '/api/v1/returns.php';
         require __DIR__ . '/api/v1/cash_sessions.php';
+        require __DIR__ . '/api/v1/hardware.php';
         require __DIR__ . '/api/v1/customers.php';
         require __DIR__ . '/api/v1/promotions.php';
         require __DIR__ . '/api/v1/loyalty.php';

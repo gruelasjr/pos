@@ -30,6 +30,12 @@ SWIFT_AUTH_TABLE_PREFIX=swift_auth_
 API_TOKEN_TTL_MINUTES=480
 CUSTOMER_REGISTRATION_TOKEN_TTL_DAYS=30
 LOG_SENSITIVE=false
+
+POS_PAYMENT_DRIVER=mock
+POS_FISCAL_DRIVER=mock
+POS_RECEIPT_PRINTER_DRIVER=mock
+POS_CASH_DRAWER_DRIVER=mock
+POS_BARCODE_SCANNER_DRIVER=mock
 ```
 
 ## Deployment Steps
@@ -48,6 +54,7 @@ LOG_SENSITIVE=false
 - `storage/` and `bootstrap/cache/` must be writable by the PHP user.
 - Database backups must include the POS tables and SwiftAuth tables.
 - Receipt delivery providers should be tested after every credential rotation.
+- Payment, fiscal, printer, cash drawer, and barcode integrations must be switched from `mock` before live store operations.
 
 ## Release Gate
 
@@ -70,3 +77,4 @@ The GitHub Actions workflow at `.github/workflows/ci.yml` runs these checks with
 - Checkout requires `X-Idempotency-Key` to prevent duplicate sales.
 - Customer registration links use hashed, expiring, single-use sale tokens.
 - Audit logs are stored in the SwiftAuth audit table using the configured table prefix.
+- POS provider calls are logged in `pos_integration_events`.

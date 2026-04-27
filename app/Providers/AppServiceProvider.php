@@ -23,13 +23,20 @@
 
 namespace App\Providers;
 
-use App\Services\Integrations\ERPConnector;
+use App\Services\Integrations\BarcodeScanner;
+use App\Services\Integrations\CashDrawer;
 use App\Services\Integrations\FiscalProvider;
 use App\Services\Integrations\PaymentGateway;
+use App\Services\Integrations\ReceiptPrinter;
+use App\Services\Integrations\ERPConnector;
+use App\Services\Integrations\Mocks\MockBarcodeScanner;
+use App\Services\Integrations\Mocks\MockCashDrawer;
+use App\Services\Integrations\Mocks\MockFiscalProvider;
+use App\Services\Integrations\Mocks\MockPaymentGateway;
+use App\Services\Integrations\Mocks\MockReceiptPrinter;
 use App\Services\Integrations\Stubs\StubERPConnector;
-use App\Services\Integrations\Stubs\StubFiscalProvider;
-use App\Services\Integrations\Stubs\StubPaymentGateway;
 use Illuminate\Support\ServiceProvider;
+use RuntimeException;
 
 /**
  * Registers and boots application services.
@@ -47,8 +54,26 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->bind(PaymentGateway::class, StubPaymentGateway::class);
-        $this->app->bind(FiscalProvider::class, StubFiscalProvider::class);
+        $this->app->bind(PaymentGateway::class, fn () => $this->integrationDriver(
+            'payments.driver',
+            ['mock' => MockPaymentGateway::class]
+        ));
+        $this->app->bind(FiscalProvider::class, fn () => $this->integrationDriver(
+            'fiscal.driver',
+            ['mock' => MockFiscalProvider::class]
+        ));
+        $this->app->bind(ReceiptPrinter::class, fn () => $this->integrationDriver(
+            'receipt_printer.driver',
+            ['mock' => MockReceiptPrinter::class]
+        ));
+        $this->app->bind(CashDrawer::class, fn () => $this->integrationDriver(
+            'cash_drawer.driver',
+            ['mock' => MockCashDrawer::class]
+        ));
+        $this->app->bind(BarcodeScanner::class, fn () => $this->integrationDriver(
+            'barcode_scanner.driver',
+            ['mock' => MockBarcodeScanner::class]
+        ));
         $this->app->bind(ERPConnector::class, StubERPConnector::class);
     }
 
@@ -69,5 +94,16 @@ class AppServiceProvider extends ServiceProvider
             database_path('migrations/pos'),
             database_path('migrations/bird-flock'),
         ]);
+    }
+
+    private function integrationDriver(string $key, array $drivers): object
+    {
+        $driver = (string) config('pos_integrations.' . $key, 'mock');
+
+        if (!array_key_exists($driver, $drivers)) {
+            throw new RuntimeException("Unsupported POS integration driver [{$driver}] for [{$key}].");
+        }
+
+        return $this->app->make($drivers[$driver]);
     }
 }
