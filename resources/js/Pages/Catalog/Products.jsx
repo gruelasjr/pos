@@ -55,7 +55,7 @@ const ProductsPage = () => {
                         className="space-y-3"
                         onSubmit={createProduct}
                     >
-                        <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
+                        <h2 className="text-lg font-semibold text-(--color-text-primary)">
                             Nuevo producto
                         </h2>
                         <FormField

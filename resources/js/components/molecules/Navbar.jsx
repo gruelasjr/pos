@@ -20,21 +20,27 @@ export const Navbar = ({ user }) => {
                     <div className="flex items-center space-x-6">
                         <Link
                             href="/"
-                            className="text-[var(--color-text-primary)] hover:text-[var(--color-primary-600)] transition-colors"
+                            className="hover:text-[var(--color-primary-600)] transition-colors"
                         >
-                            <Text weight="semibold">Inicio</Text>
+                            <Text weight="semibold" family="display">
+                                Inicio
+                            </Text>
                         </Link>
                         <Link
                             href={route("swift-auth.users.index")}
-                            className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors"
+                            className="hover:text-[var(--color-text-primary)] transition-colors"
                         >
-                            Usuarios
+                            <Text size="sm" tone="secondary">
+                                Usuarios
+                            </Text>
                         </Link>
                         <Link
                             href={route("swift-auth.roles.index")}
-                            className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors"
+                            className="hover:text-[var(--color-text-primary)] transition-colors"
                         >
-                            Roles
+                            <Text size="sm" tone="secondary">
+                                Roles
+                            </Text>
                         </Link>
                     </div>
 
@@ -75,7 +81,7 @@ export const Navbar = ({ user }) => {
                         <svg
                             className={clsx(
                                 "h-6 w-6 transition-transform",
-                                isOpen && "rotate-90"
+                                isOpen && "rotate-90",
                             )}
                             xmlns="http://www.w3.org/2000/svg"
                             fill="none"
@@ -98,21 +104,27 @@ export const Navbar = ({ user }) => {
                     <div className="flex flex-col items-center space-y-3 px-4">
                         <Link
                             href="/"
-                            className="text-[var(--color-text-primary)] hover:text-[var(--color-primary-600)] transition-colors"
+                            className="hover:text-[var(--color-primary-600)] transition-colors"
                         >
-                            Inicio
+                            <Text size="sm" weight="semibold" family="display">
+                                Inicio
+                            </Text>
                         </Link>
                         <Link
                             href={route("swift-auth.users.index")}
-                            className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors"
+                            className="hover:text-[var(--color-text-primary)] transition-colors"
                         >
-                            Usuarios
+                            <Text size="sm" tone="secondary">
+                                Usuarios
+                            </Text>
                         </Link>
                         <Link
                             href={route("swift-auth.roles.index")}
-                            className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors"
+                            className="hover:text-[var(--color-text-primary)] transition-colors"
                         >
-                            Roles
+                            <Text size="sm" tone="secondary">
+                                Roles
+                            </Text>
                         </Link>
 
                         <div className="w-full border-t border-[var(--color-border-primary)] pt-3 mt-3">

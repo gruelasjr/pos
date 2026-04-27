@@ -21,7 +21,7 @@ const AppLayout = ({ title, children }) => {
     }
 
     return (
-        <div className="min-h-screen bg-[var(--color-bg-primary)] flex">
+        <div className="min-h-screen app-shell text-[var(--color-text-primary)] flex">
             <AppSidebar user={user} token={token} onLogout={handleLogout} />
             <main className="flex-1 flex flex-col">
                 <AppHeader title={title} user={user} />

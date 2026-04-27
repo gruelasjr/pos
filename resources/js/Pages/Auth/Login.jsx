@@ -1,4 +1,4 @@
-import { Button, Card, CardBody } from "../../components/atoms";
+import { Button, Card, CardBody, Text } from "../../components/atoms";
 import { FormField } from "../../components/molecules";
 import { router } from "@inertiajs/react";
 import { useState } from "react";
@@ -22,7 +22,7 @@ const Login = () => {
             router.visit("/");
         } catch (err) {
             setError(
-                err.response?.data?.error?.message || "Credenciales inválidas"
+                err.response?.data?.error?.message || "Credenciales inválidas",
             );
         } finally {
             setLoading(false);
@@ -30,20 +30,20 @@ const Login = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-[var(--color-bg-secondary)] px-4">
-            <Card className="max-w-md w-full shadow-[var(--shadow-lg)]">
+        <div className="min-h-screen app-shell flex items-center justify-center px-4">
+            <Card className="max-w-md w-full shadow-[var(--shadow-lg)] glass-panel">
                 <CardBody
                     as="form"
                     className="space-y-4"
                     onSubmit={handleSubmit}
                 >
                     <div>
-                        <h1 className="text-2xl font-semibold text-[var(--color-text-primary)]">
+                        <Text as="h1" size="2xl" weight="bold" family="display">
                             POS Faro · Acceso
-                        </h1>
-                        <p className="text-sm text-[var(--color-text-secondary)] mt-1">
+                        </Text>
+                        <Text size="sm" tone="secondary" className="mt-1">
                             Ingresa tus credenciales para continuar.
-                        </p>
+                        </Text>
                     </div>
                     <FormField
                         label="Correo"
@@ -64,9 +64,9 @@ const Login = () => {
                         required
                     />
                     {error && (
-                        <p className="text-sm text-[var(--color-danger-600)]">
+                        <Text size="sm" tone="danger">
                             {error}
-                        </p>
+                        </Text>
                     )}
                     <Button type="submit" disabled={loading}>
                         {loading ? "Ingresando..." : "Entrar"}

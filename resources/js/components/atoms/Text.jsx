@@ -37,6 +37,11 @@ const lineHeights = {
     relaxed: "leading-[var(--line-height-relaxed)]",
 };
 
+const families = {
+    body: "font-body",
+    display: "font-display",
+};
+
 /**
  * Text Component
  *
@@ -56,17 +61,19 @@ export const Text = ({
     weight = "normal",
     tone = "primary",
     lineHeight = "normal",
+    family = "body",
     className,
     children,
     ...props
 }) => (
     <Component
         className={clsx(
+            families[family] ?? families.body,
             sizes[size] ?? sizes.md,
             weights[weight] ?? weights.normal,
             tones[tone] ?? tones.primary,
             lineHeights[lineHeight] ?? lineHeights.normal,
-            className
+            className,
         )}
         {...props}
     >

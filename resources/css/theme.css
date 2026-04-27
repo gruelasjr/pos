@@ -111,6 +111,9 @@
     --spacing-4xl: 4rem;
 
     /* Typography Scale */
+    --font-family-body: "Work Sans", "Segoe UI", sans-serif;
+    --font-family-display: "Sora", "Segoe UI", sans-serif;
+
     --font-size-xs: 0.75rem;
     --font-size-sm: 0.875rem;
     --font-size-md: 1rem;
@@ -139,11 +142,13 @@
 
     /* Shadows */
     --shadow-sm: 0 1px 2px 0 var(--color-shadow);
-    --shadow-md: 0 4px 6px -1px var(--color-shadow),
-        0 2px 4px -1px rgb(0 0 0 / 0.06);
-    --shadow-lg: 0 10px 15px -3px var(--color-shadow-lg),
+    --shadow-md:
+        0 4px 6px -1px var(--color-shadow), 0 2px 4px -1px rgb(0 0 0 / 0.06);
+    --shadow-lg:
+        0 10px 15px -3px var(--color-shadow-lg),
         0 4px 6px -2px rgb(0 0 0 / 0.05);
-    --shadow-xl: 0 20px 25px -5px var(--color-shadow-lg),
+    --shadow-xl:
+        0 20px 25px -5px var(--color-shadow-lg),
         0 10px 10px -5px rgb(0 0 0 / 0.04);
 
     /* Transitions */

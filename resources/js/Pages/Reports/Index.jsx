@@ -11,7 +11,7 @@ import {
 } from "chart.js";
 import AppLayout from "../../Layouts/AppLayout";
 import useApi from "../../hooks/useApi";
-import { Button, Card, CardBody } from "../../components/atoms";
+import { Button, Card, CardBody, Text } from "../../components/atoms";
 import { FormField } from "../../components/molecules";
 import DataTable from "../../components/organisms/DataTable";
 import { formatCurrency } from "../../utils/formatters";
@@ -22,7 +22,7 @@ Chart.register(
     PointElement,
     LineElement,
     Tooltip,
-    Legend
+    Legend,
 );
 
 const ReportsPage = () => {
@@ -125,15 +125,15 @@ const ReportsPage = () => {
             {activeTab === "daily" && (
                 <Card>
                     <CardBody className="space-y-2">
-                        <p className="text-sm text-[var(--color-text-secondary)]">
+                        <Text size="sm" tone="secondary">
                             Ventas del d�a {daily?.date}
-                        </p>
-                        <p className="text-3xl font-semibold text-[var(--color-text-primary)]">
+                        </Text>
+                        <Text size="3xl" weight="semibold" family="display">
                             {formatCurrency(daily?.total_net || 0)}
-                        </p>
-                        <p className="text-sm text-[var(--color-text-secondary)]">
+                        </Text>
+                        <Text size="sm" tone="secondary">
                             {daily?.sales || 0} tickets emitidos
-                        </p>
+                        </Text>
                     </CardBody>
                 </Card>
             )}
@@ -149,10 +149,10 @@ const ReportsPage = () => {
             {activeTab === "monthly" && (
                 <Card>
                     <CardBody>
-                        <p className="text-sm text-[var(--color-text-secondary)]">
+                        <Text size="sm" tone="secondary">
                             Mes {monthly?.month} total{" "}
                             {formatCurrency(monthly?.current?.total || 0)}
-                        </p>
+                        </Text>
                     </CardBody>
                 </Card>
             )}
