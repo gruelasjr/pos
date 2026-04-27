@@ -37,5 +37,9 @@
     </table>
 
     <p>Total: ${{ number_format((float) $sale->total_net, 2) }}</p>
+
+    @if($customerRegistrationUrl)
+        <p>Registra tus datos de cliente: <a href="{{ $customerRegistrationUrl }}">{{ $customerRegistrationUrl }}</a></p>
+    @endif
 </body>
 </html>

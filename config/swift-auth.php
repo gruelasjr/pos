@@ -181,7 +181,7 @@ return [
     | Table & Route Prefix
     |--------------------------------------------------------------------------
     */
-    'table_prefix' => env('SWIFT_AUTH_TABLE_PREFIX', 'swift-auth_'),
+    'table_prefix' => env('SWIFT_AUTH_TABLE_PREFIX', 'swift_auth_'),
     'route_prefix' => env('SWIFT_AUTH_ROUTE_PREFIX', 'swift-auth'),
 
     /*

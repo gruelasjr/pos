@@ -16,10 +16,12 @@ Welcome to the POS Faro documentation. All project documentation is consolidated
 - **[ARCHITECTURE.md](./ARCHITECTURE.md)** - System design, tech stack details, API architecture, deployment
 - **[DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md)** - Component library (atoms, molecules, organisms), theme system, usage guide
 - **[REQUIREMENTS.md](./REQUIREMENTS.md)** - Technical specification, entities, business rules, API endpoints
+- **[TESTING.md](./TESTING.md)** - Test commands, coverage areas, CI expectations
 
 ### For Operations & DevOps
 
-- **[ARCHITECTURE.md](./ARCHITECTURE.md#deployment--maintenance)** - Deployment checklist, monitoring, scaling
+- **[PRODUCTION.md](./PRODUCTION.md)** - Production checklist, release gate, runtime requirements
+- **[SECURITY.md](./SECURITY.md)** - API auth, roles, idempotency, customer registration links
 - **[../doc/openapi.yaml](../doc/openapi.yaml)** - OpenAPI 3.0 API specification
 
 ### For Project Managers
@@ -44,11 +46,12 @@ Welcome to the POS Faro documentation. All project documentation is consolidated
 - **Component Development**: See [DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md)
 - **API Development**: See [ARCHITECTURE.md](./ARCHITECTURE.md#api-architecture) + [../doc/openapi.yaml](../doc/openapi.yaml)
 - **Database**: See [REQUIREMENTS.md](./REQUIREMENTS.md#3-core-entities)
-- **Authentication**: See [ARCHITECTURE.md](./ARCHITECTURE.md#authentication)
+- **Authentication**: See [SECURITY.md](./SECURITY.md#api-authentication)
+- **Testing**: See [TESTING.md](./TESTING.md)
 
 ### Deployment
 
-- **Pre-Deploy**: See [ARCHITECTURE.md](./ARCHITECTURE.md#deployment--maintenance)
+- **Pre-Deploy**: See [PRODUCTION.md](./PRODUCTION.md)
 - **CI/CD Pipeline**: See [ARCHITECTURE.md](./ARCHITECTURE.md#builddeployment)
 - **Production Checklist**: See [ARCHITECTURE.md](./ARCHITECTURE.md#production-checklist)
 

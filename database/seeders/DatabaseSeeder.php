@@ -42,6 +42,7 @@ use App\Models\Warehouse;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class DatabaseSeeder extends Seeder
 {
@@ -115,6 +116,7 @@ class DatabaseSeeder extends Seeder
         foreach ($products as $product) {
             foreach ($warehouses as $warehouse) {
                 Inventory::create([
+                    'id' => (string) Str::uuid(),
                     'product_id' => $product->id,
                     'warehouse_id' => $warehouse->id,
                     'stock' => random_int(5, 30),
@@ -124,6 +126,7 @@ class DatabaseSeeder extends Seeder
         }
 
         ReservedSkuRange::create([
+            'id' => (string) Str::uuid(),
             'prefix' => 'P',
             'from' => 1000,
             'to' => 9999,

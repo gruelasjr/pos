@@ -39,6 +39,13 @@ class AuditLog extends Model
     public $incrementing = false;
     protected $keyType = 'string';
 
+    public function __construct(array $attributes = [])
+    {
+        $this->table = (string) config('swift-auth.table_prefix', 'swift_auth_') . 'AuditLogs';
+
+        parent::__construct($attributes);
+    }
+
     protected $fillable = [
         'id',
         'event',
@@ -52,6 +59,16 @@ class AuditLog extends Model
     protected $casts = [
         'payload' => 'array',
     ];
+
+    public function setUserIdAttribute($value): void
+    {
+        $this->attributes['id_user'] = $value;
+    }
+
+    public function getUserIdAttribute()
+    {
+        return $this->attributes['id_user'] ?? null;
+    }
 
     protected static function booted(): void
     {
@@ -67,6 +84,6 @@ class AuditLog extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'id_user', 'id_user');
     }
 }

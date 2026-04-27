@@ -32,7 +32,10 @@ class EnsureIdempotency
             if ($existing->request_hash !== $hash) {
                 return new JsonResponse([
                     'success' => false,
-                    'error' => ['code' => 'idempotency_hash_mismatch', 'message' => 'La llave ya fue usada con otro payload'],
+                    'error' => [
+                        'code' => 'idempotency_hash_mismatch',
+                        'message' => 'La llave ya fue usada con otro payload',
+                    ],
                 ], 409);
             }
 

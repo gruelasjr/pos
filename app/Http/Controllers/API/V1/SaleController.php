@@ -76,7 +76,12 @@ class SaleController extends BaseApiController
             'destination' => ['required', 'string'],
         ]);
 
-        SendReceiptJob::dispatch($sale->id, $data);
+        $registrationToken = $sale->issueCustomerRegistrationToken();
+
+        SendReceiptJob::dispatch($sale->id, [
+            ...$data,
+            'registration_token' => $registrationToken,
+        ]);
 
         $auditLogger->log('sale.receipt_scheduled', $request->user(), Sale::class, $sale->id, [
             'channel' => $data['channel'],

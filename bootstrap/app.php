@@ -31,6 +31,7 @@
  * @package   Bootstrap
  */
 
+use App\Http\Middleware\AuthenticateApiToken;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\EnsureIdempotency;
 use App\Http\Middleware\EnsureRole;
@@ -50,6 +51,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
+            'api.token' => AuthenticateApiToken::class,
             'role' => EnsureRole::class,
             'idempotency' => EnsureIdempotency::class,
         ]);
@@ -61,7 +63,17 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->render(function (\Throwable $e, $request) {
             if ($request->is('api/*')) {
-                return ResponseHelper::handleException($e);
+                if ($e instanceof \Exception) {
+                    return ResponseHelper::handleException($e);
+                }
+
+                return response()->json([
+                    'success' => false,
+                    'error' => [
+                        'code' => 'server_error',
+                        'message' => config('app.debug') ? $e->getMessage() : 'Error interno del servidor',
+                    ],
+                ], 500);
             }
         });
     })->create();

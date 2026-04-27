@@ -78,7 +78,8 @@ class SendReceiptJob implements ShouldQueue
 
         $channel = $this->options['channel'] ?? 'email';
         $destination = $this->options['destination'] ?? $sale->customer?->email;
-        $receipt = $renderer->html($sale);
+        $registrationToken = $this->options['registration_token'] ?? $sale->issueCustomerRegistrationToken();
+        $receipt = $renderer->html($sale, $registrationToken);
 
         if ($channel === 'sms') {
             $smsProvider->send($destination ?? '', strip_tags($receipt));

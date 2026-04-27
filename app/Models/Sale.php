@@ -59,6 +59,8 @@ class Sale extends Model
     public $incrementing = false;
     protected $keyType = 'string';
 
+    public ?string $plainCustomerRegistrationToken = null;
+
     protected $fillable = [
         'id',
         'folio',
@@ -72,6 +74,9 @@ class Sale extends Model
         'discount_total',
         'total_net',
         'paid_at',
+        'customer_registration_token_hash',
+        'customer_registration_expires_at',
+        'customer_registration_used_at',
     ];
 
     protected $casts = [
@@ -80,6 +85,12 @@ class Sale extends Model
         'discount_total' => 'decimal:2',
         'total_net' => 'decimal:2',
         'paid_at' => 'datetime',
+        'customer_registration_expires_at' => 'datetime',
+        'customer_registration_used_at' => 'datetime',
+    ];
+
+    protected $appends = [
+        'customer_registration_token',
     ];
 
     /**
@@ -92,6 +103,28 @@ class Sale extends Model
         static::creating(function (self $sale) {
             $sale->id ??= (string) Str::uuid();
         });
+    }
+
+    public function getCustomerRegistrationTokenAttribute(): ?string
+    {
+        return $this->plainCustomerRegistrationToken;
+    }
+
+    public function issueCustomerRegistrationToken(): string
+    {
+        $token = Str::random(48);
+
+        $this->forceFill([
+            'customer_registration_token_hash' => hash('sha256', $token),
+            'customer_registration_expires_at' => now()->addDays(
+                (int) config('security.customer_registration_token_ttl_days', 30)
+            ),
+            'customer_registration_used_at' => null,
+        ])->save();
+
+        $this->plainCustomerRegistrationToken = $token;
+
+        return $token;
     }
 
     /**

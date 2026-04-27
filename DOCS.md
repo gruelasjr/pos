@@ -9,6 +9,9 @@
 | **Project overview**      | [README.md](./README.md)                         |
 | **How to use POS**        | [docs/USER_GUIDE.md](./docs/USER_GUIDE.md)       |
 | **How to build & deploy** | [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md)   |
+| **Production readiness**  | [docs/PRODUCTION.md](./docs/PRODUCTION.md)       |
+| **Security model**        | [docs/SECURITY.md](./docs/SECURITY.md)           |
+| **Testing & CI**          | [docs/TESTING.md](./docs/TESTING.md)             |
 | **Component library**     | [docs/DESIGN_SYSTEM.md](./docs/DESIGN_SYSTEM.md) |
 | **Technical spec**        | [docs/REQUIREMENTS.md](./docs/REQUIREMENTS.md)   |
 | **Full navigation**       | [docs/INDEX.md](./docs/INDEX.md)                 |

@@ -77,6 +77,14 @@ const compilePath = (template: string, params?: Record<string, unknown>): string
     });
 };
 
+const createIdempotencyKey = (): string => {
+    if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
+        return crypto.randomUUID();
+    }
+
+    return `idem-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+};
+
 export const createApiClient = (options: ApiClientOptions = {}) => {
     const http =
         options.axiosInstance ??
@@ -191,6 +199,7 @@ export const createApiClient = (options: ApiClientOptions = {}) => {
                     method: 'post',
                     pathParams: { cart: id },
                     body,
+                    headers: { 'X-Idempotency-Key': createIdempotencyKey() },
                 }),
         },
         customers: {

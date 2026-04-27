@@ -66,7 +66,12 @@ class InventoryController extends BaseApiController
             'reason' => ['nullable', 'string'],
         ]);
 
-        $inventory = $inventoryService->adjust($data['product_id'], $data['warehouse_id'], $data['delta'], $data['reason'] ?? null);
+        $inventory = $inventoryService->adjust(
+            $data['product_id'],
+            $data['warehouse_id'],
+            $data['delta'],
+            $data['reason'] ?? null
+        );
 
         $auditLogger->log('inventory.adjusted', $request->user(), Inventory::class, $inventory->id, [
             'product_id' => $data['product_id'],

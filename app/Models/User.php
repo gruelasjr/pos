@@ -35,6 +35,10 @@ use Illuminate\Support\Str;
  * Represents an authenticated application user.
  *
  * @method object createToken(string $name, array $abilities = ['*'])
+ * @property int $id_user
+ * @property int|null $id
+ * @property string|null $uuid
+ * @property bool $active
  *
  * @package   App\Models
  */
@@ -43,10 +47,6 @@ class User extends SwiftUser
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory;
     use Notifiable;
-
-    protected $table = 'users';
-
-    protected $primaryKey = 'id';
 
     protected $with = ['roles'];
 
@@ -66,6 +66,8 @@ class User extends SwiftUser
 
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'locked_until' => 'datetime',
+        'last_failed_login_at' => 'datetime',
         'password' => 'hashed',
         'active' => 'boolean',
     ];
@@ -79,6 +81,13 @@ class User extends SwiftUser
         });
     }
 
+    public function getIdAttribute(): ?int
+    {
+        $key = $this->getKeyName();
+
+        return $this->attributes[$key] ?? null;
+    }
+
     /**
      * @return BelongsToMany<
      *     \Equidna\SwiftAuth\Models\Role,
@@ -90,16 +99,30 @@ class User extends SwiftUser
     public function roles(): BelongsToMany
     {
         /** @var BelongsToMany<\Equidna\SwiftAuth\Models\Role, $this, \Illuminate\Database\Eloquent\Relations\Pivot, 'pivot'> $relation */
-        $relation = $this->belongsToMany(Role::class, 'role_user', 'user_id', 'role_id')->withTimestamps();
+        $relation = $this->belongsToMany(
+            Role::class,
+            (string) config('swift-auth.table_prefix', 'swift_auth_') . 'UsersRoles',
+            'id_user',
+            'id_role'
+        );
 
         return $relation;
     }
 
     public function hasRoles(string|array $roles): bool
     {
-        $roles = Arr::wrap($roles);
+        $roles = collect(Arr::wrap($roles))
+            ->map(fn (string $role) => strtolower($role))
+            ->all();
 
-        return $this->roles->contains(fn(SwiftRole $role) => in_array($role->slug, $roles, true));
+        return $this->roles->contains(function (SwiftRole $role) use ($roles) {
+            $candidates = array_filter([
+                strtolower((string) ($role->slug ?? '')),
+                strtolower((string) $role->name),
+            ]);
+
+            return count(array_intersect($roles, $candidates)) > 0;
+        });
     }
 
     public function availableActions(): array

@@ -24,7 +24,7 @@ Route::prefix('v1')->group(function () {
     require __DIR__ . '/api/v1/auth.php';
     require __DIR__ . '/api/v1/customers_public.php';
 
-    Route::middleware('SwiftAuth.RequireAuthentication')->group(function () {
+    Route::middleware('api.token')->group(function () {
         require __DIR__ . '/api/v1/warehouses.php';
         require __DIR__ . '/api/v1/product_types.php';
         require __DIR__ . '/api/v1/products.php';

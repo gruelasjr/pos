@@ -290,7 +290,7 @@ const CartsPage = () => {
 
                                 <Button variant="success" onClick={checkout}>
                                     Confirmar pago ·{" "}
-                                    {formatCurrency(selectedCart.total_neto)}
+                                    {formatCurrency(selectedCart.total_net)}
                                 </Button>
                             </CardBody>
                         </Card>

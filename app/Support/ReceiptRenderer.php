@@ -31,9 +31,14 @@ use App\Models\Sale;
  */
 class ReceiptRenderer
 {
-    public function html(Sale $sale): string
+    public function html(Sale $sale, ?string $customerRegistrationToken = null): string
     {
         // Render the receipt using a Blade view to ensure proper escaping
-        return view('emails.receipt', ['sale' => $sale])->render();
+        return view('emails.receipt', [
+            'sale' => $sale,
+            'customerRegistrationUrl' => $customerRegistrationToken
+                ? url('/registro-cliente?token=' . urlencode($customerRegistrationToken))
+                : null,
+        ])->render();
     }
 }

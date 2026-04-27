@@ -37,8 +37,12 @@ class CashSessionController extends BaseApiController
         return $this->success('Caja abierta', $session);
     }
 
-    public function close(Request $request, CashSession $cashSession, CashSessionService $cashSessionService, AuditLogger $auditLogger)
-    {
+    public function close(
+        Request $request,
+        CashSession $cashSession,
+        CashSessionService $cashSessionService,
+        AuditLogger $auditLogger
+    ) {
         $data = $request->validate([
             'closing_amount' => ['required', 'numeric', 'min:0'],
         ]);

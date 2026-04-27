@@ -22,8 +22,9 @@
     "require-dev": {
         "fakerphp/faker": "^1.24",
         "larastan/larastan": "^3.8",
-        "squizlabs/php_codesniffer": "*",
-        "phpunit/phpunit": "^12.0"
+        "mockery/mockery": "^1.6",
+        "phpunit/phpunit": "^12.0",
+        "squizlabs/php_codesniffer": "*"
     },
     "autoload": {
         "psr-4": {
@@ -32,7 +33,11 @@
             "Database\\Seeders\\": "database/seeders/"
         }
     },
-    "autoload-dev": {},
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
     "scripts": {
         "setup": [
             "composer install",
@@ -64,8 +69,9 @@
         "pre-package-uninstall": [
             "Illuminate\\Foundation\\ComposerScripts::prePackageUninstall"
         ],
-        "test": "vendor\\bin\\phpunit --testsuite Unit",
-        "lint": "vendor\\bin\\phpstan analyse && vendor\\bin\\phpcs --standard=ruleset.xml app/"
+        "test": "php vendor/bin/phpunit",
+        "test:coverage": "php -d xdebug.mode=coverage vendor/bin/phpunit --coverage-clover=coverage/clover.xml --coverage-text",
+        "lint": "php vendor/bin/phpstan analyse --memory-limit=512M && php vendor/bin/phpcs --standard=ruleset.xml app/"
     },
     "extra": {
         "laravel": {

@@ -17,7 +17,9 @@ class ProcessOutboxJob implements ShouldQueue
     use Queueable;
     use SerializesModels;
 
-    public function __construct(private ?string $messageId = null) {}
+    public function __construct(private ?string $messageId = null)
+    {
+    }
 
     public function handle(): void
     {

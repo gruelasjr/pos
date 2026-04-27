@@ -21,6 +21,7 @@
 namespace App\Http\Controllers\API\V1;
 
 use App\Models\Sale;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 
@@ -100,10 +101,18 @@ class ReportController extends BaseApiController
 
     public function bySeller(Request $request)
     {
+        $user = new User();
+        $userTable = $user->getTable();
+        $userKey = $user->getKeyName();
+
         $query = $this->baseQuery($request)
-            ->join('users', 'sales.user_id', '=', 'users.id')
-            ->selectRaw('users.id as id, users.name as seller_name, SUM(sales.total_net) as total, COUNT(*) as sales')
-            ->groupBy('users.id', 'users.name');
+            ->join($userTable, 'sales.user_id', '=', $userTable . '.' . $userKey)
+            ->selectRaw(
+                $userTable . '.' . $userKey
+                . ' as id, ' . $userTable
+                . '.name as seller_name, SUM(sales.total_net) as total, COUNT(*) as sales'
+            )
+            ->groupBy($userTable . '.' . $userKey, $userTable . '.name');
 
         $data = $query->get();
 
@@ -133,10 +142,18 @@ class ReportController extends BaseApiController
 
     public function bySellerExport(Request $request)
     {
+        $user = new User();
+        $userTable = $user->getTable();
+        $userKey = $user->getKeyName();
+
         $data = $this->baseQuery($request)
-            ->join('users', 'sales.user_id', '=', 'users.id')
-            ->selectRaw('users.id as id, users.name as seller_name, SUM(sales.total_net) as total, COUNT(*) as sales')
-            ->groupBy('users.id', 'users.name')
+            ->join($userTable, 'sales.user_id', '=', $userTable . '.' . $userKey)
+            ->selectRaw(
+                $userTable . '.' . $userKey
+                . ' as id, ' . $userTable
+                . '.name as seller_name, SUM(sales.total_net) as total, COUNT(*) as sales'
+            )
+            ->groupBy($userTable . '.' . $userKey, $userTable . '.name')
             ->get();
 
         $rows = [['seller_id', 'seller_name', 'sales_count', 'total_net']];

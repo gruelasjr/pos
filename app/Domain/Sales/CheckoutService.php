@@ -40,7 +40,8 @@ class CheckoutService
         private CashSessionService $cashSessionService,
         private LoyaltyService $loyaltyService,
         private OutboxPublisher $outboxPublisher
-    ) {}
+    ) {
+    }
 
     public function checkout(Cart $cart, array $payload): Sale
     {
@@ -82,6 +83,8 @@ class CheckoutService
                 'paid_at' => now(),
             ]);
 
+            $registrationToken = $sale->issueCustomerRegistrationToken();
+
             foreach ($cart->items as $item) {
                 SaleItem::create([
                     'sale_id' => $sale->id,
@@ -119,9 +122,15 @@ class CheckoutService
                 'total_net' => $sale->total_net,
             ], Sale::class, $sale->id);
 
-            SendReceiptJob::dispatch($sale->id, $payload['receipt'] ?? []);
+            SendReceiptJob::dispatch($sale->id, [
+                ...($payload['receipt'] ?? []),
+                'registration_token' => $registrationToken,
+            ]);
 
-            return $sale->load('items', 'customer', 'seller', 'warehouse');
+            $sale = $sale->load('items', 'customer', 'seller', 'warehouse');
+            $sale->plainCustomerRegistrationToken = $registrationToken;
+
+            return $sale;
         });
     }
 }

@@ -2,6 +2,7 @@ import { Link, router, usePage } from "@inertiajs/react";
 import { Card, CardBody } from "../atoms/Card";
 import { Text } from "../atoms/Text";
 import { Button } from "../atoms/Button";
+import { ThemeToggle } from "../molecules/ThemeToggle";
 import clsx from "clsx";
 import useAuthStore from "../../store/authStore";
 import { useMemo } from "react";
@@ -153,6 +154,7 @@ export const AppHeader = ({ title, user }) => {
                         aria-hidden
                         className="hidden sm:block h-6 w-px bg-[var(--color-border-primary)]"
                     />
+                    <ThemeToggle />
                     <Button
                         size="sm"
                         variant="ghost"

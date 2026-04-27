@@ -9,7 +9,7 @@ return new class extends Migration {
     {
         $tableName = config(
             'bird-flock.dead_letter.table',
-            env('BIRD_FLOCK_TABLE_PREFIX', 'bird_flock_') . 'dead_letters'
+            config('bird-flock.tables.prefix', 'bird_flock_') . 'dead_letters'
         );
 
         if (Schema::hasTable($tableName)) {
@@ -40,7 +40,7 @@ return new class extends Migration {
     {
         $tableName = config(
             'bird-flock.dead_letter.table',
-            env('BIRD_FLOCK_TABLE_PREFIX', 'bird_flock_') . 'dead_letters'
+            config('bird-flock.tables.prefix', 'bird_flock_') . 'dead_letters'
         );
 
         Schema::dropIfExists($tableName);

@@ -20,7 +20,8 @@ class ReturnService
         private InventoryService $inventoryService,
         private CashSessionService $cashSessionService,
         private OutboxPublisher $outboxPublisher
-    ) {}
+    ) {
+    }
 
     public function createReturn(Sale $sale, User $user, array $items, ?string $reason = null): ReturnNote
     {

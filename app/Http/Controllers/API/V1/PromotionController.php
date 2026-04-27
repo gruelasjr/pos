@@ -53,7 +53,9 @@ class PromotionController extends BaseApiController
         ]);
 
         $promotion->update($data);
-        $auditLogger->log('promotion.updated', $request->user(), Promotion::class, $promotion->id, ['changes' => $data]);
+        $auditLogger->log('promotion.updated', $request->user(), Promotion::class, $promotion->id, [
+            'changes' => $data,
+        ]);
 
         return $this->success('Promoción actualizada', $promotion);
     }

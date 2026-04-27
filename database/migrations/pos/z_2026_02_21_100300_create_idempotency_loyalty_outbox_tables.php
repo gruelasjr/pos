@@ -25,7 +25,7 @@ return new class extends Migration
         if (! Schema::hasTable('loyalty_accounts')) {
             Schema::create('loyalty_accounts', function (Blueprint $table) {
                 $table->uuid('id')->primary();
-                $table->foreignUuid('customer_id')->constrained('customers')->unique();
+                $table->foreignUuid('customer_id')->unique()->constrained('customers');
                 $table->unsignedInteger('points_balance')->default(0);
                 $table->unsignedInteger('lifetime_points')->default(0);
                 $table->string('tier', 32)->default('base');

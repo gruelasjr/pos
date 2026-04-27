@@ -25,6 +25,7 @@ namespace App\Models;
 use Equidna\SwiftAuth\Models\Role as SwiftRole;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Str;
 
 /**
  * Application Role entity.
@@ -38,10 +39,6 @@ class Role extends SwiftRole
 {
     use HasFactory;
 
-    protected $table = 'roles';
-
-    protected $primaryKey = 'id';
-
     protected $fillable = [
         'name',
         'slug',
@@ -52,6 +49,18 @@ class Role extends SwiftRole
     protected $casts = [
         'actions' => 'array',
     ];
+
+    public function getIdAttribute(): ?int
+    {
+        $key = $this->getKeyName();
+
+        return $this->attributes[$key] ?? null;
+    }
+
+    public function getSlugAttribute(?string $value): string
+    {
+        return $value ?: Str::slug((string) $this->name);
+    }
 
     /**
      * @return BelongsToMany<
@@ -64,7 +73,12 @@ class Role extends SwiftRole
     public function users(): BelongsToMany
     {
         /** @var BelongsToMany<\Equidna\SwiftAuth\Models\User, $this, \Illuminate\Database\Eloquent\Relations\Pivot, 'pivot'> $relation */
-        $relation = $this->belongsToMany(User::class, 'role_user', 'role_id', 'user_id')->withTimestamps();
+        $relation = $this->belongsToMany(
+            User::class,
+            (string) config('swift-auth.table_prefix', 'swift_auth_') . 'UsersRoles',
+            'id_role',
+            'id_user'
+        );
 
         return $relation;
     }

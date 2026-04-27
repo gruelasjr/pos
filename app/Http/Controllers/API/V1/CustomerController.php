@@ -103,8 +103,10 @@ class CustomerController extends BaseApiController
             'accepts_marketing' => ['boolean'],
         ]);
 
-        $sale = Sale::where('id', $data['token'])
-            ->orWhere('folio', $data['token'])
+        $sale = Sale::query()
+            ->where('customer_registration_token_hash', hash('sha256', $data['token']))
+            ->whereNull('customer_registration_used_at')
+            ->where('customer_registration_expires_at', '>', now())
             ->first();
 
         if (!$sale) {
@@ -121,6 +123,7 @@ class CustomerController extends BaseApiController
         $customer->save();
 
         $sale->customer_id = $customer->id;
+        $sale->customer_registration_used_at = now();
         $sale->save();
 
         $auditLogger->log('customer.registered_from_receipt', $request->user(), Customer::class, $customer->id, [

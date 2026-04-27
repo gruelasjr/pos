@@ -10,7 +10,9 @@ use Equidna\Toolkit\Exceptions\UnprocessableEntityException;
 
 class LoyaltyService
 {
-    public function __construct(private DatabaseManager $db) {}
+    public function __construct(private DatabaseManager $db)
+    {
+    }
 
     public function accrueFromSale(Sale $sale): ?LoyaltyAccount
     {

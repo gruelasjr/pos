@@ -23,7 +23,6 @@
 namespace App\Http\Controllers\API\V1;
 
 use App\Http\Controllers\Controller;
-use Equidna\Toolkit\Helpers\ResponseHelper;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\JsonResponse;
 
@@ -42,10 +41,12 @@ abstract class BaseApiController extends Controller
      */
     protected function success(string $message, mixed $data = null, array $headers = []): JsonResponse
     {
-        /** @var JsonResponse $response */
-        $response = ResponseHelper::success($message, $data, $headers);
-
-        return $response;
+        return response()->json([
+            'success' => true,
+            'message' => $message,
+            'data' => $data,
+            'error' => null,
+        ], 200, $headers);
     }
 
     /**
@@ -58,17 +59,15 @@ abstract class BaseApiController extends Controller
      */
     protected function error(string $message, array $errors = [], int $status = 400): JsonResponse
     {
-        /** @var JsonResponse $response */
-        $response = match ($status) {
-            ResponseHelper::HTTP_UNAUTHORIZED => ResponseHelper::unauthorized($message, $errors),
-            ResponseHelper::HTTP_FORBIDDEN => ResponseHelper::forbidden($message, $errors),
-            ResponseHelper::HTTP_NOT_FOUND => ResponseHelper::notFound($message, $errors),
-            ResponseHelper::HTTP_CONFLICT => ResponseHelper::conflict($message, $errors),
-            ResponseHelper::HTTP_UNPROCESSABLE_ENTITY => ResponseHelper::unprocessableEntity($message, $errors),
-            default => ResponseHelper::badRequest($message, $errors),
-        };
-
-        return $response;
+        return response()->json([
+            'success' => false,
+            'message' => $message,
+            'data' => null,
+            'error' => [
+                'message' => $message,
+                'details' => $errors,
+            ],
+        ], $status);
     }
 
     /**

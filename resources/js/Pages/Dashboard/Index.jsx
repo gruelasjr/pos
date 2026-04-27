@@ -53,7 +53,7 @@ const Dashboard = () => {
         <AppLayout title="Dashboard">
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <StatCard
-                    label={`Ventas ${formatDate(daily?.date)}`}
+                    label={`Ventas ${daily?.date ? formatDate(daily.date) : "hoy"}`}
                     value={formatCurrency(daily?.total_net || 0)}
                     hint={`${daily?.sales || 0} tickets`}
                 />

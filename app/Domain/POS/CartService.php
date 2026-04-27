@@ -72,8 +72,13 @@ class CartService
      * @param  float|null   $discount
      * @return Cart
      */
-    public function addItem(Cart $cart, Product $product, int $quantity, ?float $price = null, ?float $discount = null): Cart
-    {
+    public function addItem(
+        Cart $cart,
+        Product $product,
+        int $quantity,
+        ?float $price = null,
+        ?float $discount = null
+    ): Cart {
         return $this->db->transaction(function () use ($cart, $product, $quantity, $price, $discount) {
             /** @var CartItem|null $item */
             $item = $cart->items()->where('product_id', $product->id)->lockForUpdate()->first();

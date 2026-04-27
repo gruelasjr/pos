@@ -12,12 +12,16 @@
 /.vscode
 /.zed
 /auth.json
+/coverage
+/database/e2e.sqlite
 /node_modules
+/playwright-report
 /public/build
 /public/hot
 /public/storage
 /storage/*.key
 /storage/pail
+/test-results
 /vendor
 Homestead.json
 Homestead.yaml

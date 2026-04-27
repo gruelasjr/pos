@@ -119,7 +119,12 @@ php artisan queue:work
 | Command                      | Purpose                                            |
 | ---------------------------- | -------------------------------------------------- |
 | `composer setup`             | Install, key:generate, migrate, seed, storage:link |
+| `composer test`              | Run unit and feature test suites                    |
+| `composer lint`              | Run PHPStan and PHPCS                               |
+| `composer audit`             | Check PHP dependency advisories                     |
+| `npm run audit`              | Check Node dependency advisories                    |
 | `npm run build`              | Production build (outputs to `public/build/`)      |
+| `npm run test:e2e`           | Run Playwright E2E suite on isolated SQLite         |
 | `npm run dev`                | Development with Vite hot reload                   |
 | `php artisan migrate --seed` | Run migrations + seeders                           |
 | `php artisan queue:work`     | Process queued jobs                                |
@@ -128,7 +133,10 @@ php artisan queue:work
 
 ## Quality & Logging
 
--   **Static analysis**: Larastan (`vendor/bin/phpstan analyse`), PHPCS (see composer.json)
+-   **Automated tests**: PHPUnit unit + feature suite via `composer test`
+-   **Browser E2E**: Playwright via `npm run test:e2e`, backed by `database/e2e.sqlite`
+-   **Static analysis**: Larastan and PHPCS via `composer lint`
+-   **Security audits**: `composer audit` and `npm run audit`
 -   **Logging**: JSON logs with request-ids in `storage/logs/laravel.log`
 -   **Audit trail**: `AuditLog` table tracks sensitive events (product edits, inventory changes, sales)
 -   **Queue jobs**: `SendReceiptJob` renders and delivers receipts via email/SMS
@@ -155,10 +163,11 @@ See [docs/DESIGN_SYSTEM.md](./docs/DESIGN_SYSTEM.md) for component API and usage
 
 **CI/CD Pipeline**:
 
-1. Run static checks: `composer analyse`, npm lint
-2. Build frontend: `npm run build` → `public/build/manifest.json`
-3. Migrate DB: `php artisan migrate --force`
-4. Cache config: `php artisan optimize`
+1. Run PHP tests with coverage: `composer test:coverage`
+2. Run static checks: `composer lint`
+3. Run security audits: `composer audit` and `npm run audit`
+4. Run browser E2E on SQLite: `npm run test:e2e`
+5. Deploy with `php artisan migrate --force` and `php artisan optimize`
 
 **Production Checklist**:
 
@@ -184,6 +193,9 @@ See [docs/DESIGN_SYSTEM.md](./docs/DESIGN_SYSTEM.md) for component API and usage
 | ------------------------------------------------ | -------------------------------------------------------------- |
 | [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md)   | System architecture, tech stack, API design                    |
 | [docs/DESIGN_SYSTEM.md](./docs/DESIGN_SYSTEM.md) | ADS component library, theme system, usage guide               |
+| [docs/PRODUCTION.md](./docs/PRODUCTION.md)       | Production checklist, release gate, runtime operations         |
+| [docs/SECURITY.md](./docs/SECURITY.md)           | Authentication, roles, idempotency, public registration tokens |
+| [docs/TESTING.md](./docs/TESTING.md)             | Test commands, coverage areas, CI recommendations              |
 | [docs/REQUIREMENTS.md](./docs/REQUIREMENTS.md)   | Functional spec, entities, business rules, API endpoints       |
 | [docs/USER_GUIDE.md](./docs/USER_GUIDE.md)       | End-user guide: login, POS, catalogs, reports, troubleshooting |
 | [docs/MIGRATION.md](./docs/MIGRATION.md)         | HeroUI phase-out & ADS migration (completed)                   |

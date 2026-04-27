@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import { useId } from "react";
 import { Text } from "../atoms/Text";
 import { Input, Select, Textarea } from "../atoms/FormInputs";
 
@@ -16,13 +17,15 @@ export const FormField = ({
     className,
     ...props
 }) => {
+    const generatedId = useId();
+    const fieldId = props.id ?? `field-${generatedId}`;
     const Component =
         as === "textarea" ? Textarea : as === "select" ? Select : Input;
 
     return (
         <div className={clsx("space-y-2", className)}>
             {label && (
-                <label className="block">
+                <label htmlFor={fieldId} className="block">
                     <Text size="sm" weight="medium" tone="primary">
                         {label}
                         {required && (
@@ -34,7 +37,11 @@ export const FormField = ({
                     </Text>
                 </label>
             )}
-            <Component type={as === "input" ? type : undefined} {...props} />
+            <Component
+                id={fieldId}
+                type={as === "input" ? type : undefined}
+                {...props}
+            />
             {error && (
                 <Text size="xs" tone="danger">
                     {error}

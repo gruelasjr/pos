@@ -28,7 +28,11 @@ class LoyaltyController extends BaseApiController
             'sale_id' => ['nullable', 'exists:sales,id'],
         ]);
 
-        $account = $loyaltyService->redeem($data['loyalty_account_id'], (int) $data['points'], $data['sale_id'] ?? null);
+        $account = $loyaltyService->redeem(
+            $data['loyalty_account_id'],
+            (int) $data['points'],
+            $data['sale_id'] ?? null
+        );
 
         $auditLogger->log('loyalty.redeemed', $request->user(), LoyaltyAccount::class, $account->id, [
             'points' => $data['points'],
