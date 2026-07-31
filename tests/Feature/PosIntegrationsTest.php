@@ -35,10 +35,12 @@ class PosIntegrationsTest extends TestCase
             ])
             ->assertUnprocessable();
 
-        $this->assertSame(0, Sale::count());
+        $this->assertSame(1, Sale::count());
+        $failedSale = Sale::firstOrFail();
+        $this->assertSame('failed', $failedSale->payment_status);
         $this->assertSame(3, Inventory::where('product_id', $product->id)->value('stock'));
         $this->assertDatabaseHas('pos_integration_events', [
-            'sale_id' => null,
+            'sale_id' => $failedSale->id,
             'operation' => 'payment.charge',
             'provider' => 'mock-payment',
             'status' => 'failed',

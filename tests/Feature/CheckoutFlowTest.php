@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Jobs\SendReceiptJob;
 use App\Models\Inventory;
 use App\Models\PosIntegrationEvent;
 use App\Models\Sale;
@@ -61,11 +60,15 @@ class CheckoutFlowTest extends TestCase
 
         $this->assertSame(1, Sale::count());
         $sale = Sale::firstOrFail();
-        $this->assertSame('approved', $sale->payment_status);
+        $this->assertSame('paid', $sale->payment_status);
         $this->assertSame('mock-payment', $sale->payment_provider);
-        $this->assertSame('printed', $sale->receipt_print_status);
-        $this->assertSame('opened', $sale->cash_drawer_status);
-        $this->assertSame(3, PosIntegrationEvent::count());
+        $this->assertSame('pending', $sale->receipt_print_status);
+        $this->assertSame('pending', $sale->cash_drawer_status);
+        $this->assertSame(1, PosIntegrationEvent::count());
+        $this->assertDatabaseHas('outbox_messages', [
+            'tenant_id' => 'tenant-test',
+            'status' => 'pending',
+        ]);
         $this->assertSame(
             4,
             Inventory::query()
@@ -73,8 +76,6 @@ class CheckoutFlowTest extends TestCase
                 ->where('warehouse_id', $warehouse->id)
                 ->value('stock')
         );
-        Queue::assertPushed(SendReceiptJob::class);
-
         $second = $this
             ->withToken($token)
             ->withHeader('X-Idempotency-Key', $idempotencyKey)

@@ -22,7 +22,9 @@ namespace App\Http\Controllers\API\V1;
 
 use App\Models\Customer;
 use App\Models\Sale;
+use App\Models\CustomerRegistrationLink;
 use App\Support\AuditLogger;
+use Equidna\BeeHive\Tenancy\TenantContext;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -103,34 +105,41 @@ class CustomerController extends BaseApiController
             'accepts_marketing' => ['boolean'],
         ]);
 
-        $sale = Sale::query()
-            ->where('customer_registration_token_hash', hash('sha256', $data['token']))
-            ->whereNull('customer_registration_used_at')
-            ->where('customer_registration_expires_at', '>', now())
-            ->first();
+        $link = CustomerRegistrationLink::query()
+            ->where('token_hash', hash('sha256', $data['token']))
+            ->whereNull('used_at')->where('expires_at', '>', now())->first();
 
-        if (!$sale) {
-            return $this->error('Token inválido', [], 404);
-        }
+        $context = app(TenantContext::class);
+        $previousTenantId = $context->get();
+        $context->set($link?->tenant_id);
+        try {
+            $sale = $link ? Sale::query()->find($link->sale_id) : null;
 
-        $customer = $sale->customer_id ? Customer::find($sale->customer_id) : new Customer();
-        $customer->fill([
+            if (!$sale) {
+                return $this->error('Token inválido', [], 404);
+            }
+
+            $customer = $sale->customer_id ? Customer::find($sale->customer_id) : new Customer();
+            $customer->fill([
             'name' => $data['name'],
             'email' => $data['email'] ?? $customer->email,
             'phone' => $data['phone'] ?? $customer->phone,
             'accepts_marketing' => $data['accepts_marketing'] ?? false,
-        ]);
-        $customer->save();
+            ]);
+            $customer->save();
 
-        $sale->customer_id = $customer->id;
-        $sale->customer_registration_used_at = now();
-        $sale->save();
+            $sale->customer_id = $customer->id;
+            $sale->customer_registration_used_at = now();
+            $sale->save();
 
-        $auditLogger->log('customer.registered_from_receipt', $request->user(), Customer::class, $customer->id, [
+            $auditLogger->log('customer.registered_from_receipt', $request->user(), Customer::class, $customer->id, [
             'sale_id' => $sale->id,
-            'token' => $data['token'],
-        ]);
+            ]);
 
-        return $this->success('Cliente actualizado desde registro remoto', $customer);
+            $link->forceFill(['used_at' => now()])->save();
+            return $this->success('Cliente actualizado desde registro remoto', $customer);
+        } finally {
+            $context->set($previousTenantId);
+        }
     }
 }

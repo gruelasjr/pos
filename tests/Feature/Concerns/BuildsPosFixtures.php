@@ -7,16 +7,14 @@ use App\Models\Product;
 use App\Models\ProductType;
 use App\Models\User;
 use App\Models\Warehouse;
-use Equidna\SwiftAuth\Classes\Auth\Services\UserTokenService;
 use Illuminate\Support\Str;
+use Tests\Support\FakeCaronteAuthentication;
 
 trait BuildsPosFixtures
 {
     protected function bearerTokenFor(User $user): string
     {
-        $issued = app(UserTokenService::class)->createToken($user, 'test', ['*'], now()->addHour());
-
-        return $issued['token'];
+        return FakeCaronteAuthentication::tokenFor($user);
     }
 
     protected function posCatalog(int $stock = 10): array

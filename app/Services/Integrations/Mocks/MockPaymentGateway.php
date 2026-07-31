@@ -34,4 +34,9 @@ class MockPaymentGateway implements PaymentGateway
             'method' => $payload['method'] ?? null,
         ];
     }
+
+    public function status(string $providerReference, array $context = []): array
+    {
+        return ['ok' => true, 'provider' => 'mock-payment', 'status' => 'approved', 'reference' => $providerReference];
+    }
 }

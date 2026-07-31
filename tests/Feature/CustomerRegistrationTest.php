@@ -46,6 +46,7 @@ class CustomerRegistrationTest extends TestCase
             ->assertOk()
             ->assertJsonPath('success', true);
 
+        $this->useTenant();
         $sale->refresh();
         $this->assertNotNull($sale->customer_id);
         $this->assertNotNull($sale->customer_registration_used_at);

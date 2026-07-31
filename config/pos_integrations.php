@@ -1,6 +1,10 @@
 <?php
 
 return [
+    'enforce_production_drivers' => env('APP_ENV') === 'production',
+    'outbox' => [
+        'max_attempts' => env('POS_OUTBOX_MAX_ATTEMPTS', 8),
+    ],
     'payments' => [
         'driver' => env('POS_PAYMENT_DRIVER', 'mock'),
         'mock_fail' => env('POS_PAYMENT_MOCK_FAIL', false),
@@ -26,5 +30,9 @@ return [
 
     'barcode_scanner' => [
         'driver' => env('POS_BARCODE_SCANNER_DRIVER', 'mock'),
+    ],
+
+    'erp' => [
+        'driver' => env('POS_ERP_DRIVER', 'stub'),
     ],
 ];

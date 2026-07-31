@@ -15,4 +15,9 @@ class StubPaymentGateway implements PaymentGateway
             'payload' => $payload,
         ];
     }
+
+    public function status(string $providerReference, array $context = []): array
+    {
+        return ['ok' => false, 'provider' => 'stub-payment', 'status' => 'unknown', 'reference' => $providerReference];
+    }
 }

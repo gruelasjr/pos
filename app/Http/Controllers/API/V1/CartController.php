@@ -201,6 +201,32 @@ class CartController extends BaseApiController
         ]);
         $data['idempotency_key'] = $request->header('X-Idempotency-Key');
 
+        if ($data['payment_method'] === 'mixed') {
+            $parts = $data['payment_details']['payments'] ?? [];
+            $sum = array_reduce(
+                $parts,
+                fn (int $carry, array $part) => $carry + (int) round(((float) ($part['amount'] ?? 0)) * 100),
+                0
+            );
+            $expected = (int) round(((float) $cart->total_net) * 100);
+            if (count($parts) < 2 || $sum !== $expected) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'payment_details.payments' => ['Los pagos mixtos deben sumar exactamente el total de la venta.'],
+                ]);
+            }
+        }
+
+        if ($data['payment_method'] === 'cash') {
+            $expected = (int) round(((float) $cart->total_net) * 100);
+            $received = (int) round(((float) ($data['payment_details']['received'] ?? ($expected / 100))) * 100);
+            if ($received < $expected) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'payment_details.received' => ['El efectivo recibido no cubre el total.'],
+                ]);
+            }
+            $data['payment_details']['change'] = ($received - $expected) / 100;
+        }
+
         $sale = $this->checkoutService->checkout($cart, $data);
 
         $auditLogger->log('sale.checkout_confirmed', $request->user(), Sale::class, $sale->id, [

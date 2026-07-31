@@ -31,6 +31,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use Equidna\Toolkit\Exceptions\NotFoundException;
+use Equidna\BeeHive\Tenancy\TenantContext;
 
 /**
  * Dispatchable job that delivers receipts for a sale.
@@ -55,7 +56,7 @@ class SendReceiptJob implements ShouldQueue
      * @param  string $saleId  Sale identifier.
      * @param  array  $options Delivery options.
      */
-    public function __construct(private string $saleId, private array $options = [])
+    public function __construct(private string $saleId, private array $options = [], private ?string $tenantId = null)
     {
         // No body
     }
@@ -68,28 +69,40 @@ class SendReceiptJob implements ShouldQueue
      * @param  ReceiptRenderer $renderer
      * @return void
      */
-    public function handle(Mailer $mailer, SmsProvider $smsProvider, ReceiptRenderer $renderer): void
-    {
-        $sale = Sale::with('items', 'customer', 'warehouse', 'seller')->find($this->saleId);
-
-        if (!$sale) {
-            throw new NotFoundException('venta_no_encontrada');
+    public function handle(
+        Mailer $mailer,
+        SmsProvider $smsProvider,
+        ReceiptRenderer $renderer,
+        TenantContext $tenantContext
+    ): void {
+        if ($this->tenantId === null) {
+            throw new \LogicException('SendReceiptJob requires an explicit tenant id.');
         }
+        $tenantContext->set($this->tenantId);
+        try {
+            $sale = Sale::with('items', 'customer', 'warehouse', 'seller')->find($this->saleId);
 
-        $channel = $this->options['channel'] ?? 'email';
-        $destination = $this->options['destination'] ?? $sale->customer?->email;
-        $registrationToken = $this->options['registration_token'] ?? $sale->issueCustomerRegistrationToken();
-        $receipt = $renderer->html($sale, $registrationToken);
+            if (!$sale) {
+                throw new NotFoundException('venta_no_encontrada');
+            }
 
-        if ($channel === 'sms') {
-            $smsProvider->send($destination ?? '', strip_tags($receipt));
-        } else {
-            $mailer->send($destination ?? '', 'Recibo de compra ' . $sale->folio, $receipt);
-        }
+            $channel = $this->options['channel'] ?? 'email';
+            $destination = $this->options['destination'] ?? $sale->customer?->email;
+            $registrationToken = $this->options['registration_token'] ?? $sale->issueCustomerRegistrationToken();
+            $receipt = $renderer->html($sale, $registrationToken);
 
-        Log::info('receipt_sent', [
+            if ($channel === 'sms') {
+                $smsProvider->send($destination ?? '', strip_tags($receipt));
+            } else {
+                $mailer->send($destination ?? '', 'Recibo de compra ' . $sale->folio, $receipt);
+            }
+
+            Log::info('receipt_sent', [
             'sale_id' => $sale->id,
             'channel' => $channel,
-        ]);
+            ]);
+        } finally {
+            $tenantContext->clear();
+        }
     }
 }
