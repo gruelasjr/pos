@@ -12,6 +12,7 @@ namespace App\Http\Middleware;
 
 use Illuminate\Http\Request;
 use Inertia\Middleware;
+use Ometra\Caronte\Facades\Caronte;
 
 /**
  * Inertia middleware that exposes shared properties and versioning.
@@ -35,6 +36,11 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         return array_merge(parent::share($request), [
+            'auth' => [
+                'user' => fn () => $request->user(),
+                'caronte' => fn () => $request->attributes->get('caronte.user'),
+            ],
+            'tenantId' => fn () => rescue(fn () => Caronte::getTenantId(), null, false),
             'flash' => [
                 'success' => fn() => $request->session()->get('success'),
             ],

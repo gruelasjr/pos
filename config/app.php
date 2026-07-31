@@ -75,7 +75,11 @@ return [
     |
     */
 
-    'timezone' => 'UTC',
+    'timezone' => env('APP_TIMEZONE', 'America/Mexico_City'),
+
+    'demo_tenant_id' => env('POS_DEMO_TENANT_ID', 'tenant-demo'),
+
+    'e2e_enabled' => env('POS_E2E_ENABLED', false),
 
     /*
     |--------------------------------------------------------------------------

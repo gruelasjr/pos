@@ -28,7 +28,7 @@ return new class extends Migration
         Schema::create('carts', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('visual_key', 12)->unique();
-            $table->foreignId('user_id')->constrained('swift_auth_Users', 'id_user');
+            $table->foreignId('user_id')->constrained('pos_users');
             $table->foreignUuid('warehouse_id')->constrained('warehouses');
             $table->enum('status', ['active', 'paused', 'closed'])->default('active');
             $table->decimal('total_gross', 12, 2)->default(0);

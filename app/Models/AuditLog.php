@@ -20,6 +20,7 @@
 
 namespace App\Models;
 
+use Equidna\BeeHive\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -34,6 +35,7 @@ use Illuminate\Support\Str;
  */
 class AuditLog extends Model
 {
+    use BelongsToTenant;
     use HasFactory;
 
     public $incrementing = false;
@@ -41,13 +43,14 @@ class AuditLog extends Model
 
     public function __construct(array $attributes = [])
     {
-        $this->table = (string) config('swift-auth.table_prefix', 'swift_auth_') . 'AuditLogs';
+        $this->table = 'audit_logs';
 
         parent::__construct($attributes);
     }
 
     protected $fillable = [
         'id',
+        'tenant_id',
         'event',
         'auditable_type',
         'auditable_id',
@@ -59,16 +62,6 @@ class AuditLog extends Model
     protected $casts = [
         'payload' => 'array',
     ];
-
-    public function setUserIdAttribute($value): void
-    {
-        $this->attributes['id_user'] = $value;
-    }
-
-    public function getUserIdAttribute()
-    {
-        return $this->attributes['id_user'] ?? null;
-    }
 
     protected static function booted(): void
     {
@@ -84,6 +77,6 @@ class AuditLog extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class, 'id_user', 'id_user');
+        return $this->belongsTo(User::class, 'user_id');
     }
 }

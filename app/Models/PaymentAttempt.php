@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
 
-class PosIntegrationEvent extends Model
+class PaymentAttempt extends Model
 {
     use HasFactory;
     use BelongsToTenant;
@@ -17,32 +17,26 @@ class PosIntegrationEvent extends Model
     protected $keyType = 'string';
 
     protected $fillable = [
-        'id',
-        'sale_id',
-        'operation',
-        'provider',
-        'status',
-        'request_payload',
-        'response_payload',
-        'error_code',
-        'error_message',
-        'occurred_at',
+        'id', 'sale_id', 'idempotency_key', 'method', 'amount', 'currency',
+        'status', 'provider', 'provider_reference', 'request_payload',
+        'response_payload', 'failure_code', 'failure_message', 'attempted_at',
+        'resolved_at',
     ];
 
     protected $casts = [
+        'amount' => 'decimal:2',
         'request_payload' => 'array',
         'response_payload' => 'array',
-        'occurred_at' => 'datetime',
+        'attempted_at' => 'datetime',
+        'resolved_at' => 'datetime',
     ];
 
     protected static function booted(): void
     {
-        static::creating(function (self $event) {
-            $event->id ??= (string) Str::uuid();
-            $event->occurred_at ??= now();
-        });
+        static::creating(fn (self $model) => $model->id ??= (string) Str::uuid());
     }
 
+    /** @return BelongsTo<Sale, $this> */
     public function sale(): BelongsTo
     {
         return $this->belongsTo(Sale::class);

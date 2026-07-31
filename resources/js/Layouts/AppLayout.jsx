@@ -1,5 +1,4 @@
-import { router } from "@inertiajs/react";
-import useAuthStore from "../store/authStore";
+import { router, usePage } from "@inertiajs/react";
 import { AppSidebar, AppHeader } from "../components/organisms/AppLayout";
 
 /**
@@ -7,27 +6,24 @@ import { AppSidebar, AppHeader } from "../components/organisms/AppLayout";
  *
  * Main authenticated layout with sidebar and header.
  */
-const AppLayout = ({ title, children }) => {
-    const { user, token, logout } = useAuthStore();
+const AppLayout = ({ title, children, posMode = false }) => {
+    const user = usePage().props.auth?.user;
 
     const handleLogout = () => {
-        logout();
-        router.visit("/login");
+        router.post("/api/caronte/auth/logout", {}, {
+            onFinish: () => router.visit("/login"),
+        });
     };
 
-    if (!token) {
-        router.visit("/login");
-        return null;
-    }
-
     return (
-        <div className="min-h-screen app-shell text-[var(--color-text-primary)] flex">
-            <AppSidebar user={user} token={token} onLogout={handleLogout} />
+        <div className={`min-h-screen app-shell text-[var(--color-text-primary)] flex ${posMode ? "pos-shell" : ""}`}>
+            {!posMode && <AppSidebar user={user} onLogout={handleLogout} />}
             <main className="flex-1 flex flex-col">
-                <AppHeader title={title} user={user} />
-                <section className="flex-1 p-6 overflow-auto">
+                <AppHeader title={title} user={user} posMode={posMode} />
+                <section className={posMode ? "pos-main" : "flex-1 p-6 overflow-auto"}>
                     {children}
                 </section>
+                {posMode && <nav className="mobile-pos-nav" aria-label="Navegación principal"><button className="is-active" type="button">Venta</button><button type="button" onClick={() => router.visit("/clientes")}>Clientes</button><button type="button" onClick={() => router.visit("/")}>Inicio</button></nav>}
             </main>
         </div>
     );

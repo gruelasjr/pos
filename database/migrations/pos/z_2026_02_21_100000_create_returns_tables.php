@@ -12,7 +12,7 @@ return new class extends Migration
             Schema::create('return_notes', function (Blueprint $table) {
                 $table->uuid('id')->primary();
                 $table->foreignUuid('sale_id')->constrained('sales');
-                $table->foreignId('user_id')->constrained('swift_auth_Users', 'id_user');
+                $table->foreignId('user_id')->constrained('pos_users');
                 $table->string('reason', 240)->nullable();
                 $table->decimal('total_refund', 12, 2)->default(0);
                 $table->enum('status', ['approved', 'cancelled'])->default('approved');

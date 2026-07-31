@@ -22,6 +22,8 @@
 
 namespace App\Models;
 
+use Equidna\BeeHive\Traits\BelongsToTenant;
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -55,6 +57,7 @@ use Illuminate\Support\Str;
 class Sale extends Model
 {
     use HasFactory;
+    use BelongsToTenant;
 
     public $incrementing = false;
     protected $keyType = 'string';
@@ -132,6 +135,18 @@ class Sale extends Model
     {
         $token = Str::random(48);
 
+        if (class_exists(CustomerRegistrationLink::class) && \Schema::hasTable('customer_registration_links')) {
+            CustomerRegistrationLink::query()->updateOrCreate(
+                ['sale_id' => $this->id],
+                [
+                    'tenant_id' => $this->getAttribute('tenant_id'),
+                    'token_hash' => hash('sha256', $token),
+                    'expires_at' => now()->addDays((int) config('security.customer_registration_token_ttl_days', 30)),
+                    'used_at' => null,
+                ]
+            );
+        }
+
         $this->forceFill([
             'customer_registration_token_hash' => hash('sha256', $token),
             'customer_registration_expires_at' => now()->addDays(
@@ -193,5 +208,10 @@ class Sale extends Model
     public function integrationEvents(): HasMany
     {
         return $this->hasMany(PosIntegrationEvent::class);
+    }
+
+    public function paymentAttempts(): HasMany
+    {
+        return $this->hasMany(PaymentAttempt::class);
     }
 }

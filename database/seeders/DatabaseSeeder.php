@@ -1,35 +1,5 @@
 <?php
 
-/**
- * Database seeder entrypoint.
- *
- * Seeds initial application data for development and testing.
- *
- * PHP 8.1+
- *
- * @package   Database\Seeders
- */
-
-/**
- * Database seeder entrypoint.
- *
- * Seeds initial application data for local development and CI.
- *
- * PHP 8.1+
- *
- * @package   Database\Seeders
- */
-
-/**
- * Database seeder for local/demo data.
- *
- * Seeds roles, demo users, warehouses, products and inventory.
- *
- * PHP 8.1+
- *
- * @package   Database\Seeders
- */
-
 namespace Database\Seeders;
 
 use App\Models\Inventory;
@@ -39,79 +9,39 @@ use App\Models\ReservedSkuRange;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\Warehouse;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Equidna\BeeHive\Tenancy\TenantContext;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
+/** Seeds a tenant-scoped local demo; identities remain owned by Caronte. */
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
-    /**
-     * Seed the application's database.
-     *
-     * @return void
-     */
     public function run(): void
     {
-        $roles = [
-            'admin' => Role::firstOrCreate(
-                ['slug' => 'admin'],
-                [
-                    'name' => 'Administrador',
-                    'description' => 'Control total del POS',
-                    'actions' => ['sw-admin', 'pos.manage', 'catalog.manage', 'reports.view'],
-                ],
-            ),
-            'vendedor' => Role::firstOrCreate(
-                ['slug' => 'vendedor'],
-                [
-                    'name' => 'Vendedor',
-                    'description' => 'Opera cajas y clientes',
-                    'actions' => ['pos.carts', 'pos.checkout'],
-                ],
-            ),
-            'auditor' => Role::firstOrCreate(
-                ['slug' => 'auditor'],
-                [
-                    'name' => 'Auditor',
-                    'description' => 'Consulta reportes y catálogo',
-                    'actions' => ['reports.view', 'catalog.read'],
-                ],
-            ),
-        ];
+        $tenantId = (string) config('app.demo_tenant_id', 'tenant-demo');
+        $context = new TenantContext();
+        $context->set($tenantId);
+        app()->instance(TenantContext::class, $context);
 
-        $admin = User::factory()->create([
-            'name' => 'Admin POS',
-            'email' => 'admin@pos.local',
-            'password' => Hash::make('secret'),
-        ]);
-        $admin->roles()->sync([$roles['admin']->id]);
-
-        $seller = User::factory()->create([
-            'name' => 'Vendedor Demo',
-            'email' => 'vendedor@pos.local',
-            'password' => Hash::make('secret'),
-        ]);
-        $seller->roles()->sync([$roles['vendedor']->id]);
-
-        $auditor = User::factory()->create([
-            'name' => 'Auditor Demo',
-            'email' => 'auditor@pos.local',
-            'password' => Hash::make('secret'),
-        ]);
-        $auditor->roles()->sync([$roles['auditor']->id]);
+        foreach ([
+            ['demo-admin', 'Admin POS', 'admin@pos.local', Role::ADMIN],
+            ['demo-seller', 'Vendedor Demo', 'vendedor@pos.local', Role::SELLER],
+            ['demo-auditor', 'Auditor Demo', 'auditor@pos.local', Role::AUDITOR],
+        ] as [$uriUser, $name, $email, $role]) {
+            User::factory()->create([
+                'tenant_id' => $tenantId,
+                'uri_user' => $uriUser,
+                'name' => $name,
+                'email' => $email,
+                'roles' => [['name' => $role, 'slug' => $role]],
+            ]);
+        }
 
         $warehouses = Warehouse::factory()->count(2)->create();
         $types = ProductType::factory()->count(3)->create();
-
-        $products = Product::factory()
-            ->count(12)
-            ->state(function () use ($types) {
-                return ['product_type_id' => $types->random()->id];
-            })
-            ->create();
+        $products = Product::factory()->count(12)->state(
+            fn (): array => ['product_type_id' => $types->random()->id]
+        )->create();
 
         foreach ($products as $product) {
             foreach ($warehouses as $warehouse) {

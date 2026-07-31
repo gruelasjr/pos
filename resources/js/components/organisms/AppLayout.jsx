@@ -4,7 +4,6 @@ import { Text } from "../atoms/Text";
 import { Button } from "../atoms/Button";
 import { ThemeToggle } from "../molecules/ThemeToggle";
 import clsx from "clsx";
-import useAuthStore from "../../store/authStore";
 import { useMemo } from "react";
 
 const navItems = [
@@ -21,7 +20,7 @@ const navItems = [
  *
  * Main navigation sidebar with user profile section.
  */
-export const AppSidebar = ({ user, token, onLogout }) => {
+export const AppSidebar = ({ user, onLogout }) => {
     const pathname =
         typeof window !== "undefined" ? window.location.pathname : "/";
 
@@ -119,11 +118,12 @@ export const AppSidebar = ({ user, token, onLogout }) => {
  *
  * Top header bar with title and quick actions.
  */
-export const AppHeader = ({ title, user }) => {
+export const AppHeader = ({ title, user, posMode = false }) => {
     return (
-        <header className="bg-[var(--color-bg-primary)] border-b border-[var(--color-border-primary)] shadow-[var(--shadow-sm)] px-6 py-4">
+        <header className={posMode ? "pos-topbar" : "bg-[var(--color-bg-primary)] border-b border-[var(--color-border-primary)] shadow-[var(--shadow-sm)] px-6 py-4"}>
             <div className="flex items-center justify-between">
                 <div>
+                    {posMode ? <Text as="h1" size="xl" weight="bold" tone="primary" family="display">POS Faro</Text> : <>
                     <Text
                         size="xs"
                         tone="tertiary"
@@ -141,27 +141,29 @@ export const AppHeader = ({ title, user }) => {
                     >
                         {title}
                     </Text>
+                    </>}
                 </div>
                 <div className="flex items-center gap-4">
-                    <Text
+                    {!posMode && <Text
                         size="sm"
                         tone="secondary"
                         className="hidden sm:block"
                     >
                         {user?.email}
-                    </Text>
-                    <span
+                    </Text>}
+                    {!posMode && <span
                         aria-hidden
                         className="hidden sm:block h-6 w-px bg-[var(--color-border-primary)]"
-                    />
+                    />}
                     <ThemeToggle />
-                    <Button
+                    {!posMode && <Button
                         size="sm"
                         variant="ghost"
                         onClick={() => router.visit("/pos")}
                     >
                         Ir a cajas
-                    </Button>
+                    </Button>}
+                    {posMode && <button className="pos-user" type="button" onClick={() => router.visit("/")} aria-label="Volver al panel">{user?.name?.charAt(0)?.toUpperCase() ?? "U"}</button>}
                 </div>
             </div>
         </header>

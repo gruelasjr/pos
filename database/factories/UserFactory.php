@@ -1,81 +1,32 @@
 <?php
 
-/**
- * User model factory.
- *
- * PHP 8.1+
- *
- * @package   Database\Factories
- */
-
 namespace Database\Factories;
 
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
-/**
- * @extends Factory<User>
- */
+/** @extends Factory<User> */
 class UserFactory extends Factory
 {
-    protected static ?string $password = null;
-
     public function definition(): array
     {
         return [
-            'uuid' => Str::uuid()->toString(),
+            'tenant_id' => 'tenant-test',
+            'uri_user' => Str::uuid()->toString(),
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
-            'phone' => fake()->phoneNumber(),
-            'active' => true,
-            'email_verified_at' => now(),
-            'password' => static::$password ??= Hash::make('password'),
-            'remember_token' => Str::random(10),
+            'roles' => [],
         ];
     }
 
-    public function unverified(): static
+    public function admin(): static { return $this->withRole(Role::ADMIN); }
+    public function seller(): static { return $this->withRole(Role::SELLER); }
+    public function auditor(): static { return $this->withRole(Role::AUDITOR); }
+
+    public function withRole(string $role): static
     {
-        return $this->state(fn () => ['email_verified_at' => null]);
-    }
-
-    public function admin(): static
-    {
-        return $this->withRole('admin');
-    }
-
-    public function seller(): static
-    {
-        return $this->withRole('vendedor');
-    }
-
-    public function auditor(): static
-    {
-        return $this->withRole('auditor');
-    }
-
-    public function withRole(string $slug): static
-    {
-        return $this->afterCreating(function (User $user) use ($slug) {
-            $actions = match ($slug) {
-                'admin' => ['sw-admin'],
-                'auditor' => ['reports.view'],
-                default => ['pos.checkout'],
-            };
-
-            $role = Role::firstOrCreate(
-                ['slug' => $slug],
-                [
-                    'name' => ucfirst($slug),
-                    'description' => null,
-                    'actions' => $actions,
-                ],
-            );
-
-            $user->roles()->syncWithoutDetaching([$role->id]);
-        });
+        return $this->state(fn () => ['roles' => [['name' => $role, 'slug' => $role]]]);
     }
 }

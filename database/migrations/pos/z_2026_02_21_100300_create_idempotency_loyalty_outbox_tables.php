@@ -17,7 +17,7 @@ return new class extends Migration
                 $table->string('request_hash', 64);
                 $table->json('response_body');
                 $table->unsignedSmallInteger('status_code');
-                $table->foreignId('user_id')->nullable()->constrained('swift_auth_Users', 'id_user');
+                $table->foreignId('user_id')->nullable()->constrained('pos_users');
                 $table->timestamps();
             });
         }

@@ -11,7 +11,7 @@ return new class extends Migration
         if (! Schema::hasTable('cash_sessions')) {
             Schema::create('cash_sessions', function (Blueprint $table) {
                 $table->uuid('id')->primary();
-                $table->foreignId('user_id')->constrained('swift_auth_Users', 'id_user');
+                $table->foreignId('user_id')->constrained('pos_users');
                 $table->foreignUuid('warehouse_id')->constrained('warehouses');
                 $table->enum('status', ['open', 'closed'])->default('open');
                 $table->decimal('opening_amount', 12, 2)->default(0);

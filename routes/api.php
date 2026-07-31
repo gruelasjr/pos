@@ -21,10 +21,9 @@
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
-    require __DIR__ . '/api/v1/auth.php';
     require __DIR__ . '/api/v1/customers_public.php';
 
-    Route::middleware('api.token')->group(function () {
+    Route::middleware(['caronte.session', 'caronte.user'])->group(function () {
         require __DIR__ . '/api/v1/warehouses.php';
         require __DIR__ . '/api/v1/product_types.php';
         require __DIR__ . '/api/v1/products.php';
@@ -34,12 +33,15 @@ Route::prefix('v1')->group(function () {
         require __DIR__ . '/api/v1/sales.php';
         require __DIR__ . '/api/v1/returns.php';
         require __DIR__ . '/api/v1/cash_sessions.php';
-        require __DIR__ . '/api/v1/hardware.php';
         require __DIR__ . '/api/v1/customers.php';
         require __DIR__ . '/api/v1/promotions.php';
         require __DIR__ . '/api/v1/loyalty.php';
         require __DIR__ . '/api/v1/coupons.php';
-        require __DIR__ . '/api/v1/outbox.php';
         require __DIR__ . '/api/v1/reports.php';
+    });
+
+    Route::middleware('caronte.application:tenant_required')->group(function () {
+        require __DIR__ . '/api/v1/hardware.php';
+        require __DIR__ . '/api/v1/outbox.php';
     });
 });
