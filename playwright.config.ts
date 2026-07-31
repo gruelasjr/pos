@@ -10,7 +10,10 @@ export default defineConfig({
     },
     fullyParallel: false,
     retries: process.env.CI ? 2 : 0,
-    workers: process.env.CI ? 1 : undefined,
+    // The projects exercise the same seeded retail stock and folio sequence.
+    // Serialize them so the matrix validates concurrency controls without
+    // making device profiles consume one another's fixtures.
+    workers: 1,
     reporter: process.env.CI
         ? [["list"], ["html", { open: "never" }]]
         : "list",
@@ -33,6 +36,21 @@ export default defineConfig({
         {
             name: "chromium",
             use: { ...devices["Desktop Chrome"] },
+        },
+        {
+            name: "pixel-7",
+            use: { ...devices["Pixel 7"], browserName: "chromium" },
+        },
+        {
+            name: "ipad-portrait",
+            use: { ...devices["iPad (gen 7)"], browserName: "chromium" },
+        },
+        {
+            name: "ipad-landscape",
+            use: {
+                ...devices["iPad (gen 7) landscape"],
+                browserName: "chromium",
+            },
         },
     ],
 });

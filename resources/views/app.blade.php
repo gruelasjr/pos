@@ -14,6 +14,9 @@
  */
 ?>
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#0f766e">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <link rel="manifest" href="/manifest.webmanifest">
         <title inertia>{{ config('app.name', 'POS') }}</title>
         @viteReactRefresh
         @vite(['resources/css/app.css', 'resources/js/app.jsx'])

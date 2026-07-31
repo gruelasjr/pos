@@ -29,7 +29,14 @@ const env = {
     MAIL_MAILER: "array",
     QUEUE_CONNECTION: "sync",
     SESSION_DRIVER: "array",
-    SWIFT_AUTH_TABLE_PREFIX: "swift_auth_",
+    POS_E2E_ENABLED: "true",
+    BEE_HIVE_TENANT_KEY: "tenant_id",
+    POS_DEMO_TENANT_ID: "tenant-demo",
+    CARONTE_URL: "https://caronte.e2e.invalid",
+    CARONTE_APP_CN: "pos-e2e",
+    CARONTE_APP_SECRET: "e2e-only-secret",
+    CARONTE_OIDC_ISSUER: "https://caronte.e2e.invalid",
+    CARONTE_OIDC_CLIENT_ID: "pos-e2e",
 };
 
 execFileSync("php", ["artisan", "migrate:fresh", "--seed", "--force"], {

@@ -1,0 +1,12 @@
+{
+    "name": "POS Faro",
+    "short_name": "Faro",
+    "description": "Punto de venta retail",
+    "start_url": "/pos",
+    "scope": "/",
+    "display": "standalone",
+    "background_color": "#f4f7f6",
+    "theme_color": "#0f766e",
+    "lang": "es-MX",
+    "icons": [{ "src": "/favicon.ico", "sizes": "48x48", "type": "image/x-icon" }]
+}

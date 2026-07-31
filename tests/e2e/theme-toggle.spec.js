@@ -1,26 +1,18 @@
 import { expect, test } from "@playwright/test";
 
-const sellerCredentials = {
+const sellerSession = {
+    token: "e2e-demo-seller",
+    user: {
+        id: "demo-seller",
     email: "vendedor@pos.local",
-    password: "secret",
-};
-
-const loginAsSeller = async (request) => {
-    const response = await request.post("/api/v1/auth/login", {
-        data: sellerCredentials,
-    });
-
-    expect(response.ok()).toBeTruthy();
-    const body = await response.json();
-
-    return body.data;
+        name: "Vendedor Demo",
+    },
 };
 
 const seedSession = async (page, session) => {
-    await page.addInitScript(({ token, user }) => {
-        window.localStorage.setItem("pos-token", token);
-        window.localStorage.setItem("pos-user", JSON.stringify(user));
-    }, session);
+    await page.context().setExtraHTTPHeaders({
+        Authorization: `Bearer ${session.token}`,
+    });
 };
 
 const getThemeToggle = (page) =>
@@ -30,9 +22,8 @@ const rootClass = async (page) =>
     (await page.locator("html").getAttribute("class")) ?? "";
 
 test.describe("Theme Toggle", () => {
-    test.beforeEach(async ({ page, request }) => {
-        const session = await loginAsSeller(request);
-        await seedSession(page, session);
+    test.beforeEach(async ({ page }) => {
+        await seedSession(page, sellerSession);
         await page.goto("/");
         await page.waitForLoadState("networkidle");
     });
@@ -100,11 +91,7 @@ test.describe("Theme Toggle", () => {
 
     test("keeps theme preference after logout", async ({ page }) => {
         await getThemeToggle(page).click();
-        await page.evaluate(() => {
-            localStorage.removeItem("pos-token");
-            localStorage.removeItem("pos-user");
-        });
-        await page.goto("/login");
+        await page.goto("/pos");
         await page.waitForLoadState("networkidle");
 
         await expect

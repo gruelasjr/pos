@@ -102,6 +102,14 @@
     --color-shadow: rgba(0, 0, 0, 0.1);
     --color-shadow-lg: rgba(0, 0, 0, 0.15);
 
+    --pos-accent: #0f766e;
+    --pos-accent-strong: #115e59;
+    --pos-accent-soft: #e6f4f1;
+    --pos-canvas: #f4f7f6;
+    --pos-surface: #ffffff;
+    --pos-ink: #17332f;
+    --pos-muted: #60736f;
+
     /* Spacing Scale */
     --spacing-xs: 0.25rem;
     --spacing-sm: 0.5rem;
