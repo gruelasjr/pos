@@ -3,52 +3,102 @@ name: CI
 on:
   pull_request:
   push:
-    branches:
-      - main
-      - master
+    branches: [main, master]
+
+concurrency:
+  group: pos-ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  quality:
-    name: Quality Gates
+  php:
+    name: PHP ${{ matrix.php }} / ${{ matrix.database }}
     runs-on: ubuntu-latest
-
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ["8.3", "8.4"]
+        database: [sqlite, mysql]
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_DATABASE: pos_test
+          MYSQL_USER: pos
+          MYSQL_PASSWORD: pos
+          MYSQL_ROOT_PASSWORD: root
+        ports: ["3306:3306"]
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"
+          --health-interval=5s --health-timeout=5s --health-retries=20
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd="redis-cli ping" --health-interval=5s
+          --health-timeout=5s --health-retries=20
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: ${{ matrix.php == '8.3' && matrix.database == 'sqlite' && 'xdebug' || 'none' }}
+          extensions: ctype, curl, dom, fileinfo, mbstring, openssl, pdo_mysql, pdo_sqlite, redis, tokenizer, xml
+      - uses: ramsey/composer-install@v3
+        with:
+          dependency-versions: locked
+      - name: Security audit
+        run: composer audit --locked --no-interaction
+      - name: Configure database
+        shell: bash
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+          if [ "${{ matrix.database }}" = "mysql" ]; then
+            sed -i 's/^DB_CONNECTION=.*/DB_CONNECTION=mysql/' .env
+            cat >> .env <<'EOF'
+          DB_HOST=127.0.0.1
+          DB_PORT=3306
+          DB_DATABASE=pos_test
+          DB_USERNAME=pos
+          DB_PASSWORD=pos
+          CACHE_STORE=redis
+          QUEUE_CONNECTION=redis
+          REDIS_HOST=127.0.0.1
+          EOF
+          else
+            sed -i 's/^DB_CONNECTION=.*/DB_CONNECTION=sqlite/' .env
+            touch database/database.sqlite
+          fi
+      - name: Migration rehearsal
+        run: php artisan migrate:fresh --force && php artisan migrate:rollback --force && php artisan migrate --force
+      - name: Configuration and route cache smoke test
+        run: php artisan config:cache && php artisan route:cache && php artisan config:clear && php artisan route:clear
+      - name: Tests
+        run: ${{ matrix.php == '8.3' && matrix.database == 'sqlite' && 'composer test:coverage' || 'composer test' }}
+        env:
+          XDEBUG_MODE: ${{ matrix.php == '8.3' && matrix.database == 'sqlite' && 'coverage' || 'off' }}
+      - name: Static analysis and style
+        if: matrix.php == '8.3' && matrix.database == 'sqlite'
+        run: composer lint
 
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+  frontend:
+    name: Frontend and browser gates
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
         with:
           php-version: "8.3"
-          coverage: xdebug
           extensions: ctype, curl, dom, fileinfo, mbstring, openssl, pdo_sqlite, tokenizer, xml
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: ramsey/composer-install@v3
+      - uses: actions/setup-node@v4
         with:
           node-version: "22"
           cache: npm
-
-      - name: Install PHP dependencies
-        run: composer install --no-interaction --prefer-dist --no-progress
-
-      - name: Install Node dependencies
-        run: npm ci
-
-      - name: PHP security audit
-        run: composer audit
-
-      - name: PHP tests with coverage
-        run: XDEBUG_MODE=coverage composer test:coverage
-
-      - name: PHP static analysis and style
-        run: composer lint
-
-      - name: Node security audit
-        run: npm run audit
-
-      - name: Install Playwright Chromium
-        run: npx playwright install --with-deps chromium
-
-      - name: Browser E2E on SQLite
-        run: npm run test:e2e
+      - run: npm ci
+      - run: npm run audit
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+        env:
+          CI: true

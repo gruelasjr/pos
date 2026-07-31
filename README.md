@@ -22,7 +22,7 @@ The repository contains a JSON API under `/api/v1` and a Vite-powered React SPA 
 -   **Catalog management** for warehouses, product types, SKU generation and allocation
 -   **Customer capture** in-store or remote with marketing consent flags
 -   **Comprehensive reporting** (daily, weekly, monthly, by-seller) at `/api/v1/reports`
--   **Security & Audit** via Swift Auth guard, RBAC, request-id logging, audit trails
+-   **Security & Audit** via Caronte OIDC, Bee-Hive tenant isolation, RBAC, request-id logging, and audit trails
 -   **Dark/Light theme** support via CSS variables and React Context
 -   **Responsive UI** optimized for desktop and tablet (1280×800 min)
 
@@ -32,7 +32,7 @@ The repository contains a JSON API under `/api/v1` and a Vite-powered React SPA 
 | ----------------- | --------------------------------------------------------------- |
 | **Backend**       | Laravel 12, PHP 8.3, MySQL 8.x, Redis (optional)                |
 | **Frontend**      | React 19, Inertia.js, TailwindCSS 4, Atomic Design System (ADS) |
-| **Auth**          | `equidna/swift-auth` guard and JWT token issuer                 |
+| **Auth/Tenancy**  | `ometra/caronte-sdk` OIDC + `equidna/bee-hive`                 |
 | **UI Components** | Custom ADS atoms, molecules, organisms (100% HeroUI-free)       |
 | **Build**         | Vite, npm 10+, Composer 2.5+                                    |
 | **Queue**         | Redis or database driver (email, SMS, reports)                  |
@@ -67,15 +67,9 @@ php artisan queue:work               # Process jobs (email, receipts, reports)
 composer setup  # Runs install, key:generate, migrate --seed, storage:link
 ```
 
-### Demo Credentials
+### Development identities
 
-Three seeded Swift Auth users:
-
-| Role    | Email                | Password |
-| ------- | -------------------- | -------- |
-| Admin   | `admin@pos.local`    | `secret` |
-| Seller  | `vendedor@pos.local` | `secret` |
-| Auditor | `auditor@pos.local`  | `secret` |
+Development identities are managed in Caronte; POS Faro does not seed or store login passwords. Assign `pos-admin`, `pos-seller`, or `pos-auditor` to test identities.
 
 ## Environment configuration
 
@@ -95,7 +89,7 @@ Key `.env` variables:
 -   `DB_*` - MySQL connection settings
 -   `CACHE_STORE`, `QUEUE_CONNECTION` - defaults to `database`; switch to `redis` for production
 -   `FILESYSTEM_DISK` - `public` (local) or `s3` (cloud)
--   `SWIFT_AUTH_*` - Admin bootstrap and SPA redirect URL
+-   `CARONTE_*` and `BEE_HIVE_*` - OIDC and tenant-resolution configuration
 -   `SMS_FROM`, `MAIL_*` - Receipt notification channels (stubs log by default)
 -   `LOG_STACK=daily` - Rotates JSON logs to `storage/logs/`
 
@@ -176,7 +170,8 @@ See [docs/DESIGN_SYSTEM.md](./docs/DESIGN_SYSTEM.md) for component API and usage
 -   [ ] Scheduler active: `* * * * * php /path/artisan schedule:run`
 -   [ ] Logs monitored: Ship `storage/logs/` to your log platform
 -   [ ] Backups: Snapshot MySQL and `storage/app/`
--   [ ] Secrets: Rotate Swift Auth tokens monthly; never change `APP_KEY` after first deploy
+-   [ ] Secrets: Rotate Caronte/provider credentials through the secret store and follow the `APP_KEY` rotation procedure
+-   [ ] Readiness: `/up` and `/ready` return HTTP 200 and no enabled integration uses a mock/stub driver
 
 **Maintenance**:
 

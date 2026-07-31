@@ -114,7 +114,7 @@ All endpoints under `/api/v1/` with standard response format:
 | Backend  | Laravel 12, PHP 8.3, MySQL 8.x           |
 | Frontend | React 19, Inertia.js, TailwindCSS 4, ADS |
 | Build    | Vite, npm, Composer                      |
-| Auth     | equidna/swift-auth                       |
+| Auth     | ometra/caronte-sdk + equidna/bee-hive   |
 | Queue    | Redis / Database driver                  |
 
 → Details: [ARCHITECTURE.md](./ARCHITECTURE.md#technology-stack)

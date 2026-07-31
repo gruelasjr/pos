@@ -16,7 +16,7 @@ POS Faro is a point of sale system with:
 **Backend**: Laravel 12 (PHP 8.3+)  
 **Frontend**: Inertia.js + React 19, TailwindCSS 4, Atomic Design System (ADS)  
 **Database**: MySQL 8.x (InnoDB, utf8mb4, strict mode)  
-**Auth**: `equidna/swift-auth` guard and token issuer  
+**Auth/Tenancy**: Caronte OIDC + Bee-Hive with `CaronteTenantResolver`
 **Utilities**: `equidna/laravel-toolkit` for responses; Folio generator; receipt renderer  
 **Build**: Vite, npm 10+, Composer 2.5+  
 **Logging**: JSON structured logging, request-id correlation, audit trails  
@@ -75,7 +75,7 @@ POS Faro is a point of sale system with:
 
 ### Usuario (User)
 
--   Managed by `equidna/swift-auth`: `id`, `nombre`, `email`, `rol` (admin, vendedor, auditor)
+-   Tenant-scoped shadow identity synchronized from Caronte; roles are `pos-admin`, `pos-seller`, and `pos-auditor`
 
 ## 4. Business Rules
 

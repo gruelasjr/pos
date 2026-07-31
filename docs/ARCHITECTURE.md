@@ -11,7 +11,7 @@
 | **Backend**       | Laravel 12 (PHP 8.3), MySQL 8.x, Redis (optional)               |
 | **Frontend**      | React 19, Inertia.js, TailwindCSS 4, Atomic Design System (ADS) |
 | **Build**         | Vite, npm 10+, Composer 2.5+                                    |
-| **Auth**          | `equidna/swift-auth` guard, JWT tokens                          |
+| **Auth/Tenancy**  | Caronte OIDC and Bee-Hive (`CaronteTenantResolver`)             |
 | **Queue**         | Redis or database driver for background jobs                    |
 | **Logging**       | Structured JSON logs, request-id correlation                    |
 | **UI Components** | Custom ADS (atoms, molecules, organisms)                        |
@@ -197,8 +197,7 @@ Error responses:
 
 ### User & Auth
 
--   `users` - Swift Auth users (id, name, email, role)
--   `personal_access_tokens` - API tokens for users
+-   `users` - tenant-scoped Caronte shadow identities for historical relationships
 
 ### Inventory Domain
 
@@ -243,13 +242,13 @@ JSON { success: true, data: [...] }
 
 ### Authentication
 
-Bearer token via `equidna/swift-auth`:
+Bearer token issued and validated by Caronte:
 
 ```
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
-Token validated in `AuthMiddleware` → `request->user()` populated.
+Caronte validates signature, issuer, audience and expiry; Bee-Hive establishes the tenant before business models are resolved.
 
 ### Rate Limiting
 

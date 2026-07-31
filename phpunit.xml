@@ -13,7 +13,9 @@
     <env name="APP_KEY" value="base64:3B4fVrc0YdG1mjpS4yA8e++8A6bY6wsWdT58mdQ0D64="/>
     <env name="DB_CONNECTION" value="sqlite"/>
     <env name="DB_DATABASE" value=":memory:"/>
-    <env name="SWIFT_AUTH_TABLE_PREFIX" value="swift_auth_"/>
+    <env name="CARONTE_URL" value="https://caronte.test"/>
+    <env name="CARONTE_OIDC_ISSUER" value="https://caronte.test"/>
+    <env name="CARONTE_OIDC_CLIENT_ID" value="pos-test"/>
     <env name="CACHE_STORE" value="array"/>
     <env name="SESSION_DRIVER" value="array"/>
     <env name="QUEUE_CONNECTION" value="sync"/>

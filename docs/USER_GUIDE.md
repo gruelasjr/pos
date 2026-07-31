@@ -2,7 +2,7 @@
 
 ## Audience & Prerequisites
 
--   Users with Swift Auth accounts assigned one of: Admin, Vendedor, Auditor roles
+-   Caronte users assigned one of: `pos-admin`, `pos-seller`, or `pos-auditor`
 -   Devices: Desktop browsers (Chrome 120+, Edge, Safari 17+) or tablets (min 1280×800 viewport)
 -   Network: Secure connection to Laravel API host (default: `http://localhost:8000`)
 -   Optional: Barcode scanner that inputs into focused text fields
@@ -15,18 +15,14 @@
 
 ## Session Management
 
-Session credentials stored in local storage:
-
--   `pos-token`: Bearer token for API authentication
--   `pos-user`: Logged-in user metadata
+La sesiÃ³n se mantiene mediante la cookie segura administrada por Caronte. El POS no guarda contraseÃ±as ni tokens de acceso en `localStorage`.
 
 ## Login
 
 1. Browse to `/login`
-2. Enter your email and password (as provided by Admin)
-3. Click **Entrar**
-4. Success redirects to Dashboard with token stored; on error: "Credenciales invalidas"
-5. Contact an Admin to reset password if needed
+2. Complete authentication in Caronte OIDC.
+3. Caronte redirects back to the POS and the assigned tenant is activated.
+4. Contact the identity administrator if the required POS role is missing.
 
 ## Application Layout
 

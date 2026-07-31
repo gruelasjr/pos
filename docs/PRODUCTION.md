@@ -1,80 +1,65 @@
 # Production Operations
 
-This document is the production checklist for POS Faro. It focuses on the parts that must be true before the system is used at a real store counter.
+This is the release gate for a live POS Faro store. The detailed incident, backup, restore, rollback, and reconciliation procedures are in [OPERATIONS_RUNBOOK.md](./OPERATIONS_RUNBOOK.md).
 
-## Required Services
+## Required runtime
 
-- PHP 8.3+ with required Laravel extensions.
-- MySQL 8.x or compatible managed database.
-- Redis for production queues and cache. The database queue is acceptable only for small pilots.
-- A process supervisor for `php artisan queue:work`.
-- A scheduler entry that runs `php artisan schedule:run` every minute.
-- HTTPS termination in front of the Laravel app.
+- PHP 8.3 or 8.4, MySQL 8.x, Redis 7, HTTPS, and a deployment secret store.
+- Separate HTTP, `queue:work`, and `schedule:work` processes. Restart workers after every release.
+- Caronte as the only identity authority and Bee-Hive with `CaronteTenantResolver`; do not set a static tenant in production.
+- Real, credentialed drivers for every enabled payment, fiscal, ERP, printer, cash-drawer, and scanner flow. `mock` and `stub` are local/test only.
 
-## Required Environment
-
-Set these values explicitly in production:
+Minimum production configuration:
 
 ```env
 APP_ENV=production
 APP_DEBUG=false
 APP_URL=https://pos.example.com
-APP_TIMEZONE=America/Mexico_City
-
 DB_CONNECTION=mysql
-QUEUE_CONNECTION=redis
 CACHE_STORE=redis
+QUEUE_CONNECTION=redis
 SESSION_DRIVER=redis
 
-SWIFT_AUTH_TABLE_PREFIX=swift_auth_
-API_TOKEN_TTL_MINUTES=480
-CUSTOMER_REGISTRATION_TOKEN_TTL_DAYS=30
-LOG_SENSITIVE=false
+CARONTE_URL=https://caronte.example.com
+CARONTE_OIDC_ISSUER=https://caronte.example.com
+CARONTE_OIDC_CLIENT_ID=pos
+CARONTE_OIDC_CLIENT_SECRET=<secret-store-reference>
+CARONTE_OIDC_REDIRECT_URI=https://pos.example.com/auth/oidc/callback
+CARONTE_ALLOW_HTTP_REQUESTS=false
+CARONTE_TLS_VERIFY=true
+BEE_HIVE_TENANT_KEY=tenant_id
+BEE_HIVE_STATIC_TENANT_ID=
 
-POS_PAYMENT_DRIVER=mock
-POS_FISCAL_DRIVER=mock
-POS_RECEIPT_PRINTER_DRIVER=mock
-POS_CASH_DRAWER_DRIVER=mock
-POS_BARCODE_SCANNER_DRIVER=mock
+POS_PAYMENT_DRIVER=<production-driver>
+POS_FISCAL_DRIVER=<production-driver>
+POS_RECEIPT_PRINTER_DRIVER=<production-driver>
+POS_CASH_DRAWER_DRIVER=<production-driver>
+POS_BARCODE_SCANNER_DRIVER=<production-driver>
+LOG_SENSITIVE=false
 ```
 
-## Deployment Steps
+## Deployment and verification
 
-1. Install dependencies with `composer install --no-dev --optimize-autoloader` and `npm ci`.
-2. Build assets with `npm run build`.
-3. Run `php artisan migrate --force`.
-4. Run `php artisan optimize`.
-5. Start or restart queue workers.
-6. Verify `/up`, `/login`, and one authenticated `/api/v1/*` request.
+1. Build an immutable artifact with `composer install --no-dev --classmap-authoritative` and `npm ci && npm run build`.
+2. Run `php artisan migrate --force`, then `php artisan optimize` in the release environment.
+3. Restart queue workers and ensure the scheduler is active.
+4. Verify `/up` (liveness) and `/ready` (database, Redis when required, secure Caronte configuration, and safe provider selection).
+5. Perform a Caronte-authenticated tenant-isolation smoke test and a sandbox payment before enabling store traffic.
 
-## Operational Checks
+`/ready` returns HTTP 503 when a required dependency or production configuration is unsafe. It must not expose credentials, tokens, exception messages, or tenant data.
 
-- Queue workers must be running before opening sales.
-- Failed jobs must be monitored and retried intentionally.
-- `storage/` and `bootstrap/cache/` must be writable by the PHP user.
-- Database backups must include the POS tables and SwiftAuth tables.
-- Receipt delivery providers should be tested after every credential rotation.
-- Payment, fiscal, printer, cash drawer, and barcode integrations must be switched from `mock` before live store operations.
-
-## Release Gate
-
-Do not deploy if any of these fail:
+## Release gate
 
 ```bash
+composer audit --locked --no-interaction
 composer test
 composer lint
-composer audit
+npm ci
 npm run audit
 npm run build
 npm run test:e2e
 ```
 
-The GitHub Actions workflow at `.github/workflows/ci.yml` runs these checks with SQLite, PHP coverage, Node dependency audit, and Playwright Chromium.
+Do not deploy with critical/high dependency advisories, a failed clean MySQL migration, an untested restore, missing workers/scheduler, invalid Caronte issuer/client settings, or any enabled mock/stub integration.
 
-## Security Notes
-
-- API authentication uses SwiftAuth bearer tokens issued by `/api/v1/auth/login`.
-- Checkout requires `X-Idempotency-Key` to prevent duplicate sales.
-- Customer registration links use hashed, expiring, single-use sale tokens.
-- Audit logs are stored in the SwiftAuth audit table using the configured table prefix.
-- POS provider calls are logged in `pos_integration_events`.
+Backups must include all tenant-scoped POS data and global customer-registration links. Encrypt backups, restrict restore access, and validate the documented RPO/RTO through recurring restore drills.

@@ -1,62 +1,31 @@
 # Security Model
 
-## API Authentication
+## Identity and tenant boundary
 
-Clients authenticate through:
+Caronte is the sole identity authority. Browser routes use the Caronte OIDC session middleware, user APIs accept Caronte Bearer tokens, and machine APIs use Caronte application authentication with a required tenant. Tokens must validate signature through JWKS, issuer, audience/client, expiry, and TLS.
 
-```http
-POST /api/v1/auth/login
-```
+Bee-Hive resolves the tenant with `CaronteTenantResolver`. Every business record and uniqueness constraint is tenant-scoped. Model binding and authorization deliberately return 404 for cross-tenant resources. Jobs carry a tenant ID explicitly and must establish and clear tenant context around every execution.
 
-The response includes a SwiftAuth bearer token and `expires_at`. Protected `/api/v1/*` routes require:
-
-```http
-Authorization: Bearer <token>
-```
-
-The application middleware resolves the token to `App\Models\User`, checks that the account is active, records `last_used_at`, and then lets role middleware enforce access.
+The local POS user is a shadow identity keyed by `(tenant_id, caronte_uri_user)`. It stores only profile/role data needed for history and relationships; passwords and Caronte tokens are never persisted there.
 
 ## Roles
 
-The POS uses these role slugs:
+- `pos-admin`: full tenant administration.
+- `pos-seller`: cash-session, customer, cart, and sale operations.
+- `pos-auditor`: read-only reporting and audit access.
 
-- `admin`: full access.
-- `vendedor`: cart and checkout operations.
-- `auditor`: reporting and read-focused access.
+Role claims are synchronized from Caronte; local role escalation is not authoritative.
 
-Role checks compare both `slug` and `name` for compatibility with SwiftAuth data.
+## Checkout and public links
 
-## Checkout Idempotency
+Checkout requires `X-Idempotency-Key`. A retry with the same tenant, actor, route, key, and request returns the original result; conflicting payloads return 409. Payment attempts are durable and providers must support idempotency and status lookup.
 
-Checkout requires:
+Customer-registration URLs use opaque random tokens. Only a token hash, tenant association, expiry, and consumption timestamp are stored. Tenant context is established from a valid global link before any sale/customer query.
 
-```http
-X-Idempotency-Key: <unique-client-generated-key>
-```
+## Production controls
 
-The server stores the request hash and response body. Replaying the same key with the same request returns the original response. Reusing the key with a different payload returns `409`.
-
-## Customer Registration Links
-
-Receipt registration links no longer use sale IDs or folios as public tokens.
-
-The sale stores:
-
-- `customer_registration_token_hash`
-- `customer_registration_expires_at`
-- `customer_registration_used_at`
-
-Only the plain token is sent to the customer. The API hashes the submitted token, requires it to be unexpired and unused, then marks it used after customer association.
-
-## Logging And Audit
-
-- `LOG_SENSITIVE=false` must remain the production default.
-- `AuditLogger` writes to the SwiftAuth audit table.
-- Payment details and token-like values are redacted before audit payloads are stored.
-
-## Production Controls
-
-- Use HTTPS only.
-- Rotate provider credentials and SwiftAuth secrets on a schedule.
-- Keep `APP_DEBUG=false` in production.
-- Monitor failed jobs, 401/403 spikes, and idempotency hash mismatches.
+- Keep `APP_DEBUG=false`, `LOG_SENSITIVE=false`, HTTPS and Caronte certificate verification enabled.
+- Never configure `BEE_HIVE_STATIC_TENANT_ID` or mock/stub providers in production.
+- Redact credentials, authorization headers, payment data, and registration tokens from logs and audit payloads.
+- Monitor authentication failures, cross-tenant denials, idempotency conflicts, payment reconciliation, outbox DLQ depth, and readiness failures.
+- Rotate Caronte and provider credentials through the deployment secret store and exercise revocation procedures.
