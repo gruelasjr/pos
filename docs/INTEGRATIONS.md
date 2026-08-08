@@ -105,6 +105,6 @@ Returns `sku=P1000` and `quantity=3`.
 
 1. Implement the appropriate interface under `app/Services/Integrations`.
 2. Add the driver name and class binding in `App\Providers\AppServiceProvider`.
-3. Add required provider credentials to `config/pos_integrations.php` and `.env.example`.
+3. Add required provider credentials to `config/pos_integrations.php` and the appropriate `.env.d/` fragment.
 4. Add feature tests that bind the provider fake or run against a sandbox.
 5. Keep provider payloads idempotent by passing checkout `X-Idempotency-Key` downstream.

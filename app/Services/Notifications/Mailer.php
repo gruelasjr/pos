@@ -16,9 +16,6 @@ use Illuminate\Support\Facades\Log;
 use App\Support\SecurityHelpers;
 
 /**
- * Mailer service (stub) that logs outgoing messages.
- */
-/**
  * Notification mailer.
  *
  * Sends emails using the configured mail transport for notifications.

@@ -19,7 +19,6 @@
     <exclude-pattern>storage/*</exclude-pattern>
     <exclude-pattern>public/build/*</exclude-pattern>
     <exclude-pattern>bootstrap/cache/*</exclude-pattern>
-    <exclude-pattern>app/Models/SwiftAuth/*</exclude-pattern>
     <exclude-pattern>resources/js/**/dist/*</exclude-pattern>
     <exclude-pattern>resources/js/**/generated/*</exclude-pattern>
 </ruleset>

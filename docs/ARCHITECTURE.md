@@ -104,7 +104,7 @@ All UI components follow atomic design:
 -   Consistent, reusable component vocabulary
 -   Scalable from small apps to enterprise systems
 -   Clear dependency hierarchy (atoms → molecules → organisms)
--   Automated Storybook documentation
+-   Reusable components documented in `docs/DESIGN_SYSTEM.md`
 
 ### 2. Theme System (CSS Variables)
 
@@ -450,9 +450,8 @@ $schedule->call(function () {
 
 1. Create atom/molecule in `resources/js/components/[atoms|molecules]/`
 2. Export from `index.js`
-3. Add Storybook story in `.stories.jsx`
-4. Test dark mode by toggling theme
-5. Document in `docs/DESIGN_SYSTEM.md`
+3. Test light and dark modes
+4. Document the public component API in `docs/DESIGN_SYSTEM.md`
 
 ### Adding a New Page
 
@@ -468,4 +467,3 @@ $schedule->call(function () {
 -   **Design System**: [docs/DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md)
 -   **Requirements**: [docs/REQUIREMENTS.md](./REQUIREMENTS.md)
 -   **User Guide**: [docs/USER_GUIDE.md](./USER_GUIDE.md)
--   **Migration Notes**: [docs/MIGRATION.md](./MIGRATION.md)

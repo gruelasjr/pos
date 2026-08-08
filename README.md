@@ -36,7 +36,7 @@ The repository contains a JSON API under `/api/v1` and a Vite-powered React SPA 
 | **UI Components** | Custom ADS atoms, molecules, organisms (100% HeroUI-free)       |
 | **Build**         | Vite, npm 10+, Composer 2.5+                                    |
 | **Queue**         | Redis or database driver (email, SMS, reports)                  |
-| **Logging**       | Structured JSON logs with request-id correlation                |
+| **Logging**       | Daily logs with request-id correlation                          |
 
 ## Quick Start
 
@@ -45,8 +45,8 @@ git clone <repo> pos-faro
 cd pos-faro
 
 # Setup backend
-cp .env.example .env
 composer install
+php artisan env-builder:build --dev
 php artisan key:generate
 php artisan migrate --seed
 php artisan storage:link
@@ -64,14 +64,12 @@ php artisan queue:work               # Process jobs (email, receipts, reports)
 **Helper script**:
 
 ```bash
-composer setup  # Runs install, key:generate, migrate --seed, storage:link
+composer setup  # Installs dependencies, builds .env, generates the key, migrates, and builds assets
 ```
 
 ### Development identities
 
 Development identities are managed in Caronte; POS Faro does not seed or store login passwords. Assign `pos-admin`, `pos-seller`, or `pos-auditor` to test identities.
-
-## Environment configuration
 
 ## Requirements
 
@@ -90,10 +88,9 @@ Key `.env` variables:
 -   `CACHE_STORE`, `QUEUE_CONNECTION` - defaults to `database`; switch to `redis` for production
 -   `FILESYSTEM_DISK` - `public` (local) or `s3` (cloud)
 -   `CARONTE_*` and `BEE_HIVE_*` - OIDC and tenant-resolution configuration
--   `SMS_FROM`, `MAIL_*` - Receipt notification channels (stubs log by default)
--   `LOG_STACK=daily` - Rotates JSON logs to `storage/logs/`
+-   `LOG_STACK=daily` - Rotates logs in `storage/logs/`
 
-Review `.env.example` for the complete list.
+Review the fragments in `.env.d/` for the complete list.
 
 ## Running Locally
 
@@ -194,12 +191,7 @@ See [docs/DESIGN_SYSTEM.md](./docs/DESIGN_SYSTEM.md) for component API and usage
 | [docs/TESTING.md](./docs/TESTING.md)             | Test commands, coverage areas, CI recommendations              |
 | [docs/REQUIREMENTS.md](./docs/REQUIREMENTS.md)   | Functional spec, entities, business rules, API endpoints       |
 | [docs/USER_GUIDE.md](./docs/USER_GUIDE.md)       | End-user guide: login, POS, catalogs, reports, troubleshooting |
-| [docs/MIGRATION.md](./docs/MIGRATION.md)         | HeroUI phase-out & ADS migration (completed)                   |
-
-**API Documentation**:
-
--   OpenAPI spec: [doc/openapi.yaml](./doc/openapi.yaml)
--   Controller PHPDoc: See `app/Http/Controllers/API/V1/`
+API behavior is documented by the controller PHPDoc in `app/Http/Controllers/API/V1/`.
 
 ## Support
 

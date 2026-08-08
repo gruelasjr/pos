@@ -9,8 +9,6 @@ return [
     /**
      * API bearer tokens should be short lived for POS terminals.
      */
-    'api_token_ttl_minutes' => (int) env('API_TOKEN_TTL_MINUTES', 480),
-
     /**
      * Receipt customer-registration links are public, single-use tokens.
      */

@@ -27,5 +27,3 @@ parameters:
         - vendor/*
         - storage/*
         - bootstrap/cache/*
-        - app/Models/SwiftAuth/*
-
