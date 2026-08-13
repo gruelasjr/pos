@@ -71,13 +71,13 @@ test("seller can create a cart, add a product, and complete checkout", async ({
     await seedBrowserSession(page, session);
     await page.goto("/pos");
 
-    await expect(page.getByRole("heading", { name: "Cobro rápido" })).toBeVisible();
-    await page.getByLabel("Caja o almacén").selectOption(warehouse.id);
+    await expect(page.getByRole("heading", { name: "Nueva venta" })).toBeVisible();
+    await page.getByLabel("Abrir caja").selectOption(warehouse.id);
     await expect(page.getByRole("heading", { name: /Carrito/i })).toBeVisible();
 
     await page.getByLabel("Escanear o buscar producto").fill(product.sku);
-    await expect(page.getByRole("button", { name: new RegExp(product.sku) })).toBeVisible();
-    await page.getByRole("button", { name: new RegExp(product.sku) }).click();
+    await expect(page.getByRole("button", { name: new RegExp(product.short_description) })).toBeVisible();
+    await page.getByRole("button", { name: new RegExp(product.short_description) }).click();
     await expect(
         page.getByText(product.short_description, { exact: true }).last(),
     ).toBeVisible();
@@ -93,8 +93,8 @@ test("mobile checkout keeps an accessible sticky action", async ({ page, request
     await seedBrowserSession(page, session);
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/pos");
-    await expect(page.getByRole("heading", { name: "Cobro rápido" })).toBeVisible();
-    await expect(page.getByRole("navigation", { name: "Navegación principal" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Nueva venta" })).toBeVisible();
+    await expect(page.getByRole("navigation", { name: "Navegación móvil" })).toBeVisible();
     await expect(page.getByLabel("Escanear o buscar producto")).toBeVisible();
     await expect(page.locator("body")).not.toHaveCSS("overflow-x", "scroll");
 });

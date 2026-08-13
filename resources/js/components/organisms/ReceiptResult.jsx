@@ -1,14 +1,3 @@
+import { useState } from "react";
 import { formatCurrency } from "../../utils/formatters";
-
-export const ReceiptResult = ({ sale, onClose }) => sale ? (
-    <div className="receipt-layer" role="dialog" aria-modal="true" aria-labelledby="receipt-title">
-        <section className="receipt-result">
-            <div className="receipt-check" aria-hidden="true">✓</div>
-            <span className="pos-eyebrow">Pago aprobado</span>
-            <h2 id="receipt-title">Venta completada</h2>
-            <p>Folio <strong>{sale.folio}</strong></p>
-            <strong className="receipt-total">{formatCurrency(sale.total_net ?? sale.total ?? 0)}</strong>
-            <div className="receipt-actions"><button type="button" className="secondary-action" onClick={() => window.print()}>Imprimir recibo</button><button type="button" className="checkout-button" onClick={onClose}>Nueva venta</button></div>
-        </section>
-    </div>
-) : null;
+export const ReceiptResult=({sale,api,onClose})=>{const[channel,setChannel]=useState("email");const[destination,setDestination]=useState("");const[notice,setNotice]=useState("");if(!sale)return null;const send=async()=>{if(!destination)return;try{await api.sales.sendReceipt(sale.id,{channel,destination});setNotice("Recibo programado para envío.")}catch{setNotice("No pudimos programar el recibo.")}};const token=sale.customer_registration_token;return <div className="receipt-layer" role="dialog" aria-modal="true" aria-labelledby="receipt-title"><section className="receipt-result"><div className="receipt-check" aria-hidden="true">✓</div><h2 id="receipt-title">Venta completada</h2><p>Folio <strong>{sale.folio}</strong></p><strong className="receipt-total">{formatCurrency(sale.total_net??sale.total??0)}</strong><div className="receipt-delivery"><select aria-label="Canal del recibo" value={channel} onChange={e=>setChannel(e.target.value)}><option value="email">Email</option><option value="sms">SMS</option></select><input aria-label="Destino del recibo" placeholder={channel==="email"?"correo@ejemplo.com":"Teléfono"} value={destination} onChange={e=>setDestination(e.target.value)}/><button type="button" className="secondary-action" onClick={send}>Enviar</button></div>{token&&<a className="registration-link" href={`/r/${encodeURIComponent(token)}`} target="_blank" rel="noreferrer">Abrir registro del cliente</a>}{notice&&<p className="inline-notice" role="status">{notice}</p>}<div className="receipt-actions"><button type="button" className="secondary-action" onClick={()=>api.sales.print(sale.id)}>Imprimir recibo</button><button type="button" className="checkout-button" onClick={onClose}>Nueva venta</button></div></section></div>};

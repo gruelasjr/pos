@@ -1480,3 +1480,19 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export type operations = Record<string, never>;
+
+export type ProductMetadataType = "text" | "number" | "boolean" | "select";
+export interface ProductTagDto { id: string; name: string; slug: string; active: boolean; products_count?: number }
+export interface ProductMetadataCodedValueDto { id: string; definition_id: string; value: string; code: string; active: boolean }
+export interface ProductMetadataDefinitionDto { id: string; key: string; label: string; type: ProductMetadataType; options?: string[] | null; active: boolean; coded_values?: ProductMetadataCodedValueDto[] }
+export interface SkuRangeSegmentDto { id: string; definition_id: string; coded_value_id: string; position: number; definition: ProductMetadataDefinitionDto; coded_value: ProductMetadataCodedValueDto }
+export interface SkuRangeDto { id: string; composed_prefix: string; from: number; to: number; used_up_to?: number | null; active: boolean; locked: boolean; example_sku: string; segments: SkuRangeSegmentDto[] }
+export interface ProductMetadataValueDto { definition_id: string; value_text?: string | null; value_number?: number | null; value_boolean?: boolean | null; definition: ProductMetadataDefinitionDto }
+export interface CatalogProductDto { id: string; sku: string; short_description: string; photo_url?: string | null; sale_price: number; active: boolean; product_type_id: string; tags: ProductTagDto[]; metadata_values: ProductMetadataValueDto[]; stock?: number }
+export interface CatalogProductPayload { short_description: string; long_description?: string | null; photo_url?: string | null; purchase_price: number; sale_price: number; entry_date: string; product_type_id: string; active?: boolean; tag_ids?: string[]; metadata?: Record<string, string | number | boolean | null> }
+export type ReportDimension = "category" | "tag" | `metadata:${string}`;
+export interface ReportFilters { from?: string; to?: string; warehouse_id?: string; group_by?: ReportDimension[] }
+export interface ReportSummary { net_sales: number; tickets: number; average_ticket?: number; units?: number; products?: number; stock?: number; [delta: `${string}_delta`]: number | undefined }
+export interface BestSellerProductNode { type: "product"; id: string; rank: number; sku: string; name: string; photo_url?: string | null; units: number; net_sales: number; tickets: number; stock: number }
+export interface BestSellerGroupNode { type: "group"; key: string; label: string; dimension: ReportDimension; units: number; net_sales: number; tickets: number; stock: number; children: Array<BestSellerGroupNode | BestSellerProductNode> }
+export interface BestSellerReportDto { period: { from: string; to: string }; summary: ReportSummary; group_by: ReportDimension[]; non_additive_tag_totals: boolean; tree: BestSellerGroupNode[]; updated_at: string; timezone: string }

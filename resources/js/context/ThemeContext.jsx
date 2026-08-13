@@ -7,21 +7,17 @@ import { createContext, useContext, useEffect, useState } from "react";
 const ThemeContext = createContext();
 
 export const ThemeProvider = ({ children }) => {
-    const [isDark, setIsDark] = useState(false);
-
-    useEffect(() => {
-        // Check localStorage or system preference
-        const stored = localStorage.getItem("theme");
-        if (stored) {
-            setIsDark(stored === "dark");
-        } else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-            setIsDark(true);
-        }
-    }, []);
+    const [isDark, setIsDark] = useState(() => {
+        if (typeof window === "undefined") return false;
+        const stored = window.localStorage.getItem("theme");
+        return stored ? stored === "dark" : window.matchMedia("(prefers-color-scheme: dark)").matches;
+    });
 
     useEffect(() => {
         const root = document.documentElement;
-        root.className = isDark ? "dark" : "light";
+        root.classList.toggle("dark", isDark);
+        root.classList.toggle("light", !isDark);
+        root.style.colorScheme = isDark ? "dark" : "light";
         localStorage.setItem("theme", isDark ? "dark" : "light");
     }, [isDark]);
 

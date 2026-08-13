@@ -23,7 +23,9 @@
 namespace App\Http\Controllers\API\V1;
 
 use App\Models\ProductType;
+use Equidna\BeeHive\Tenancy\TenantContext;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 /**
  * Controller handling product type endpoints.
@@ -40,6 +42,8 @@ class ProductTypeController extends BaseApiController
     public function index(Request $request)
     {
         $types = ProductType::query()
+            ->when($request->filled('status') && $request->input('status') !== 'all', fn ($q) =>
+                $q->where('active', $request->input('status') === 'active'))
             ->orderBy('name')
             ->paginate($request->integer('per_page', 50));
 
@@ -48,9 +52,16 @@ class ProductTypeController extends BaseApiController
 
     public function store(Request $request)
     {
+        $tenantId = app(TenantContext::class)->get();
         $data = $request->validate([
             'name' => ['required', 'string', 'max:120'],
-            'code' => ['required', 'string', 'max:32', 'unique:product_types,code'],
+            'code' => [
+                'required',
+                'string',
+                'max:32',
+                Rule::unique('product_types', 'code')->where('tenant_id', $tenantId),
+            ],
+            'active' => ['boolean'],
         ]);
 
         $type = ProductType::create($data);
@@ -60,9 +71,16 @@ class ProductTypeController extends BaseApiController
 
     public function update(Request $request, ProductType $productType)
     {
+        $tenantId = app(TenantContext::class)->get();
         $data = $request->validate([
             'name' => ['sometimes', 'string', 'max:120'],
-            'code' => ['sometimes', 'string', 'max:32', 'unique:product_types,code,' . $productType->id . ',id'],
+            'code' => [
+                'sometimes',
+                'string',
+                'max:32',
+                Rule::unique('product_types', 'code')->where('tenant_id', $tenantId)->ignore($productType->id),
+            ],
+            'active' => ['sometimes', 'boolean'],
         ]);
 
         $productType->update($data);

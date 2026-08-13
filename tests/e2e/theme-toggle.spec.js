@@ -16,7 +16,7 @@ const seedSession = async (page, session) => {
 };
 
 const getThemeToggle = (page) =>
-    page.getByRole("button", { name: /theme/i }).first();
+    page.getByRole("button", { name: /tema/i }).first();
 
 const rootClass = async (page) =>
     (await page.locator("html").getAttribute("class")) ?? "";
@@ -71,7 +71,7 @@ test.describe("Theme Toggle", () => {
         const darkBackground = await tokenValue();
 
         expect(lightBackground).toBe("#ffffff");
-        expect(darkBackground).toBe("#0f172a");
+        expect(darkBackground).toBe("#0e1a2a");
     });
 
     test("keeps the selected theme across page navigation", async ({ page }) => {

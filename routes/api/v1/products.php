@@ -23,5 +23,6 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('products', [ProductController::class, 'index']);
 Route::get('products/{product}', [ProductController::class, 'show']);
-Route::post('products', [ProductController::class, 'store'])->middleware('role:admin');
-Route::patch('products/{product}', [ProductController::class, 'update'])->middleware('role:admin');
+Route::post('products', [ProductController::class, 'store'])->middleware(['role:admin', 'throttle:admin-mutations']);
+Route::patch('products/{product}', [ProductController::class, 'update'])->middleware(['role:admin', 'throttle:admin-mutations']);
+Route::post('products/{product}/photo', [ProductController::class, 'uploadPhoto'])->middleware(['role:admin', 'throttle:admin-mutations']);

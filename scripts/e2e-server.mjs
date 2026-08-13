@@ -28,7 +28,7 @@ const env = {
     LOG_CHANNEL: "stderr",
     MAIL_MAILER: "array",
     QUEUE_CONNECTION: "sync",
-    SESSION_DRIVER: "array",
+    SESSION_DRIVER: "file",
     POS_E2E_ENABLED: "true",
     BEE_HIVE_TENANT_KEY: "tenant_id",
     POS_DEMO_TENANT_ID: "tenant-demo",

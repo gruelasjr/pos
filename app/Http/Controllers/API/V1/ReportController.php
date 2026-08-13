@@ -20,6 +20,8 @@
 
 namespace App\Http\Controllers\API\V1;
 
+use App\Services\Reports\ReportDataService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\Sale;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -37,6 +39,36 @@ use Illuminate\Support\Carbon;
  */
 class ReportController extends BaseApiController
 {
+    public function overview(Request $request, ReportDataService $reports)
+    {
+        return $this->success('Resumen de reportes', $reports->overview($this->filters($request)));
+    }
+
+    public function bestSellers(Request $request, ReportDataService $reports)
+    {
+        return $this->success('Productos más vendidos', $reports->bestSellers($this->filters($request)));
+    }
+
+    public function export(Request $request, ReportDataService $reports)
+    {
+        $data = $request->validate([
+            'report' => ['required', 'in:overview,best-sellers'],
+            'format' => ['required', 'in:csv,pdf'],
+        ]);
+        $filters = $this->filters($request);
+        $payload = $data['report'] === 'overview' ? $reports->overview($filters) : $reports->bestSellers($filters);
+        $filename = 'pos-faro-' . $data['report'] . '-' . $payload['period']['from'] . '-' . $payload['period']['to'];
+
+        if ($data['format'] === 'csv') {
+            return $this->csvResponse($filename . '.csv', $this->exportRows($data['report'], $payload));
+        }
+
+        return Pdf::loadView('reports.pdf', ['report' => $data['report'], 'payload' => $payload])
+            ->setPaper('a4', 'landscape')
+            ->setOption(['isRemoteEnabled' => false, 'defaultFont' => 'DejaVu Sans'])
+            ->download($filename . '.pdf');
+    }
+
     public function daily(Request $request)
     {
         $date = Carbon::parse($request->input('date', now()->toDateString()));
@@ -193,5 +225,65 @@ class ReportController extends BaseApiController
             'Content-Type' => 'text/csv; charset=UTF-8',
             'Content-Disposition' => 'attachment; filename=' . $filename,
         ]);
+    }
+
+    private function filters(Request $request): array
+    {
+        $request->validate([
+            'from' => ['nullable', 'date'],
+            'to' => ['nullable', 'date'],
+            'warehouse_id' => ['nullable', 'uuid', 'exists:warehouses,id'],
+            'group_by' => ['nullable', 'array', 'max:3'],
+            'group_by.*' => ['string', 'max:80'],
+        ]);
+
+        return $request->only('from', 'to', 'warehouse_id', 'group_by');
+    }
+
+    private function exportRows(string $report, array $payload): array
+    {
+        if ($report === 'overview') {
+            $rows = [['date', 'net_sales', 'tickets']];
+            foreach ($payload['series']['current'] as $point) {
+                $rows[] = [$point['date'], $point['total'], $point['tickets']];
+            }
+            $rows[] = [];
+            $rows[] = ['seller', 'net_sales', 'tickets', 'average_ticket', 'delta_percent'];
+            foreach ($payload['sellers'] as $seller) {
+                $rows[] = [
+                    $seller['seller_name'],
+                    $seller['total'],
+                    $seller['sales'],
+                    $seller['average_ticket'],
+                    $seller['delta'],
+                ];
+            }
+
+            return $rows;
+        }
+
+        $rows = [['path', 'product', 'sku', 'units', 'net_sales', 'tickets', 'stock']];
+        $this->flattenBestSellerRows($payload['tree'], [], $rows);
+
+        return $rows;
+    }
+
+    private function flattenBestSellerRows(array $nodes, array $path, array &$rows): void
+    {
+        foreach ($nodes as $node) {
+            if ($node['type'] === 'group') {
+                $this->flattenBestSellerRows($node['children'], [...$path, $node['label']], $rows);
+                continue;
+            }
+            $rows[] = [
+                implode(' > ', $path),
+                $node['name'],
+                $node['sku'],
+                $node['units'],
+                $node['net_sales'],
+                $node['tickets'],
+                $node['stock'],
+            ];
+        }
     }
 }

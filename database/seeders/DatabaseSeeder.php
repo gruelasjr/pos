@@ -5,6 +5,8 @@ namespace Database\Seeders;
 use App\Models\Inventory;
 use App\Models\Product;
 use App\Models\ProductType;
+use App\Models\ProductMetadataDefinition;
+use App\Models\ProductMetadataCodedValue;
 use App\Models\ReservedSkuRange;
 use App\Models\Role;
 use App\Models\User;
@@ -55,12 +57,26 @@ class DatabaseSeeder extends Seeder
             }
         }
 
-        ReservedSkuRange::create([
+        $definition = ProductMetadataDefinition::create([
+            'key' => 'linea',
+            'label' => 'Línea',
+            'type' => 'text',
+        ]);
+        $codedValue = ProductMetadataCodedValue::create([
+            'definition_id' => $definition->id,
+            'value' => 'General',
+            'code' => 'P',
+        ]);
+        $range = ReservedSkuRange::create([
             'id' => (string) Str::uuid(),
-            'prefix' => 'P',
+            'composed_prefix' => 'P',
             'from' => 1000,
             'to' => 9999,
-            'purpose' => 'General',
+        ]);
+        $range->segments()->create([
+            'definition_id' => $definition->id,
+            'coded_value_id' => $codedValue->id,
+            'position' => 0,
         ]);
     }
 }

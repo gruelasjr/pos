@@ -1,21 +1,7 @@
 import { CashTender } from "../molecules/CashTender";
 import { OrderTotals } from "../molecules/OrderTotals";
-
-const methods = [{ id: "cash", label: "Efectivo" }, { id: "card", label: "Tarjeta" }, { id: "transfer", label: "Transferencia" }, { id: "mixed", label: "Mixto" }];
-export const PaymentSheet = ({ open, cart, payment, busy, online, error, onChange, onClose, onConfirm }) => (
-    <div className={`payment-layer ${open ? "is-open" : ""}`} aria-hidden={!open}>
-        <button className="payment-backdrop" type="button" tabIndex={open ? 0 : -1} onClick={onClose} aria-label="Cerrar cobro" />
-        <section className="payment-sheet" role="dialog" aria-modal="true" aria-labelledby="payment-title">
-            <header><div><span className="pos-eyebrow">Finalizar venta</span><h2 id="payment-title">¿Cómo paga el cliente?</h2></div><button type="button" className="icon-button" onClick={onClose} aria-label="Cerrar">×</button></header>
-            <div className="payment-methods" role="radiogroup" aria-label="Método de pago">
-                {methods.map(method => <button type="button" role="radio" aria-checked={payment.payment_method === method.id} className={payment.payment_method === method.id ? "is-selected" : ""} key={method.id} onClick={() => onChange({ payment_method: method.id })}>{method.label}</button>)}
-            </div>
-            {payment.payment_method === "cash" && <CashTender total={Number(cart?.total_net || 0)} value={payment.received ?? ""} onChange={(received) => onChange({ received })} />}
-            {payment.payment_method === "mixed" && <p className="inline-notice">El desglose de pago mixto se validará antes de confirmar.</p>}
-            <OrderTotals cart={cart} />
-            {error && <p className="pos-error" role="alert">{error}</p>}
-            {!online && <p className="inline-notice" role="status">El cobro requiere conexión. Tu carrito está guardado.</p>}
-            <button className="checkout-button" disabled={busy || !online || !cart?.items?.length} type="button" onClick={onConfirm}>{busy ? "Procesando…" : "Confirmar cobro"}</button>
-        </section>
-    </div>
-);
+import { formatCurrency } from "../../utils/formatters";
+const methods=[{id:"cash",label:"Efectivo"},{id:"card",label:"Tarjeta"},{id:"transfer",label:"Transferencia"},{id:"mixed",label:"Mixto"}];
+export const PaymentSheet=({open,cart,payment,busy,online,error,onChange,onClose,onConfirm})=><div className={`payment-layer ${open?"is-open":""}`} aria-hidden={!open}><button className="payment-backdrop" type="button" tabIndex={open?0:-1} onClick={onClose} aria-label="Cerrar cobro"/><section className="payment-sheet" role="dialog" aria-modal="true" aria-labelledby="payment-title"><header><h2 id="payment-title">¿Cómo paga el cliente?</h2><button type="button" className="icon-button" onClick={onClose} aria-label="Cerrar">×</button></header><div className="payment-methods" role="radiogroup" aria-label="Método de pago">{methods.map(method=><button type="button" role="radio" aria-checked={payment.payment_method===method.id} className={payment.payment_method===method.id?"is-selected":""} key={method.id} onClick={()=>onChange({payment_method:method.id})}>{method.label}</button>)}</div>{payment.payment_method==="cash"&&<CashTender total={Number(cart?.total_net||0)} value={payment.received??""} onChange={received=>onChange({received})}/>} {payment.payment_method==="mixed"&&<MixedPayment total={Number(cart?.total_net||0)} payments={payment.payments||defaultPayments} onChange={payments=>onChange({payments})}/>}<OrderTotals cart={cart}/>{error&&<p className="pos-error" role="alert">{error}</p>}{!online&&<p className="inline-notice" role="status">El cobro requiere conexión. Tu carrito está guardado.</p>}<button className="checkout-button" disabled={busy||!online||!cart?.items?.length} type="button" onClick={onConfirm}>{busy?"Procesando…":"Confirmar cobro"}</button></section></div>;
+const defaultPayments=[{method:"cash",amount:""},{method:"card",amount:""}];
+const MixedPayment=({total,payments,onChange})=>{const allocated=payments.reduce((sum,item)=>sum+Number(item.amount||0),0);const update=(index,patch)=>onChange(payments.map((item,current)=>current===index?{...item,...patch}:item));return <fieldset className="mixed-payment"><legend>Desglose del pago</legend>{payments.map((item,index)=><div className="mixed-row" key={index}><select value={item.method} onChange={event=>update(index,{method:event.target.value})}><option value="cash">Efectivo</option><option value="card">Tarjeta</option><option value="transfer">Transferencia</option></select><input type="number" min="0" step="0.01" value={item.amount} onChange={event=>update(index,{amount:event.target.value})} aria-label={`Monto del pago ${index+1}`}/></div>)}<button type="button" className="secondary-action" onClick={()=>onChange([...payments,{method:"card",amount:""}])}>Añadir método</button><p className={Math.abs(total-allocated)<.005?"mixed-balance is-complete":"mixed-balance"}>Restante <strong>{formatCurrency(total-allocated)}</strong></p></fieldset>};

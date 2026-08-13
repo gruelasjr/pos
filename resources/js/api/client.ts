@@ -92,6 +92,13 @@ export const createApiClient = (options: ApiClientOptions = {}) => {
             baseURL: options.baseURL ?? DEFAULT_BASE_URL,
         });
 
+    if (typeof document !== 'undefined') {
+        const csrfToken = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content;
+        if (csrfToken) {
+            http.defaults.headers.common['X-CSRF-TOKEN'] = csrfToken;
+        }
+    }
+
     if (options.token) {
         http.interceptors.request.use((config) => {
             config.headers = config.headers ?? {};
@@ -144,6 +151,22 @@ export const createApiClient = (options: ApiClientOptions = {}) => {
                     body,
                 }),
         },
+        productTags: {
+            list: (query?: Record<string, unknown>) => http.get('/product-tags', { params: query }).then(r => r.data),
+            create: (body: Record<string, unknown>) => http.post('/product-tags', body).then(r => r.data),
+            update: (id: string, body: Record<string, unknown>) => http.patch(`/product-tags/${id}`, body).then(r => r.data),
+            remove: (id: string) => http.delete(`/product-tags/${id}`).then(r => r.data),
+        },
+        metadataDefinitions: {
+            list: (query?: Record<string, unknown>) => http.get('/product-metadata-definitions', { params: query }).then(r => r.data),
+            create: (body: Record<string, unknown>) => http.post('/product-metadata-definitions', body).then(r => r.data),
+            update: (id: string, body: Record<string, unknown>) => http.patch(`/product-metadata-definitions/${id}`, body).then(r => r.data),
+            remove: (id: string) => http.delete(`/product-metadata-definitions/${id}`).then(r => r.data),
+        },
+        metadataCodedValues: {
+            create: (definitionId: string, body: Record<string, unknown>) => http.post(`/product-metadata-definitions/${definitionId}/coded-values`, body).then(r => r.data),
+            update: (id: string, body: Record<string, unknown>) => http.patch(`/product-metadata-coded-values/${id}`, body).then(r => r.data),
+        },
         products: {
             list: (query?: QueryParams<'/products', 'get'>) =>
                 request({ path: '/products', method: 'get', query }),
@@ -162,12 +185,25 @@ export const createApiClient = (options: ApiClientOptions = {}) => {
                     pathParams: { product: id },
                     body,
                 }),
+            uploadPhoto: (id: string, photo: File) => {
+                const form = new FormData();
+                form.append('photo', photo);
+                return http.post(`/products/${id}/photo`, form).then(r => r.data);
+            },
         },
         inventory: {
             list: (query?: QueryParams<'/inventory', 'get'>) =>
                 request({ path: '/inventory', method: 'get', query }),
             adjust: (body: RequestBody<'/inventory/adjust', 'patch'>) =>
                 request({ path: '/inventory/adjust', method: 'patch', body }),
+            update: (id: string, body: Record<string, unknown>) =>
+                http.patch(`/inventory/${id}`, body).then(r => r.data),
+        },
+        skuRanges: {
+            list: (query?: Record<string, unknown>) => http.get('/sku-ranges', { params: query }).then(r => r.data),
+            match: (sku: string) => http.get('/sku-ranges/match', { params: { sku } }).then(r => r.data),
+            create: (body: Record<string, unknown>) => http.post('/sku-ranges', body).then(r => r.data),
+            update: (id: string, body: Record<string, unknown>) => http.patch(`/sku-ranges/${id}`, body).then(r => r.data),
         },
         skus: {
             reserve: (body: RequestBody<'/skus/reserve', 'post'>) =>
@@ -193,6 +229,7 @@ export const createApiClient = (options: ApiClientOptions = {}) => {
                     method: 'delete',
                     pathParams: { cart: id, itemId },
                 }),
+            clear: (id: string) => http.delete(`/carts/${id}/items`).then(r => r.data),
             checkout: (id: string, body: RequestBody<'/carts/{cart}/checkout', 'post'>) =>
                 request({
                     path: '/carts/{cart}/checkout',
@@ -228,6 +265,7 @@ export const createApiClient = (options: ApiClientOptions = {}) => {
                     pathParams: { sale: id },
                     body,
                 }),
+            print: (id: string) => http.post(`/sales/${id}/print`).then(r => r.data),
         },
         reports: {
             daily: (query?: QueryParams<'/reports/daily', 'get'>) =>
@@ -238,6 +276,18 @@ export const createApiClient = (options: ApiClientOptions = {}) => {
                 request({ path: '/reports/monthly', method: 'get', query }),
             bySeller: (query?: QueryParams<'/reports/by-seller', 'get'>) =>
                 request({ path: '/reports/by-seller', method: 'get', query }),
+            overview: (query?: Record<string, unknown>) => http.get('/reports/overview', { params: query }).then(r => r.data),
+            bestSellers: (query?: Record<string, unknown>) => http.get('/reports/best-sellers', { params: query }).then(r => r.data),
+            exportUrl: (report: 'overview' | 'best-sellers', format: 'csv' | 'pdf', query: Record<string, unknown> = {}) => {
+                const params = new URLSearchParams();
+                params.set('report', report);
+                params.set('format', format);
+                Object.entries(query).forEach(([key, value]) => {
+                    if (Array.isArray(value)) value.forEach(item => params.append(`${key}[]`, String(item)));
+                    else if (value !== undefined && value !== null && value !== '') params.set(key, String(value));
+                });
+                return `/api/v1/reports/export?${params.toString()}`;
+            },
         },
     };
 };

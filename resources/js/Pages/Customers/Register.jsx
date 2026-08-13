@@ -6,14 +6,14 @@ import { createApiClient } from "../../api/client";
 
 const api = createApiClient();
 
-const RegisterCustomer = () => {
+const RegisterCustomer = ({ registrationToken = "" }) => {
     const params =
         typeof window === "undefined"
             ? new URLSearchParams()
             : new URLSearchParams(window.location.search);
 
     const [form, setForm] = useState({
-        token: params.get("token") || "",
+        token: registrationToken || params.get("token") || "",
         name: "",
         email: "",
         phone: "",
@@ -53,11 +53,11 @@ const RegisterCustomer = () => {
         <Guest>
             <div className="space-y-5">
                 <div>
-                    <h1 className="text-xl font-semibold text-[var(--color-text-primary)]">
-                        Registro de cliente
+                    <h1 className="text-2xl font-semibold font-display text-[var(--color-text-primary)]">
+                        Guarda tus datos
                     </h1>
                     <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
-                        Completa tus datos para asociarlos a tu compra.
+                        Recibe tus comprobantes y agiliza tu próxima visita.
                     </p>
                 </div>
 
@@ -66,14 +66,7 @@ const RegisterCustomer = () => {
                 )}
 
                 <form className="space-y-4" onSubmit={submit}>
-                    <FormField
-                        label="Token"
-                        value={form.token}
-                        required
-                        onChange={(event) =>
-                            update("token", event.target.value)
-                        }
-                    />
+                    {!registrationToken && !params.get("token") && <FormField label="Código de registro" value={form.token} required onChange={(event) => update("token", event.target.value)} />}
                     <FormField
                         label="Nombre"
                         value={form.name}
@@ -91,7 +84,7 @@ const RegisterCustomer = () => {
                         }
                     />
                     <FormField
-                        label="Telefono"
+                        label="Teléfono"
                         value={form.phone}
                         onChange={(event) =>
                             update("phone", event.target.value)
@@ -109,7 +102,7 @@ const RegisterCustomer = () => {
                                 )
                             }
                         />
-                        Acepto recibir promociones y avisos de la tienda.
+                        Quiero recibir promociones y novedades. Es opcional y puedo cancelar cuando quiera.
                     </label>
 
                     <Button

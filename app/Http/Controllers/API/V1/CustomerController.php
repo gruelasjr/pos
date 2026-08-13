@@ -27,6 +27,7 @@ use App\Support\AuditLogger;
 use Equidna\BeeHive\Tenancy\TenantContext;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 /**
  * Controller for customer endpoints (list, create, update, register).
@@ -49,9 +50,12 @@ class CustomerController extends BaseApiController
                 $term = $request->input('query');
                 $q->where(function ($search) use ($term) {
                     $search->where('name', 'like', "%{$term}%")
-                        ->orWhere('email', 'like', "%{$term}%");
+                        ->orWhere('email', 'like', "%{$term}%")
+                        ->orWhere('phone', 'like', "%{$term}%");
                 });
             })
+            ->when($request->filled('status') && $request->input('status') !== 'all', fn ($q) =>
+                $q->where('active', $request->input('status') === 'active'))
             ->orderBy('name')
             ->paginate($request->integer('per_page', 25));
 
@@ -60,11 +64,18 @@ class CustomerController extends BaseApiController
 
     public function store(Request $request, AuditLogger $auditLogger): JsonResponse
     {
+        $tenantId = app(TenantContext::class)->get();
         $data = $request->validate([
             'name' => ['required', 'string', 'max:160'],
-            'email' => ['nullable', 'email', 'max:160', 'unique:customers,email'],
+            'email' => [
+                'nullable',
+                'email',
+                'max:160',
+                Rule::unique('customers', 'email')->where('tenant_id', $tenantId),
+            ],
             'phone' => ['nullable', 'string', 'max:32'],
             'accepts_marketing' => ['boolean'],
+            'active' => ['boolean'],
         ]);
 
         $customer = Customer::create($data);
@@ -79,11 +90,18 @@ class CustomerController extends BaseApiController
 
     public function update(Request $request, Customer $customer, AuditLogger $auditLogger): JsonResponse
     {
+        $tenantId = app(TenantContext::class)->get();
         $data = $request->validate([
             'name' => ['sometimes', 'string', 'max:160'],
-            'email' => ['nullable', 'email', 'max:160', 'unique:customers,email,' . $customer->id . ',id'],
+            'email' => [
+                'nullable',
+                'email',
+                'max:160',
+                Rule::unique('customers', 'email')->where('tenant_id', $tenantId)->ignore($customer->id),
+            ],
             'phone' => ['nullable', 'string', 'max:32'],
             'accepts_marketing' => ['boolean'],
+            'active' => ['sometimes', 'boolean'],
         ]);
 
         $customer->update($data);

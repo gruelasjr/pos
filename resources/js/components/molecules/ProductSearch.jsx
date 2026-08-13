@@ -1,14 +1,3 @@
+import { Image as ImageIcon, Plus } from "lucide-react";
 import { formatCurrency } from "../../utils/formatters";
-
-export const ProductSearch = ({ products, query, loading, onSelect }) => (
-    <section className="product-results" aria-label="Resultados de productos" aria-live="polite">
-        {loading && <p className="pos-muted">Buscando productos…</p>}
-        {!loading && query && products.length === 0 && <p className="pos-empty">No encontramos productos para “{query}”.</p>}
-        {products.map((product) => (
-            <button type="button" className="product-result" key={product.id} onClick={() => onSelect(product.id)}>
-                <span><strong>{product.short_description}</strong><small>SKU {product.sku}</small></span>
-                <span>{formatCurrency(product.sale_price ?? product.price ?? 0)}</span>
-            </button>
-        ))}
-    </section>
-);
+export const ProductSearch=({products,query,loading,onSelect})=><section className="product-results" aria-label="Resultados de productos" aria-live="polite">{loading&&<p className="pos-muted">Buscando productos…</p>}{!loading&&query&&products.length===0&&<p className="pos-empty">No encontramos productos para “{query}”.</p>}{products.map(product=><button type="button" className="product-result" key={product.id} onClick={()=>onSelect(product.id)}><span className="catalog-thumb">{product.photo_url?<img src={product.photo_url} alt=""/>:<ImageIcon size={20}/>}</span><span className="catalog-copy"><strong>{product.short_description}</strong><small>{product.type?.name||`SKU ${product.sku}`}</small><b>{formatCurrency(product.sale_price??0)}</b></span><span className="catalog-add"><Plus size={18}/><small>{product.stock??"—"} stock</small></span></button>)}</section>;

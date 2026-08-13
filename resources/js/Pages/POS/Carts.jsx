@@ -1,139 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
-import AppLayout from "../../Layouts/AppLayout";
-import useApi from "../../hooks/useApi";
-import { useCartDraft } from "../../hooks/useCartDraft";
-import { formatCurrency } from "../../utils/formatters";
-import { ScanInput } from "../../components/molecules/ScanInput";
-import { ProductSearch } from "../../components/molecules/ProductSearch";
-import { CartLine } from "../../components/molecules/CartLine";
-import { OrderTotals } from "../../components/molecules/OrderTotals";
-import { ConnectivityBanner } from "../../components/molecules/ConnectivityBanner";
-import { PaymentSheet } from "../../components/organisms/PaymentSheet";
-import { ReceiptResult } from "../../components/organisms/ReceiptResult";
-
-const apiItems = (response) => response?.data?.items || response?.data || [];
-const apiData = (response) => response?.data || response;
-const errorMessage = (error, fallback) => error?.response?.data?.message || error?.message || fallback;
-
-const CartsPage = () => {
-    const api = useApi();
-    const [online, setOnline] = useState(() => navigator.onLine);
-    const [carts, setCarts] = useState([]);
-    const [warehouses, setWarehouses] = useState([]);
-    const [selectedCart, setSelectedCart] = useState(null);
-    const [query, setQuery] = useState("");
-    const [products, setProducts] = useState([]);
-    const [searching, setSearching] = useState(false);
-    const [busyItem, setBusyItem] = useState(null);
-    const [paymentOpen, setPaymentOpen] = useState(false);
-    const [payment, setPayment] = useState({ payment_method: "cash", received: "" });
-    const [sale, setSale] = useState(null);
-    const [error, setError] = useState("");
-    const [loading, setLoading] = useState(true);
-    const { restoredDraft, saveDraft, clearDraft } = useCartDraft(selectedCart?.id);
-
-    const updateCartState = (cart) => {
-        setCarts((current) => current.map((item) => item.id === cart.id ? cart : item));
-        setSelectedCart(cart);
-    };
-
-    const loadCarts = async () => {
-        const response = await api.carts.list({ per_page: 50 });
-        const items = apiItems(response);
-        setCarts(items);
-        setSelectedCart((previous) => items.find((item) => item.id === previous?.id) || items[0] || null);
-    };
-
-    useEffect(() => {
-        const sync = () => setOnline(navigator.onLine);
-        window.addEventListener("online", sync); window.addEventListener("offline", sync);
-        Promise.all([api.warehouses.list(), api.carts.list({ per_page: 50 })])
-            .then(([warehouseResponse, cartsResponse]) => {
-                const items = apiItems(cartsResponse);
-                setWarehouses(apiItems(warehouseResponse)); setCarts(items); setSelectedCart(items[0] || null);
-            }).catch((err) => setError(errorMessage(err, "No pudimos abrir el punto de venta.")))
-            .finally(() => setLoading(false));
-        return () => { window.removeEventListener("online", sync); window.removeEventListener("offline", sync); };
-    }, []);
-
-    useEffect(() => {
-        if (!selectedCart) return;
-        saveDraft({ cart: selectedCart, payment });
-    }, [selectedCart, payment, saveDraft]);
-
-    useEffect(() => {
-        if (restoredDraft?.payment) setPayment(restoredDraft.payment);
-    }, [restoredDraft]);
-
-    useEffect(() => {
-        const timer = setTimeout(async () => {
-            if (!query.trim() || !online) { setProducts([]); return; }
-            setSearching(true);
-            try { setProducts(apiItems(await api.products.list({ query: query.trim(), per_page: 8 }))); }
-            catch (err) { setError(errorMessage(err, "No pudimos buscar productos.")); }
-            finally { setSearching(false); }
-        }, 240);
-        return () => clearTimeout(timer);
-    }, [query, online]);
-
-    const createCart = async (warehouseId) => {
-        if (!online) { setError("Conéctate para abrir una caja nueva."); return; }
-        setError("");
-        try { const cart = apiData(await api.carts.create({ warehouse_id: warehouseId })); await loadCarts(); setSelectedCart(cart); }
-        catch (err) { setError(errorMessage(err, "No pudimos abrir la caja.")); }
-    };
-
-    const mutateItem = async (itemId, action) => {
-        if (!online) { setError("Los cambios pendientes se conservarán, pero requieren conexión para sincronizarse."); return; }
-        setBusyItem(itemId); setError("");
-        try { updateCartState(apiData(await action())); }
-        catch (err) { setError(errorMessage(err, "No pudimos actualizar el carrito.")); }
-        finally { setBusyItem(null); }
-    };
-
-    const addItem = (productId) => selectedCart && mutateItem(productId, () => api.carts.addItem(selectedCart.id, { product_id: productId, quantity: 1 })).then(() => { setQuery(""); setProducts([]); });
-    const itemCount = useMemo(() => selectedCart?.items?.reduce((sum, item) => sum + Number(item.quantity), 0) || 0, [selectedCart]);
-
-    const checkout = async () => {
-        if (!online) return;
-        if (payment.payment_method === "cash" && Number(payment.received || 0) < Number(selectedCart.total_net)) {
-            setError("El monto recibido debe cubrir el total de la venta."); return;
-        }
-        setBusyItem("checkout"); setError("");
-        try {
-            const payload = { payment_method: payment.payment_method, payment_details: payment.payment_method === "cash" ? { received: Number(payment.received), change: Number(payment.received) - Number(selectedCart.total_net) } : null };
-            const completed = apiData(await api.carts.checkout(selectedCart.id, payload));
-            setSale(completed); setPaymentOpen(false); clearDraft(); setPayment({ payment_method: "cash", received: "" }); await loadCarts();
-        } catch (err) { setError(errorMessage(err, "No se completó el cobro. Revisa el estado antes de intentarlo de nuevo.")); }
-        finally { setBusyItem(null); }
-    };
-
-    return (
-        <AppLayout title="Punto de venta" posMode>
-            <ConnectivityBanner online={online} />
-            <div className="pos-workspace">
-                <section className="pos-catalog" aria-label="Catálogo y búsqueda">
-                    <header className="pos-section-header"><div><span className="pos-eyebrow">Venta activa</span><h1>Cobro rápido</h1></div><select aria-label="Caja o almacén" value="" onChange={(e) => e.target.value && createCart(e.target.value)}><option value="">+ Abrir caja</option>{warehouses.map(w => <option value={w.id} key={w.id}>{w.name}</option>)}</select></header>
-                    <ScanInput value={query} onChange={setQuery} disabled={!selectedCart || loading} onSubmit={() => products[0] && addItem(products[0].id)} />
-                    <ProductSearch products={products} query={query} loading={searching} onSelect={addItem} />
-                    {!query && <div className="pos-guidance"><div className="scanner-mark" aria-hidden="true">⌁</div><h2>Listo para escanear</h2><p>Escanea el código o busca por nombre. El foco vuelve aquí automáticamente.</p></div>}
-                </section>
-                <section className="pos-cart" aria-label="Carrito actual">
-                    <header className="cart-header"><div><span className="pos-eyebrow">{selectedCart?.warehouse?.name || "Caja sin abrir"}</span><h2>Carrito <span>{itemCount} {itemCount === 1 ? "artículo" : "artículos"}</span></h2></div>{selectedCart && <small>{selectedCart.visual_key}</small>}</header>
-                    {error && <div className="pos-error" role="alert">{error}<button type="button" onClick={() => setError("")} aria-label="Cerrar mensaje">×</button></div>}
-                    <div className="cart-lines">
-                        {loading && <p className="pos-muted">Preparando tu caja…</p>}
-                        {!loading && !selectedCart && <div className="pos-empty"><strong>Abre una caja para comenzar</strong><span>Selecciona una sucursal en “Abrir caja”.</span></div>}
-                        {selectedCart && !selectedCart.items?.length && <div className="pos-empty"><strong>Tu carrito está vacío</strong><span>Escanea o busca el primer producto.</span></div>}
-                        {selectedCart?.items?.map(item => <CartLine key={item.id} item={item} busy={busyItem === item.id} onChange={(quantity) => mutateItem(item.id, () => api.carts.updateItem(selectedCart.id, item.id, { quantity }))} onRemove={() => mutateItem(item.id, () => api.carts.removeItem(selectedCart.id, item.id))} />)}
-                    </div>
-                    {selectedCart && <footer className="cart-checkout"><OrderTotals cart={selectedCart} /><button className="checkout-button" disabled={!selectedCart.items?.length} onClick={() => { setError(""); setPaymentOpen(true); }}>Cobrar <span>{formatCurrency(selectedCart.total_net)}</span></button></footer>}
-                </section>
-            </div>
-            <PaymentSheet open={paymentOpen} cart={selectedCart} payment={payment} busy={busyItem === "checkout"} online={online} error={error} onChange={(values) => setPayment(p => ({ ...p, ...values }))} onClose={() => setPaymentOpen(false)} onConfirm={checkout} />
-            <ReceiptResult sale={sale} onClose={() => setSale(null)} />
-        </AppLayout>
-    );
-};
-
-export default CartsPage;
+import { Bookmark, Pause, RotateCcw, ShoppingCart, Trash2 } from "lucide-react";
+import AppLayout from "../../Layouts/AppLayout"; import useApi from "../../hooks/useApi"; import { formatCurrency } from "../../utils/formatters";
+import { ScanInput } from "../../components/molecules/ScanInput"; import { ProductSearch } from "../../components/molecules/ProductSearch"; import { CartLine } from "../../components/molecules/CartLine"; import { OrderTotals } from "../../components/molecules/OrderTotals"; import { ConnectivityBanner } from "../../components/molecules/ConnectivityBanner"; import { GroupBuilder } from "../../components/molecules/GroupBuilder"; import { PaymentSheet } from "../../components/organisms/PaymentSheet"; import { ReceiptResult } from "../../components/organisms/ReceiptResult"; import { BestSellerTree } from "../../components/organisms/BestSellerTree";
+const items=r=>r?.data?.items||r?.data||[];const data=r=>r?.data||r;const message=(e,f)=>e?.response?.data?.message||e?.message||f;const freshPayment=()=>({payment_method:"cash",received:"",payments:[{method:"cash",amount:""},{method:"card",amount:""}]});
+export default function CartsPage(){const api=useApi();const[online,setOnline]=useState(()=>navigator.onLine);const[carts,setCarts]=useState([]);const[warehouses,setWarehouses]=useState([]);const[customers,setCustomers]=useState([]);const[types,setTypes]=useState([]);const[definitions,setDefinitions]=useState([]);const[selectedCart,setSelectedCart]=useState(null);const[query,setQuery]=useState("");const[category,setCategory]=useState("");const[products,setProducts]=useState([]);const[searching,setSearching]=useState(false);const[busy,setBusy]=useState(null);const[paymentOpen,setPaymentOpen]=useState(false);const[payment,setPayment]=useState(freshPayment);const[sale,setSale]=useState(null);const[error,setError]=useState("");const[loading,setLoading]=useState(true);const[tab,setTab]=useState("catalog");const[best,setBest]=useState(null);const[groupBy,setGroupBy]=useState(["category"]);const[discount,setDiscount]=useState("");
+ const updateCart=cart=>{setCarts(current=>current.map(item=>item.id===cart.id?cart:item));setSelectedCart(cart);setDiscount(String(cart.discount_total||""))};const loadCarts=async()=>{const all=items(await api.carts.list({per_page:50}));setCarts(all);setSelectedCart(previous=>all.find(item=>item.id===previous?.id)||all.find(item=>item.status==="active")||null)};
+ useEffect(()=>{const sync=()=>setOnline(navigator.onLine);addEventListener("online",sync);addEventListener("offline",sync);Promise.all([api.warehouses.list({status:"active",per_page:100}),api.carts.list({per_page:50}),api.customers.list({status:"active",per_page:100}),api.productTypes.list({status:"active",per_page:100}),api.metadataDefinitions.list()]).then(([w,c,u,t,d])=>{const all=items(c);setWarehouses(items(w));setCarts(all);setSelectedCart(all.find(item=>item.status==="active")||null);setCustomers(items(u));setTypes(items(t));setDefinitions(items(d))}).catch(e=>setError(message(e,"No pudimos abrir el punto de venta."))).finally(()=>setLoading(false));return()=>{removeEventListener("online",sync);removeEventListener("offline",sync)}},[]);
+ useEffect(()=>{if(tab!=="best")return;api.reports.bestSellers({group_by:groupBy}).then(r=>setBest(data(r))).catch(e=>setError(message(e,"No pudimos cargar más vendidos.")))},[tab,groupBy]);
+ useEffect(()=>{const timer=setTimeout(()=>{if(!online){setProducts([]);return}setSearching(true);api.products.list({query:query||undefined,product_type_id:category||undefined,warehouse_id:selectedCart?.warehouse_id,active:true,per_page:30}).then(r=>setProducts(items(r))).catch(e=>setError(message(e,"No pudimos cargar el catálogo."))).finally(()=>setSearching(false))},220);return()=>clearTimeout(timer)},[query,category,selectedCart?.warehouse_id,online]);
+ const mutate=async(key,operation)=>{if(!online){setError("Conéctate para sincronizar cambios.");return}setBusy(key);setError("");try{updateCart(data(await operation()))}catch(e){setError(message(e,"No pudimos actualizar la venta."))}finally{setBusy(null)}};
+ const createCart=async warehouseId=>{if(!warehouseId)return;try{const cart=data(await api.carts.create({warehouse_id:warehouseId}));await loadCarts();setSelectedCart(cart)}catch(e){setError(message(e,"No pudimos abrir la caja."))}};const patchCart=payload=>selectedCart&&mutate("cart",()=>api.carts.update(selectedCart.id,payload));const pause=async()=>{await patchCart({status:"paused"});await loadCarts()};const selectCart=cart=>cart.status==="paused"?mutate("cart",()=>api.carts.update(cart.id,{status:"active"})):setSelectedCart(cart);const clear=()=>selectedCart?.items?.length&&confirm("¿Vaciar todos los productos del carrito?")&&mutate("clear",()=>api.carts.clear(selectedCart.id));
+ const checkout=async()=>{if(payment.payment_method==="cash"&&Number(payment.received||0)<Number(selectedCart.total_net)){setError("El monto recibido debe cubrir el total.");return}const paymentDetails=payment.payment_method==="cash"?{received:payment.received}:payment.payment_method==="mixed"?{payments:payment.payments.map(item=>({method:item.method,amount:item.amount}))}:null;setBusy("checkout");try{const completed=data(await api.carts.checkout(selectedCart.id,{payment_method:payment.payment_method,customer_id:selectedCart.customer_id||null,payment_details:paymentDetails}));setSale(completed);setPaymentOpen(false);setPayment(freshPayment());await loadCarts()}catch(e){setError(message(e,"No se completó el cobro."))}finally{setBusy(null)}};
+ useEffect(()=>{const keys=e=>{if(e.key==="F2"){e.preventDefault();document.getElementById("pos-product-search")?.focus()}if(e.key==="F3"){e.preventDefault();selectedCart?.items?.length&&setPaymentOpen(true)}if(e.key==="F4"){e.preventDefault();selectedCart&&pause()}if(e.key==="F5"){e.preventDefault();clear()}};addEventListener("keydown",keys);return()=>removeEventListener("keydown",keys)},[selectedCart]);
+ const count=useMemo(()=>selectedCart?.items?.reduce((sum,item)=>sum+Number(item.quantity),0)||0,[selectedCart]);const switchable=carts.filter(cart=>["active","paused"].includes(cart.status));return <AppLayout title="Punto de venta" posMode><ConnectivityBanner online={online}/><div className="pos-workspace"><section className="pos-catalog" aria-label="Catálogo"><header className="pos-section-header"><h1>Nueva venta</h1><select aria-label="Abrir caja" value="" onChange={e=>createCart(e.target.value)}><option value="">+ Abrir caja</option>{warehouses.map(w=><option key={w.id} value={w.id}>{w.name}</option>)}</select></header><div className="pos-tabs"><button className={tab==="catalog"?"is-active":""} onClick={()=>setTab("catalog")}>Catálogo</button><button className={tab==="best"?"is-active":""} onClick={()=>setTab("best")}>Más vendidos</button><button className={tab==="carts"?"is-active":""} onClick={()=>setTab("carts")}>Ventas <b>{switchable.length}</b></button></div>{tab==="catalog"&&<><ScanInput value={query} onChange={setQuery} disabled={!selectedCart||loading} onSubmit={()=>products[0]&&mutate(products[0].id,()=>api.carts.addItem(selectedCart.id,{product_id:products[0].id,quantity:1}))}/><div className="category-strip"><button className={!category?"is-active":""} onClick={()=>setCategory("")}>Todos</button>{types.map(type=><button className={category===type.id?"is-active":""} key={type.id} onClick={()=>setCategory(type.id)}>{type.name}</button>)}</div><ProductSearch products={products} query={query} loading={searching} onSelect={id=>selectedCart&&mutate(id,()=>api.carts.addItem(selectedCart.id,{product_id:id,quantity:1}))}/></>}{tab==="best"&&<div className="pos-best"><GroupBuilder value={groupBy} definitions={definitions} onChange={setGroupBy}/><BestSellerTree nodes={best?.tree||[]}/></div>}{tab==="carts"&&<div className="saved-sales">{switchable.map(cart=><button key={cart.id} className={selectedCart?.id===cart.id?"is-active":""} onClick={()=>selectCart(cart)}><Bookmark size={18}/><span><strong>{cart.visual_key}</strong><small>{cart.customer?.name||"Público general"} · {cart.status==="paused"?"Guardada":"Activa"}</small></span><b>{formatCurrency(cart.total_net)}</b><RotateCcw size={16}/></button>)}{!switchable.length&&<div className="empty-state">No hay ventas abiertas.</div>}</div>}</section><section className="pos-cart" aria-label="Carrito"><header className="cart-header"><h2>Carrito <span>{selectedCart?.visual_key} · {count} artículos</span></h2>{selectedCart&&<div className="cart-tools"><button onClick={pause} aria-label="Guardar venta"><Pause size={17}/></button><button onClick={clear} aria-label="Vaciar carrito"><Trash2 size={17}/></button></div>}</header>{error&&<div className="pos-error" role="alert">{error}<button onClick={()=>setError("")}>×</button></div>}{selectedCart&&<div className="cart-context"><label>Cliente<select value={selectedCart.customer_id||""} onChange={e=>patchCart({customer_id:e.target.value||null})}><option value="">Público general</option>{customers.map(c=><option value={c.id} key={c.id}>{c.name}</option>)}</select></label><label>Descuento<input type="number" min="0" step=".01" value={discount} onChange={e=>setDiscount(e.target.value)} onBlur={()=>patchCart({discount_total:discount||"0.00"})}/></label></div>}<div className="cart-lines">{loading&&<p>Preparando caja…</p>}{!loading&&!selectedCart&&<div className="pos-empty"><ShoppingCart size={30}/><strong>Abre una caja para comenzar</strong></div>}{selectedCart&&!selectedCart.items?.length&&<div className="pos-empty"><ShoppingCart size={30}/><strong>Tu carrito está vacío</strong></div>}{selectedCart?.items?.map(item=><CartLine key={item.id} item={item} busy={busy===item.id} onChange={quantity=>mutate(item.id,()=>api.carts.updateItem(selectedCart.id,item.id,{quantity}))} onDiscount={value=>mutate(item.id,()=>api.carts.updateItem(selectedCart.id,item.id,{discount:value||"0.00"}))} onRemove={()=>mutate(item.id,()=>api.carts.removeItem(selectedCart.id,item.id))}/>)}</div>{selectedCart&&<footer className="cart-checkout"><OrderTotals cart={selectedCart}/><div className="shortcut-hint"><span>F2 Buscar</span><span>F3 Cobrar</span><span>F4 Guardar</span><span>F5 Limpiar</span></div><button className="checkout-button" disabled={!selectedCart.items?.length} onClick={()=>setPaymentOpen(true)}>Cobrar <span>{formatCurrency(selectedCart.total_net)}</span></button></footer>}</section></div><PaymentSheet open={paymentOpen} cart={selectedCart} payment={payment} busy={busy==="checkout"} online={online} error={error} onChange={values=>setPayment(current=>({...current,...values}))} onClose={()=>setPaymentOpen(false)} onConfirm={checkout}/><ReceiptResult sale={sale} api={api} onClose={()=>setSale(null)}/></AppLayout>}

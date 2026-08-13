@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('sales', [SaleController::class, 'index']);
 Route::get('sales/{sale}', [SaleController::class, 'show']);
-Route::post('sales/{sale}/receipt', [SaleController::class, 'sendReceipt'])->middleware('role:admin,vendedor');
+Route::post('sales/{sale}/receipt', [SaleController::class, 'sendReceipt'])
+    ->middleware(['role:admin,vendedor', 'throttle:receipt-send']);
 Route::post('sales/{sale}/print', [SaleController::class, 'printReceipt'])->middleware('role:admin,vendedor');
 Route::post('sales/{sale}/fiscal-document', [SaleController::class, 'issueFiscalDocument'])->middleware('role:admin');

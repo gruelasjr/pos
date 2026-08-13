@@ -1,6 +1,6 @@
 import { formatCurrency } from "../../utils/formatters";
 
-export const CartLine = ({ item, busy, onChange, onRemove }) => (
+export const CartLine = ({ item, busy, onChange, onDiscount, onRemove }) => (
     <article className="cart-line">
         <div className="cart-line__body">
             <strong>{item.product.short_description}</strong>
@@ -12,6 +12,7 @@ export const CartLine = ({ item, busy, onChange, onRemove }) => (
             <button type="button" disabled={busy} onClick={() => onChange(Number(item.quantity) + 1)} aria-label="Agregar uno">+</button>
         </div>
         <strong className="cart-line__subtotal">{formatCurrency(item.subtotal)}</strong>
+        <label className="line-discount">Descuento<input type="number" min="0" step="0.01" value={item.discount || ""} onChange={event => onDiscount(event.target.value)} aria-label={`Descuento de ${item.product.short_description}`}/></label>
         <button type="button" className="remove-button" disabled={busy} onClick={onRemove} aria-label={`Eliminar ${item.product.short_description}`}>Eliminar</button>
     </article>
 );

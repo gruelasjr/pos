@@ -41,10 +41,12 @@ class Customer extends Model
         'email',
         'phone',
         'accepts_marketing',
+        'active',
     ];
 
     protected $casts = [
         'accepts_marketing' => 'boolean',
+        'active' => 'boolean',
     ];
 
     protected static function booted(): void

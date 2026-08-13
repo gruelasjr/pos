@@ -26,6 +26,7 @@ use Equidna\BeeHive\Traits\BelongsToTenant;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
 /**
@@ -46,12 +47,14 @@ class ReservedSkuRange extends Model
 
     protected $fillable = [
         'id',
-        'prefix',
+        'composed_prefix',
         'from',
         'to',
         'used_up_to',
-        'purpose',
+        'active',
     ];
+
+    protected $casts = ['active' => 'boolean'];
 
     /**
      * Boot callbacks.
@@ -78,6 +81,11 @@ class ReservedSkuRange extends Model
             return null;
         }
 
-        return ($this->prefix ?? '') . str_pad((string) $next, 6, '0', STR_PAD_LEFT);
+        return $this->composed_prefix . '-' . str_pad((string) $next, 6, '0', STR_PAD_LEFT);
+    }
+
+    public function segments(): HasMany
+    {
+        return $this->hasMany(ReservedSkuRangeSegment::class, 'range_id')->orderBy('position');
     }
 }

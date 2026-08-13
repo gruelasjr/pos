@@ -30,20 +30,74 @@ return new class extends Migration {
         $this->replaceUnique('sales', ['folio'], ['tenant_id', 'folio']);
         $this->replaceUnique('coupons', ['code'], ['tenant_id', 'code']);
         $this->replaceUnique('idempotency_keys', ['key'], ['tenant_id', 'user_id', 'route', 'key']);
-        $this->replaceUnique('loyalty_accounts', ['customer_id'], ['tenant_id', 'customer_id']);
+        $this->replaceUnique('loyalty_accounts', ['customer_id'], ['tenant_id', 'customer_id'], true);
         $this->replaceUnique('carts', ['visual_key'], ['tenant_id', 'visual_key']);
-        $this->replaceUnique('folio_sequences', ['warehouse_id'], ['tenant_id', 'warehouse_id']);
-        $this->replaceUnique('inventories', ['product_id', 'warehouse_id'], ['tenant_id', 'product_id', 'warehouse_id']);
-        Schema::table('payment_attempts', fn (Blueprint $table) => $table->unique(['tenant_id', 'idempotency_key'], 'payment_attempts_tenant_key_unique'));
+        $this->replaceUnique('folio_sequences', ['warehouse_id'], ['tenant_id', 'warehouse_id'], true);
+        $this->replaceUnique(
+            'inventories',
+            ['product_id', 'warehouse_id'],
+            ['tenant_id', 'product_id', 'warehouse_id'],
+            true
+        );
+        $this->addUniqueIfMissing(
+            'payment_attempts',
+            ['tenant_id', 'idempotency_key'],
+            'payment_attempts_tenant_key_unique'
+        );
     }
 
-    private function replaceUnique(string $tableName, array $old, array $replacement): void
+    private function replaceUnique(
+        string $tableName,
+        array $old,
+        array $replacement,
+        bool $preserveOldColumnsAsIndex = false
+    ): void {
+        if (! Schema::hasTable($tableName)) {
+            return;
+        }
+
+        $oldUniqueName = $this->indexName($tableName, $old, 'unique');
+        $replacementName = $this->indexName($tableName, $replacement, 'unique');
+
+        $this->addUniqueIfMissing($tableName, $replacement, $replacementName);
+
+        if ($preserveOldColumnsAsIndex) {
+            $supportingIndexName = $this->indexName($tableName, $old, 'index');
+
+            if (! $this->hasIndex($tableName, $supportingIndexName)) {
+                Schema::table(
+                    $tableName,
+                    fn (Blueprint $table) => $table->index($old, $supportingIndexName)
+                );
+            }
+        }
+
+        if ($this->hasIndex($tableName, $oldUniqueName)) {
+            Schema::table(
+                $tableName,
+                fn (Blueprint $table) => $table->dropUnique($oldUniqueName)
+            );
+        }
+    }
+
+    private function addUniqueIfMissing(string $tableName, array $columns, string $indexName): void
     {
-        if (!Schema::hasTable($tableName)) return;
-        Schema::table($tableName, function (Blueprint $table) use ($old, $replacement) {
-            try { $table->dropUnique($old); } catch (Throwable) { /* fresh-schema compatibility */ }
-            $table->unique($replacement);
-        });
+        if (! Schema::hasTable($tableName) || $this->hasIndex($tableName, $indexName)) {
+            return;
+        }
+
+        Schema::table($tableName, fn (Blueprint $table) => $table->unique($columns, $indexName));
+    }
+
+    private function hasIndex(string $tableName, string $indexName): bool
+    {
+        return collect(Schema::getIndexes($tableName))
+            ->contains(fn (array $index): bool => ($index['name'] ?? null) === $indexName);
+    }
+
+    private function indexName(string $tableName, array $columns, string $type): string
+    {
+        return strtolower($tableName . '_' . implode('_', $columns) . '_' . $type);
     }
 
     public function down(): void

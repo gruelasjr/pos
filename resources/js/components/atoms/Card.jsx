@@ -9,7 +9,7 @@ import clsx from "clsx";
 export const Card = ({ className, children, ...props }) => (
     <div
         className={clsx(
-            "bg-[var(--color-bg-primary)] border border-[var(--color-border-primary)] rounded-xl shadow-[var(--shadow-sm)] transition-shadow hover:shadow-[var(--shadow-md)]",
+            "bg-[var(--color-bg-primary)] border border-[var(--color-border-primary)] rounded-xl",
             className
         )}
         {...props}

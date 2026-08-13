@@ -27,6 +27,8 @@ use App\Services\Integrations\Stubs\StubERPConnector;
 use Illuminate\Support\ServiceProvider;
 use RuntimeException;
 use App\Http\Middleware\E2eCaronteAuthentication;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Support\Facades\RateLimiter;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -76,6 +78,15 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        RateLimiter::for('public-registration', fn ($request) => Limit::perMinute(10)
+            ->by($request->ip() . '|' . hash('sha256', (string) $request->input('token'))));
+        RateLimiter::for('receipt-send', fn ($request) => Limit::perMinute(5)
+            ->by(($request->user()?->getAuthIdentifier() ?? $request->ip()) . '|' . $request->route('sale')));
+        RateLimiter::for('checkout', fn ($request) => Limit::perMinute(30)
+            ->by((string) ($request->user()?->getAuthIdentifier() ?? $request->ip())));
+        RateLimiter::for('admin-mutations', fn ($request) => Limit::perMinute(60)
+            ->by((string) ($request->user()?->getAuthIdentifier() ?? $request->ip())));
+
         \Illuminate\Http\Resources\Json\JsonResource::withoutWrapping();
 
         $this->loadMigrationsFrom([

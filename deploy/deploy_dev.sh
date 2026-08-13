@@ -8,7 +8,7 @@ REMOTE_PATH="${REMOTE_PATH:-/ometra/pos}"
 REMOTE_APP_USER="${REMOTE_APP_USER:-www-data}"
 REMOTE_GROUP="${REMOTE_GROUP:-desarrollo}"
 APP_NAME="${APP_NAME:-pos-faro}"
-WEB_SERVICE="${WEB_SERVICE:-nginx}"
+WEB_SERVICE="${WEB_SERVICE:-apache2}"
 PHP_FPM_SERVICE="${PHP_FPM_SERVICE:-auto}"
 FORCE_DEPENDENCY_INSTALL="${FORCE_DEPENDENCY_INSTALL:-false}"
 FORCE_ASSET_BUILD="${FORCE_ASSET_BUILD:-false}"
@@ -21,6 +21,7 @@ SSH_CONTROL_PATH=""
 ASKPASS_SCRIPT=""
 REMOTE_LOCKED=0
 MAINTENANCE_ENABLED=0
+WEB_RELOAD_NEEDED=0
 SSH_BASE_OPTS=()
 
 fail() {
@@ -85,6 +86,9 @@ cleanup() {
   if [[ "${MAINTENANCE_ENABLED}" -eq 1 ]]; then
     ssh_sudo_as_app "if [[ -f '${REMOTE_PATH}/artisan' ]]; then php '${REMOTE_PATH}/artisan' up; fi" \
       >/dev/null 2>&1 || true
+  fi
+  if [[ "${WEB_RELOAD_NEEDED}" -eq 1 ]]; then
+    ssh_sudo "systemctl reload '${WEB_SERVICE}'" >/dev/null 2>&1 || true
   fi
   if [[ "${REMOTE_LOCKED}" -eq 1 ]]; then
     ssh_sudo "rm -f '${REMOTE_PATH}/.env.deploying'; rmdir '${REMOTE_LOCK}'" >/dev/null 2>&1 || true
@@ -231,6 +235,7 @@ rsync -rz --delete --delete-delay --human-readable --info=progress2,stats2 \
   --exclude='*.log' \
   --exclude=.phpunit.result.cache \
   --exclude=.phpunit.cache
+WEB_RELOAD_NEEDED=1
 
 echo "[3/7] Building and deploying the development environment..."
 cd "${PROJECT_ROOT}"
@@ -326,7 +331,7 @@ ssh_sudo_as_app "set -euo pipefail; \
   php artisan route:clear; \
   php artisan view:cache"
 
-echo "[5/7] Reloading services and restarting Laravel processes..."
+echo "[5/7] Reloading Apache/PHP and restarting Laravel processes..."
 ssh_sudo "set -euo pipefail; \
   php_fpm_service='${PHP_FPM_SERVICE}'; \
   if [[ \"\${php_fpm_service}\" == 'auto' ]]; then \
@@ -339,7 +344,15 @@ ssh_sudo "set -euo pipefail; \
     echo \"==> Reloading \${php_fpm_service}\"; \
     systemctl reload \"\${php_fpm_service}\"; \
   else \
-    echo 'INFO: No active PHP-FPM service found; PHP is managed by the web service.'; \
+    echo 'INFO: No active PHP-FPM service found; PHP is managed by Apache.'; \
+  fi; \
+  if command -v apache2ctl >/dev/null 2>&1; then \
+    apache2ctl configtest; \
+  elif command -v apachectl >/dev/null 2>&1; then \
+    apachectl configtest; \
+  else \
+    echo 'ERROR: Apache control command not found.'; \
+    exit 1; \
   fi; \
   systemctl reload '${WEB_SERVICE}'; \
   supervisorctl reread; \
@@ -354,6 +367,7 @@ ssh_sudo "set -euo pipefail; \
   }; \
   restart_supervisor_program '${APP_NAME}-worker'; \
   restart_supervisor_program '${APP_NAME}-scheduler'"
+WEB_RELOAD_NEEDED=0
 
 echo "[6/7] Verifying application and process health..."
 ssh_sudo_as_app "set -euo pipefail; \

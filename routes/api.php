@@ -18,14 +18,32 @@
  * @package   Routes
  */
 
+use App\Http\Middleware\UseCaronteSessionToken;
+use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
+use Illuminate\Cookie\Middleware\EncryptCookies;
+use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
+use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
     require __DIR__ . '/api/v1/customers_public.php';
 
-    Route::middleware(['caronte.session', 'caronte.user'])->group(function () {
+    // These endpoints are consumed by the same-origin Inertia browser client.
+    // The OIDC SDK stores the ID token in Laravel's session, so the web
+    // middleware must run here to decrypt the cookie and start that session.
+    // Public and application-token endpoints below remain stateless.
+    Route::middleware([
+        EncryptCookies::class,
+        AddQueuedCookiesToResponse::class,
+        StartSession::class,
+        ValidateCsrfToken::class,
+        UseCaronteSessionToken::class,
+        'caronte.session',
+        'caronte.user',
+    ])->group(function () {
         require __DIR__ . '/api/v1/warehouses.php';
         require __DIR__ . '/api/v1/product_types.php';
+        require __DIR__ . '/api/v1/product_taxonomy.php';
         require __DIR__ . '/api/v1/products.php';
         require __DIR__ . '/api/v1/inventory.php';
         require __DIR__ . '/api/v1/skus.php';

@@ -19,3 +19,5 @@ export { Input, Select, Textarea } from "./FormInputs";
 export { Badge, Divider, Spinner } from "./Badge";
 export { Alert } from "./Alert";
 export { Toggle } from "./Toggle";
+export { IconButton } from "./IconButton";
+export { Checkbox } from "./Checkbox";

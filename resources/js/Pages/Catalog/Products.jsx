@@ -1,171 +1,75 @@
-import { Button, Card, CardBody } from "../../components/atoms";
-import { FormField } from "../../components/molecules";
 import { useEffect, useState } from "react";
+import { usePage } from "@inertiajs/react";
+import { ArchiveRestore, Image as ImageIcon, Pencil, Plus, Search, Settings2 } from "lucide-react";
 import AppLayout from "../../Layouts/AppLayout";
-import DataTable from "../../components/organisms/DataTable";
 import useApi from "../../hooks/useApi";
+import { Button, Checkbox, IconButton } from "../../components/atoms";
+import { FormField, PageHeader } from "../../components/molecules";
+import { Drawer } from "../../components/organisms";
+import { normalizedRoles } from "../../components/organisms/AppLayout";
 import { formatCurrency } from "../../utils/formatters";
 
-const ProductsPage = () => {
+const items = response => response?.data?.items || [];
+const unwrap = response => response?.data || response;
+const blank = () => ({ sku:"", short_description:"", long_description:"", purchase_price:"", sale_price:"", product_type_id:"", entry_date:new Date().toISOString().slice(0,10), photo_url:"", active:true, tag_ids:[], metadata:{} });
+
+export default function Products() {
     const api = useApi();
-    const [products, setProducts] = useState([]);
-    const [types, setTypes] = useState([]);
-    const [form, setForm] = useState({
-        short_description: "",
-        long_description: "",
-        purchase_price: "",
-        sale_price: "",
-        product_type_id: "",
-        entry_date: new Date().toISOString().slice(0, 10),
-    });
+    const canEdit = normalizedRoles(usePage().props.auth?.user).includes("admin");
+    const [rows, setRows] = useState([]); const [types, setTypes] = useState([]); const [tags, setTags] = useState([]);
+    const [definitions, setDefinitions] = useState([]); const [warehouses, setWarehouses] = useState([]);
+    const [filters, setFilters] = useState({query:"",product_type_id:"",tag_ids:[],warehouse_id:"",stock_status:"all",status:"active",metadataKey:"",metadataValue:""});
+    const [pagination, setPagination] = useState({page:1,last_page:1,total:0}); const [editing, setEditing] = useState(null);
+    const [form, setForm] = useState(blank); const [photo, setPhoto] = useState(null); const [taxonomy, setTaxonomy] = useState(false);
+    const [state, setState] = useState("loading"); const [error, setError] = useState(""); const [inherited, setInherited] = useState({});
 
-    const load = async () => {
-        const [productRes, typeRes] = await Promise.all([
-            api.products.list({ per_page: 50 }),
-            api.productTypes.list(),
-        ]);
-        setProducts(productRes.data.items || productRes.data);
-        setTypes(typeRes.data.items || typeRes.data);
+    const loadLookups = () => Promise.all([api.productTypes.list({status:"all",per_page:100}), api.productTags.list({status:"all"}), api.metadataDefinitions.list({status:"all"}), api.warehouses.list({status:"all",per_page:100})]).then(([t,g,d,w]) => { setTypes(items(t)); setTags(items(g)); setDefinitions(items(d)); setWarehouses(items(w)); });
+    const load = async (page = pagination.page) => {
+        setState("loading");
+        try {
+            const metadata = filters.metadataKey && filters.metadataValue ? {[filters.metadataKey]:filters.metadataValue} : undefined;
+            const response = await api.products.list({query:filters.query||undefined,product_type_id:filters.product_type_id||undefined,tag_ids:filters.tag_ids.length?filters.tag_ids:undefined,warehouse_id:filters.warehouse_id||undefined,stock_status:filters.stock_status==="all"?undefined:filters.stock_status,status:filters.status,page,per_page:25,metadata});
+            setRows(items(response)); const p=response?.data?.pagination||{}; setPagination({page:p.page||p.current_page||1,last_page:p.last_page||1,total:p.total||0}); setState("ready");
+        } catch (exception) { setError(exception?.response?.data?.message || "No pudimos cargar el catálogo."); setState("error"); }
     };
+    useEffect(() => { loadLookups(); }, []);
+    useEffect(() => { const timer=setTimeout(()=>load(1),250); return()=>clearTimeout(timer); }, [filters]);
 
-    useEffect(() => {
-        load();
-    }, []);
+    const open = async product => {
+        setPhoto(null);
+        setInherited({});
+        setEditing(product || {});
+        const productForm = product ? {...blank(),...product,tag_ids:product.tags?.map(tag=>tag.id)||[],metadata:Object.fromEntries((product.metadata_values||product.metadataValues||[]).map(value=>[value.definition_id,value.value_text??value.value_number??value.value_boolean??""]))} : blank();
+        setForm(productForm);
+        if (!product?.sku) return;
 
-    const createProduct = async (event) => {
-        event.preventDefault();
-        await api.products.create(form);
-        setForm({
-            short_description: "",
-            long_description: "",
-            purchase_price: "",
-            sale_price: "",
-            product_type_id: "",
-            entry_date: new Date().toISOString().slice(0, 10),
-        });
-        load();
+        const response = await api.skuRanges.match(product.sku);
+        const metadata = response?.data?.metadata || {};
+        setInherited(metadata);
+        if (Object.keys(metadata).length) setForm(current => ({...current, metadata:{...current.metadata,...metadata}}));
     };
+    const resolveSku = async sku => {
+        if (!sku) { setInherited({}); return; }
+        const response = await api.skuRanges.match(sku);
+        const metadata = response?.data?.metadata || {};
+        setInherited(metadata);
+        if (Object.keys(metadata).length) setForm(current => ({...current, metadata:{...current.metadata,...metadata}}));
+    };
+    const save = async event => { event.preventDefault(); setError(""); try { const payload={...form,purchase_price:Number(form.purchase_price),sale_price:Number(form.sale_price)}; const saved=unwrap(editing?.id?await api.products.update(editing.id,payload):await api.products.create(payload)); if(photo)await api.products.uploadPhoto(saved.id,photo); setEditing(null); await load(); } catch(exception) { setError(exception?.response?.data?.message||"Revisa los datos del producto."); } };
+    const toggleTag = id => setForm(current => ({...current,tag_ids:current.tag_ids.includes(id)?current.tag_ids.filter(value=>value!==id):[...current.tag_ids,id]}));
 
-    return (
-        <AppLayout title="Catálogo · Productos">
-            <div className="grid gap-6 lg:grid-cols-3">
-                <Card className="lg:col-span-1">
-                    <CardBody
-                        as="form"
-                        className="space-y-3"
-                        onSubmit={createProduct}
-                    >
-                        <h2 className="text-lg font-semibold text-(--color-text-primary)">
-                            Nuevo producto
-                        </h2>
-                        <FormField
-                            as="textarea"
-                            label="Descripción corta"
-                            maxLength={160}
-                            value={form.short_description}
-                            onChange={(e) =>
-                                setForm({
-                                    ...form,
-                                    short_description: e.target.value,
-                                })
-                            }
-                            required
-                        />
-                        <FormField
-                            as="textarea"
-                            label="Descripción larga"
-                            value={form.long_description}
-                            onChange={(e) =>
-                                setForm({
-                                    ...form,
-                                    long_description: e.target.value,
-                                })
-                            }
-                        />
-                        <div className="grid grid-cols-2 gap-3">
-                            <FormField
-                                label="Precio compra"
-                                type="number"
-                                value={form.purchase_price}
-                                onChange={(e) =>
-                                    setForm({
-                                        ...form,
-                                        purchase_price: e.target.value,
-                                    })
-                                }
-                                required
-                            />
-                            <FormField
-                                label="Precio venta"
-                                type="number"
-                                value={form.sale_price}
-                                onChange={(e) =>
-                                    setForm({
-                                        ...form,
-                                        sale_price: e.target.value,
-                                    })
-                                }
-                                required
-                            />
-                        </div>
-                        <FormField
-                            label="Fecha ingreso"
-                            type="date"
-                            value={form.entry_date}
-                            onChange={(e) =>
-                                setForm({ ...form, entry_date: e.target.value })
-                            }
-                            required
-                        />
-                        <FormField
-                            as="select"
-                            label="Tipo"
-                            value={form.product_type_id}
-                            onChange={(e) =>
-                                setForm({
-                                    ...form,
-                                    product_type_id: e.target.value,
-                                })
-                            }
-                        >
-                            <option value="">Selecciona un tipo</option>
-                            {types.map((type) => (
-                                <option key={type.id} value={type.id}>
-                                    {type.name}
-                                </option>
-                            ))}
-                        </FormField>
-                        <Button type="submit">Guardar</Button>
-                    </CardBody>
-                </Card>
-                <div className="lg:col-span-2">
-                    <DataTable
-                        columns={[
-                            { key: "sku", title: "SKU" },
-                            { key: "short_description", title: "Descripción" },
-                            {
-                                key: "sale_price",
-                                title: "Precio venta",
-                                render: (value) => formatCurrency(value),
-                            },
-                            {
-                                key: "type",
-                                title: "Tipo",
-                                render: (_, row) => row.type?.name,
-                            },
-                            {
-                                key: "active",
-                                title: "Estado",
-                                render: (value) => (value ? "Activo" : "Baja"),
-                            },
-                        ]}
-                        data={products}
-                        emptyMessage="Sin productos registrados."
-                    />
-                </div>
-            </div>
-        </AppLayout>
-    );
-};
+    return <AppLayout title="Productos"><div className="page-container">
+        <PageHeader title="Productos" description="Catálogo, precios, categorías, atributos y stock." actions={canEdit&&<><Button variant="secondary" onClick={()=>setTaxonomy(!taxonomy)}><Settings2 size={16}/>Categorías y atributos</Button><Button onClick={()=>open(null)}><Plus size={16}/>Nuevo producto</Button></>}/>
+        {taxonomy&&<Taxonomy api={api} types={types} tags={tags} definitions={definitions} reload={loadLookups}/>} {error&&<div className="error-banner">{error}</div>}
+        <div className="filter-grid"><label className="search-field"><Search size={17}/><input value={filters.query} onChange={event=>setFilters({...filters,query:event.target.value})} placeholder="Buscar nombre o SKU"/></label><select value={filters.product_type_id} onChange={event=>setFilters({...filters,product_type_id:event.target.value})}><option value="">Todas las categorías</option>{types.map(type=><option value={type.id} key={type.id}>{type.name}</option>)}</select><select value={filters.warehouse_id} onChange={event=>setFilters({...filters,warehouse_id:event.target.value})}><option value="">Todos los almacenes</option>{warehouses.map(warehouse=><option value={warehouse.id} key={warehouse.id}>{warehouse.name}</option>)}</select><select value={filters.stock_status} onChange={event=>setFilters({...filters,stock_status:event.target.value})}><option value="all">Todo el stock</option><option value="in_stock">Disponible</option><option value="low">Bajo</option><option value="out">Agotado</option></select><select value={filters.status} onChange={event=>setFilters({...filters,status:event.target.value})}><option value="active">Activos</option><option value="archived">Archivados</option><option value="all">Todos</option></select><select value={filters.metadataKey} onChange={event=>setFilters({...filters,metadataKey:event.target.value,metadataValue:""})}><option value="">Metadato</option>{definitions.map(definition=><option value={definition.key} key={definition.id}>{definition.label}</option>)}</select>{filters.metadataKey&&<input className="filter-input" placeholder="Valor del metadato" value={filters.metadataValue} onChange={event=>setFilters({...filters,metadataValue:event.target.value})}/>}</div>
+        <div className="filter-tags">{tags.map(tag=><button className={filters.tag_ids.includes(tag.id)?"is-active":""} key={tag.id} onClick={()=>setFilters({...filters,tag_ids:filters.tag_ids.includes(tag.id)?filters.tag_ids.filter(id=>id!==tag.id):[...filters.tag_ids,tag.id]})}>{tag.name}</button>)}</div>
+        <div className="data-surface"><table className="responsive-table"><thead><tr><th>Producto</th><th>SKU</th><th>Categoría</th><th>Tags</th><th>Stock</th><th>Precio</th><th>Estado</th><th/></tr></thead><tbody>{rows.map(product=><tr key={product.id}><td data-label="Producto"><span className="product-cell">{product.photo_url?<img className="product-thumb" src={product.photo_url} alt=""/>:<span className="product-thumb thumb-empty"><ImageIcon size={18}/></span>}<span><strong>{product.short_description}</strong><small>{product.long_description}</small></span></span></td><td data-label="SKU">{product.sku}</td><td data-label="Categoría">{product.type?.name}</td><td data-label="Tags"><span className="tag-list">{product.tags?.map(tag=><span className="mini-tag" key={tag.id}>{tag.name}</span>)}</span></td><td data-label="Stock">{product.stock??"—"}</td><td data-label="Precio">{formatCurrency(product.sale_price)}</td><td data-label="Estado"><span className={`status ${product.active?"status--success":""}`}>{product.active?"Activo":"Archivado"}</span></td><td>{canEdit&&<div className="row-actions"><IconButton onClick={()=>open(product)} label={`Editar ${product.short_description}`}><Pencil size={16}/></IconButton><IconButton onClick={async()=>{await api.products.update(product.id,{active:!product.active});load()}} label={product.active?"Archivar":"Restaurar"}><ArchiveRestore size={16}/></IconButton></div>}</td></tr>)}</tbody></table>{state==="loading"&&<div className="empty-state">Cargando productos…</div>}{state==="ready"&&!rows.length&&<div className="empty-state">No hay productos que coincidan con los filtros.</div>}</div>
+        <div className="pagination"><Button variant="secondary" disabled={pagination.page<=1} onClick={()=>load(pagination.page-1)}>Anterior</Button><span>Página {pagination.page} de {pagination.last_page} · {pagination.total} productos</span><Button variant="secondary" disabled={pagination.page>=pagination.last_page} onClick={()=>load(pagination.page+1)}>Siguiente</Button></div>
+        <Drawer open={editing!==null} title={editing?.id?"Editar producto":"Nuevo producto"} onClose={()=>setEditing(null)}><form onSubmit={save}><div className="drawer-grid"><FormField label="SKU (vacío = automático)" value={form.sku||""} onChange={event=>setForm({...form,sku:event.target.value.toUpperCase()})} onBlur={event=>resolveSku(event.target.value)}/><FormField label="Nombre" value={form.short_description} required onChange={event=>setForm({...form,short_description:event.target.value})}/><FormField className="span-2" as="textarea" label="Descripción" value={form.long_description||""} onChange={event=>setForm({...form,long_description:event.target.value})}/><FormField label="Compra" type="number" step=".01" min="0" required value={form.purchase_price} onChange={event=>setForm({...form,purchase_price:event.target.value})}/><FormField label="Venta" type="number" step=".01" min="0" required value={form.sale_price} onChange={event=>setForm({...form,sale_price:event.target.value})}/><FormField as="select" label="Categoría" required value={form.product_type_id} onChange={event=>setForm({...form,product_type_id:event.target.value})}><option value="">Selecciona</option>{types.filter(type=>type.active!==false).map(type=><option value={type.id} key={type.id}>{type.name}</option>)}</FormField><FormField label="Ingreso" type="date" value={form.entry_date} onChange={event=>setForm({...form,entry_date:event.target.value})}/><FormField className="span-2" label="Foto HTTPS" type="url" value={form.photo_url||""} onChange={event=>setForm({...form,photo_url:event.target.value})}/><label className="file-field span-2">Cámara o biblioteca<input type="file" accept="image/jpeg,image/png,image/webp" capture="environment" onChange={event=>setPhoto(event.target.files?.[0]||null)}/></label><fieldset className="tag-field span-2"><legend>Tags</legend>{tags.filter(tag=>tag.active!==false).map(tag=><label key={tag.id}><input type="checkbox" checked={form.tag_ids.includes(tag.id)} onChange={()=>toggleTag(tag.id)}/>{tag.name}</label>)}</fieldset>{definitions.filter(definition=>definition.active!==false).map(definition=><div className="metadata-derived-field" key={definition.id}><FormField as={definition.type==="select"?"select":"input"} type={definition.type==="number"?"number":"text"} label={definition.label} disabled={Object.hasOwn(inherited,definition.id)} value={form.metadata[definition.id]??""} onChange={event=>setForm({...form,metadata:{...form.metadata,[definition.id]:event.target.value}})}>{definition.type==="select"&&<><option value="">Sin dato</option>{definition.options?.map(option=><option key={option}>{option}</option>)}</>}</FormField>{Object.hasOwn(inherited,definition.id)&&<small>Asignado por el rango SKU</small>}</div>)}<Checkbox className="span-2" label="Producto activo" checked={form.active} onChange={event=>setForm({...form,active:event.target.checked})}/></div><div className="drawer-footer"><Button type="button" variant="secondary" onClick={()=>setEditing(null)}>Cancelar</Button><Button type="submit">Guardar producto</Button></div></form></Drawer>
+    </div></AppLayout>;
+}
 
-export default ProductsPage;
+function Taxonomy({api,types,tags,definitions,reload}) {
+    const [category,setCategory]=useState({name:"",code:""}); const [tag,setTag]=useState(""); const [meta,setMeta]=useState({key:"",label:"",type:"text"});
+    return <section className="surface taxonomy-manager"><div><h2>Categorías</h2><div className="inline-create"><input placeholder="Nombre" value={category.name} onChange={event=>setCategory({...category,name:event.target.value,code:event.target.value.toUpperCase().replace(/\W+/g,"_")})}/><Button size="sm" onClick={async()=>{await api.productTypes.create(category);setCategory({name:"",code:""});reload()}}>Añadir</Button></div>{types.map(type=><span className="taxonomy-item" key={type.id}>{type.name}<button onClick={async()=>{await api.productTypes.update(type.id,{active:type.active===false});reload()}}>{type.active===false?"Restaurar":"Archivar"}</button></span>)}</div><div><h2>Tags</h2><div className="inline-create"><input value={tag} onChange={event=>setTag(event.target.value)} placeholder="Nuevo tag"/><Button size="sm" onClick={async()=>{await api.productTags.create({name:tag});setTag("");reload()}}>Añadir</Button></div>{tags.map(item=><span className="taxonomy-item" key={item.id}>{item.name}<button onClick={async()=>{await api.productTags.update(item.id,{active:!item.active});reload()}}>{item.active?"Archivar":"Restaurar"}</button></span>)}</div><div><h2>Metadatos</h2><div className="metadata-create"><input placeholder="Etiqueta" value={meta.label} onChange={event=>setMeta({...meta,label:event.target.value,key:event.target.value.toLowerCase().replace(/\W+/g,"_")})}/><select value={meta.type} onChange={event=>setMeta({...meta,type:event.target.value})}><option value="text">Texto</option><option value="number">Número</option><option value="boolean">Sí/No</option><option value="select">Selección</option></select><Button size="sm" onClick={async()=>{await api.metadataDefinitions.create(meta);setMeta({key:"",label:"",type:"text"});reload()}}>Añadir</Button></div>{definitions.map(definition=><span className="taxonomy-item" key={definition.id}>{definition.label}<button onClick={async()=>{await api.metadataDefinitions.update(definition.id,{active:!definition.active});reload()}}>{definition.active?"Archivar":"Restaurar"}</button></span>)}</div></section>;
+}

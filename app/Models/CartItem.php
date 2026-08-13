@@ -26,6 +26,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
+use App\Support\Money;
 
 /**
  * Item belonging to a `Cart` with quantity and pricing.
@@ -86,7 +87,7 @@ class CartItem extends Model
 
     public function computeSubtotal(): void
     {
-        $subtotal = ($this->unit_price * $this->quantity) - $this->discount;
-        $this->subtotal = max(0, $subtotal);
+        $subtotal = (Money::toCents($this->unit_price) * $this->quantity) - Money::toCents($this->discount);
+        $this->setAttribute('subtotal', Money::fromCents(max(0, $subtotal)));
     }
 }

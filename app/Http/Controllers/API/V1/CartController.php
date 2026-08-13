@@ -32,6 +32,7 @@ use App\Support\AuditLogger;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Equidna\Toolkit\Exceptions\ForbiddenException;
+use App\Support\Money;
 
 /**
  * Controller exposing cart management endpoints.
@@ -63,7 +64,7 @@ class CartController extends BaseApiController
         $user = $request->user();
 
         $carts = Cart::query()
-            ->with('items.product', 'warehouse', 'seller')
+            ->with('items.product', 'warehouse', 'seller', 'customer')
             ->when(!$user->isAdmin(), fn($q) => $q->where('user_id', $user->id))
             ->when($request->filled('status'), fn($q) => $q->where('status', $request->input('status')))
             ->orderBy('updated_at', 'desc')
@@ -158,6 +159,13 @@ class CartController extends BaseApiController
         return $this->success('Producto eliminado del carrito', $cart);
     }
 
+    public function clearItems(Request $request, Cart $cart)
+    {
+        $this->authorizeCart($request, $cart);
+
+        return $this->success('Carrito limpiado', $this->cartService->clear($cart));
+    }
+
     /**
      * Update cart-level fields such as discount or status.
      *
@@ -172,6 +180,7 @@ class CartController extends BaseApiController
         $data = $request->validate([
             'discount_total' => ['nullable', 'numeric', 'min:0'],
             'status' => ['nullable', Rule::in(['active', 'paused', 'closed'])],
+            'customer_id' => ['nullable', 'exists:customers,id'],
         ]);
 
         $cart = $this->cartService->updateCart($cart, $data);
@@ -200,15 +209,16 @@ class CartController extends BaseApiController
             'fiscal.customer' => ['nullable', 'array'],
         ]);
         $data['idempotency_key'] = $request->header('X-Idempotency-Key');
+        $data['customer_id'] ??= $cart->customer_id;
 
         if ($data['payment_method'] === 'mixed') {
             $parts = $data['payment_details']['payments'] ?? [];
             $sum = array_reduce(
                 $parts,
-                fn (int $carry, array $part) => $carry + (int) round(((float) ($part['amount'] ?? 0)) * 100),
+                fn (int $carry, array $part) => $carry + Money::toCents($part['amount'] ?? 0),
                 0
             );
-            $expected = (int) round(((float) $cart->total_net) * 100);
+            $expected = Money::toCents($cart->total_net);
             if (count($parts) < 2 || $sum !== $expected) {
                 throw \Illuminate\Validation\ValidationException::withMessages([
                     'payment_details.payments' => ['Los pagos mixtos deben sumar exactamente el total de la venta.'],
@@ -217,14 +227,14 @@ class CartController extends BaseApiController
         }
 
         if ($data['payment_method'] === 'cash') {
-            $expected = (int) round(((float) $cart->total_net) * 100);
-            $received = (int) round(((float) ($data['payment_details']['received'] ?? ($expected / 100))) * 100);
+            $expected = Money::toCents($cart->total_net);
+            $received = Money::toCents($data['payment_details']['received'] ?? Money::fromCents($expected));
             if ($received < $expected) {
                 throw \Illuminate\Validation\ValidationException::withMessages([
                     'payment_details.received' => ['El efectivo recibido no cubre el total.'],
                 ]);
             }
-            $data['payment_details']['change'] = ($received - $expected) / 100;
+            $data['payment_details']['change'] = Money::fromCents($received - $expected);
         }
 
         $sale = $this->checkoutService->checkout($cart, $data);

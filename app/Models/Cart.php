@@ -27,6 +27,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
+use App\Support\Money;
 
 /**
  * Represents a shopping cart with items prior to checkout.
@@ -57,6 +58,7 @@ class Cart extends Model
         'visual_key',
         'user_id',
         'warehouse_id',
+        'customer_id',
         'status',
         'total_gross',
         'discount_total',
@@ -91,6 +93,11 @@ class Cart extends Model
         return $this->belongsTo(Warehouse::class);
     }
 
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(Customer::class);
+    }
+
     public function items(): HasMany
     {
         return $this->hasMany(CartItem::class);
@@ -98,10 +105,10 @@ class Cart extends Model
 
     public function recalculateTotals(): void
     {
-        $bruto = $this->items->sum(fn(CartItem $item) => (float) $item->subtotal);
-        $this->total_gross = (string) $bruto;
-        $descuento = (float) ($this->discount_total ?? 0);
-        $promo = (float) ($this->promotion_discount ?? 0);
-        $this->total_net = (string) max(0, $bruto - $descuento - $promo);
+        $grossCents = $this->items->sum(fn (CartItem $item) => Money::toCents($item->subtotal));
+        $discountCents = Money::toCents($this->discount_total);
+        $promotionCents = Money::toCents($this->promotion_discount);
+        $this->total_gross = Money::fromCents($grossCents);
+        $this->total_net = Money::fromCents(max(0, $grossCents - $discountCents - $promotionCents));
     }
 }

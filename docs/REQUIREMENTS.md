@@ -38,6 +38,8 @@ POS Faro is a point of sale system with:
 -   `precio_compra`, `precio_venta`, `fecha_ingreso`, `fecha_fin_stock` (auto-set at 0 stock)
 -   `tipo_producto_id` (fk), `activo`, timestamps
 -   **Rules**: SKU must not collide with reserved ranges; auto-generated on creation
+-   Uses `TipoProducto` as its primary category and may have many tags and typed metadata values (`text`, `number`, `boolean`, `select`)
+-   A successful JPG/PNG/WEBP upload (maximum 2 MB) takes precedence over an HTTPS `foto_url`
 
 ### Inventario (Inventory)
 
@@ -48,6 +50,7 @@ POS Faro is a point of sale system with:
 
 -   `id`, `prefijo`, `desde`, `hasta`, `usado_hasta`, `proposito`, timestamps
 -   **Purpose**: Prevent SKU collisions; service allocates N SKUs and advances `usado_hasta`
+-   Archivable; reservation is concurrency-safe and exposes range progress
 
 ### Carrito (Shopping Cart)
 
@@ -71,7 +74,7 @@ POS Faro is a point of sale system with:
 
 ### Cliente (Customer)
 
--   `id`, `nombre`, `email` (nullable), `telefono` (nullable), `acepta_marketing` (bool), timestamps
+-   `id`, `nombre`, `email` (nullable), `telefono` (nullable), `acepta_marketing` (bool), `activo`, timestamps
 
 ### Usuario (User)
 
@@ -121,13 +124,9 @@ POS Faro is a point of sale system with:
 
 ## 5. API Endpoints (/api/v1)
 
-**Authentication**: `Authorization: Bearer <token>`  
-**Response Format**: `{ success: bool, data, error: {code, message, details?} }`  
-**Pagination**: `page`, `per_page`, `total`
-
-### Auth
-
--   `POST /auth/login {email, password}` → `{token}`
+**Authentication**: Caronte OIDC session for browsers or `Authorization: Bearer <token>` for API clients; the POS never stores local passwords  
+**Response Format**: `{ success, message, data, error }`  
+**Pagination**: `data: {items, pagination:{page, per_page, total, last_page}}`
 
 ### Warehouses
 
@@ -139,18 +138,21 @@ POS Faro is a point of sale system with:
 
 ### Products
 
--   `GET /products?query=&tipo_id=&almacen_id=`
+-   `GET /products?query=&product_type_id=&tag_ids[]=&metadata[key]=&warehouse_id=&stock_status=&status=&page=`
 -   `POST /products` (sku auto-generated if blank)
--   `PATCH /products/{id}`, `GET /products/{id}`
+-   `PATCH /products/{id}`, `GET /products/{id}`, `POST /products/{id}/photo`
+-   Administrative CRUD: `/product-tags` and `/product-metadata-definitions`
 
 ### Inventory
 
--   `GET /inventory?almacen_id=&producto_id=`
--   `PATCH /inventory/adjust {producto_id, almacen_id, delta, motivo}`
+-   `GET /inventory?warehouse_id=&product_id=&query=&stock_status=&page=`
+-   `PATCH /inventory/{id} {reorder_point}`
+-   `PATCH /inventory/adjust {product_id, warehouse_id, delta, reason}`; `reason` is mandatory
 
 ### SKU Generator
 
--   `POST /skus/reserve {cantidad, prefijo?}` → `{skus: [...], rango_id}`
+-   `GET|POST /sku-ranges`, `PATCH /sku-ranges/{id}`
+-   `POST /skus/reserve {count, prefix?}` → `{skus: [...], range_id}`
 
 ### Carts (POS)
 
@@ -158,14 +160,16 @@ POS Faro is a point of sale system with:
 -   `POST /carts/{id}/items {producto_id, cantidad, precio_unitario?, descuento?}`
 -   `PATCH /carts/{id}/items/{item_id} {cantidad?, descuento?}`
 -   `DELETE /carts/{id}/items/{item_id}`
--   `PATCH /carts/{id} {descuento_total?, estado?}`
--   `POST /carts/{id}/checkout {metodo_pago, pagos_detalle?, cliente_id?}` → creates Sale, decrements inventory, closes cart
+-   `DELETE /carts/{id}/items` atomically clears and recalculates the cart
+-   `PATCH /carts/{id} {customer_id?, discount_total?, status: active|paused|closed}`
+-   `POST /carts/{id}/checkout`; mixed payment uses `payment_details.payments[] = {method, amount}` and must equal the total in cents
 
 ### Sales
 
 -   `GET /sales?desde=&hasta=&almacen_id=&vendedor_id=`
 -   `GET /sales/{id}`
 -   `POST /sales/{id}/receipt {canal: email|sms, destino}`
+-   Receipt links use `/r/{token}`; `/registro-cliente?token=` remains a compatibility redirect
 
 ### Customers
 
@@ -179,12 +183,16 @@ POS Faro is a point of sale system with:
 -   `GET /reports/weekly?semana=&comparar=1`
 -   `GET /reports/monthly?mes=&comparar=1`
 -   `GET /reports/by-seller?desde=&hasta=&almacen_id=`
+-   `GET /reports/overview?from=&to=&warehouse_id=`
+-   `GET /reports/best-sellers?from=&to=&warehouse_id=&group_by[]=category`
+-   Best sellers accepts up to three unique dimensions: `category`, `tag`, or `metadata:{key}`. Multi-tag subtotals are non-additive and the general total is deduplicated.
+-   CSV/PDF exports use the same report query service and filters as the UI.
 
 ## 6. UI Flows (Inertia + React with ADS)
 
 **Login** (`/login`)
 
--   Email/password form with standard error handling
+-   Redirect to Caronte OIDC and return to the tenant-scoped POS session
 
 **Dashboard** (`/`)
 
@@ -226,6 +234,9 @@ POS Faro is a point of sale system with:
 -   Weekly tab: current vs. previous week chart
 -   Monthly tab: selected month totals
 -   By Seller tab: seller, ticket count, total sold
+-   Overview tab: essential totals, previous-period comparison, freshness state, time series and sellers
+-   Best Sellers tab: reorderable hierarchy of up to three category, tag or metadata dimensions
+-   Tab, dates, warehouse and grouping are persisted in the URL and support browser back/forward
 -   Update button recalculates
 
 ## 7. Integrations & Adapters
@@ -238,6 +249,7 @@ POS Faro is a point of sale system with:
 
 -   Strict backend and frontend validation
 -   Input sanitization, rate limiting on sensitive endpoints
+-   Limits: public registration 10/minute per IP+token, receipt 5/minute per user+sale, checkout 30/minute per user, administrative mutations 60/minute per user
 -   CSRF on web routes; CORS configured for future apps
 -   Audit logs: user, IP, minimal non-sensitive payload
 
@@ -252,6 +264,7 @@ POS Faro is a point of sale system with:
 
 -   Migrations for all entities
 -   Seeders: roles, admin user, primary warehouse, demo product types
+-   Legacy rows without a tenant are assigned using `POS_LEGACY_TENANT_ID`; deployment stops with a clear error when legacy data exists and the setting is missing
 
 ## 11. Acceptance Criteria
 

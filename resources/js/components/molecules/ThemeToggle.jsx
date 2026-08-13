@@ -1,5 +1,5 @@
 import { useTheme } from "../../context/ThemeContext";
-import { Button } from "../atoms/Button";
+import { Moon, Sun } from "lucide-react";
 
 /**
  * ThemeToggle Molecule
@@ -10,15 +10,13 @@ export const ThemeToggle = ({ className }) => {
     const { isDark, toggleTheme } = useTheme();
 
     return (
-        <Button
-            aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
+        <button
+            aria-label={isDark ? "Cambiar a tema claro" : "Cambiar a tema oscuro"}
             onClick={toggleTheme}
-            variant="ghost"
-            size="sm"
-            className={className}
-            title={isDark ? "Switch to light mode" : "Switch to dark mode"}
+            className={`icon-only ${className || ""}`}
+            title={isDark ? "Tema claro" : "Tema oscuro"}
         >
-            {isDark ? "Light" : "Dark"}
-        </Button>
+            {isDark ? <Sun size={19}/> : <Moon size={19}/>}
+        </button>
     );
 };

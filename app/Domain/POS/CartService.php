@@ -175,6 +175,20 @@ class CartService
         });
     }
 
+    public function clear(Cart $cart): Cart
+    {
+        return $this->db->transaction(function () use ($cart) {
+            $cart->items()->delete();
+            $cart->discount_total = '0.00';
+            $cart->promotion_discount = 0;
+            $cart->applied_promotions = [];
+            $cart->recalculateTotals();
+            $cart->save();
+
+            return $cart->refresh()->load('items.product', 'warehouse', 'seller', 'customer');
+        });
+    }
+
     /**
      * Update cart metadata and recalculate totals.
      *
@@ -189,7 +203,7 @@ class CartService
         $cart->save();
 
         $cart = $cart->refresh();
-        $cart->load('items.product', 'warehouse', 'seller');
+        $cart->load('items.product', 'warehouse', 'seller', 'customer');
 
         return $cart;
     }

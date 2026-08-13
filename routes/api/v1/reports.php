@@ -27,3 +27,6 @@ Route::get('reports/weekly', [ReportController::class, 'weekly']);
 Route::get('reports/monthly', [ReportController::class, 'monthly']);
 Route::get('reports/by-seller', [ReportController::class, 'bySeller']);
 Route::get('reports/by-seller/export', [ReportController::class, 'bySellerExport'])->middleware('role:admin,auditor');
+Route::get('reports/overview', [ReportController::class, 'overview']);
+Route::get('reports/best-sellers', [ReportController::class, 'bestSellers']);
+Route::get('reports/export', [ReportController::class, 'export'])->middleware('role:admin,auditor');

@@ -78,6 +78,7 @@ return [
     'timezone' => env('APP_TIMEZONE', 'America/Mexico_City'),
 
     'demo_tenant_id' => env('POS_DEMO_TENANT_ID', 'tenant-demo'),
+    'legacy_tenant_id' => env('POS_LEGACY_TENANT_ID'),
 
     'e2e_enabled' => env('POS_E2E_ENABLED', false),
 

@@ -37,7 +37,7 @@ class ReceiptRenderer
         return view('emails.receipt', [
             'sale' => $sale,
             'customerRegistrationUrl' => $customerRegistrationToken
-                ? url('/registro-cliente?token=' . urlencode($customerRegistrationToken))
+                ? url('/r/' . urlencode($customerRegistrationToken))
                 : null,
         ])->render();
     }

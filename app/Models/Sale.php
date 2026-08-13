@@ -37,6 +37,7 @@ use Illuminate\Support\Str;
  * Represents a completed sale with totals and related items.
  *
  * @property string                                                          $id
+ * @property string                                                          $tenant_id
  * @property string                                                          $folio
  * @property string                                                          $warehouse_id
  * @property string                                                          $user_id

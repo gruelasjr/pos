@@ -44,6 +44,9 @@ use Illuminate\Support\Str;
  * @property float    $unit_price
  * @property float    $discount
  * @property float    $subtotal
+ * @property int      $units
+ * @property float    $net_sales
+ * @property int      $tickets
  * @property-read Sale    $sale
  * @property-read Product $product
  *

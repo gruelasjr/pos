@@ -16,11 +16,13 @@ use App\Http\Middleware\EnsureIdempotency;
 use App\Http\Middleware\EnsureRole;
 use App\Http\Middleware\RequestLogging;
 use App\Http\Middleware\SyncCaronteUser;
+use App\Http\Middleware\UseCaronteSessionToken;
 use Equidna\Toolkit\Http\Middleware\ForceJsonResponse;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Routing\Middleware\SubstituteBindings;
+use Illuminate\Session\Middleware\StartSession;
 use Ometra\Caronte\Http\Middleware\ResolveApplicationContext;
 use Ometra\Caronte\Http\Middleware\ValidateUserToken;
 
@@ -46,6 +48,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // model binding; otherwise a tenant-aware model tries to resolve
         // Caronte before authentication has run.
         $middleware->prependToPriorityList(SubstituteBindings::class, E2eCaronteAuthentication::class);
+        $middleware->appendToPriorityList(StartSession::class, UseCaronteSessionToken::class);
         $middleware->prependToPriorityList(SubstituteBindings::class, ValidateUserToken::class);
         $middleware->prependToPriorityList(SubstituteBindings::class, ResolveApplicationContext::class);
         $middleware->prependToPriorityList(SubstituteBindings::class, SyncCaronteUser::class);
@@ -53,6 +56,22 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->render(function (\Throwable $e, $request) {
             if ($request->is('api/*')) {
+                if ($e instanceof \Illuminate\Validation\ValidationException) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Los datos enviados no son válidos.',
+                        'data' => null,
+                        'error' => ['code' => 'validation_error', 'message' => $e->getMessage(), 'details' => $e->errors()],
+                    ], 422);
+                }
+                if ($e instanceof \Symfony\Component\HttpKernel\Exception\HttpExceptionInterface) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => $e->getMessage() ?: 'La solicitud no pudo completarse.',
+                        'data' => null,
+                        'error' => ['code' => 'http_error', 'message' => $e->getMessage()],
+                    ], $e->getStatusCode());
+                }
                 return response()->json([
                     'success' => false,
                     'error' => [

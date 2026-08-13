@@ -82,9 +82,11 @@ abstract class BaseApiController extends Controller
         return $this->success($message, [
             'items' => $paginator->items(),
             'pagination' => [
+                'page' => $paginator->currentPage(),
                 'current_page' => $paginator->currentPage(),
                 'per_page' => $paginator->perPage(),
                 'total' => $paginator->total(),
+                'last_page' => $paginator->lastPage(),
             ],
         ]);
     }

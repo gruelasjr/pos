@@ -80,7 +80,8 @@ class SkuGeneratorService
 
         return $this->db->transaction(function () use ($quantity, $prefix) {
             $rangeQuery = ReservedSkuRange::query()
-                ->when($prefix, fn($q) => $q->where('prefix', $prefix))
+                ->when($prefix, fn($q) => $q->where('composed_prefix', $prefix))
+                ->where('active', true)
                 ->where(function ($q) {
                     $q->whereNull('used_up_to')
                         ->orWhereColumn('used_up_to', '<', 'to');
@@ -118,7 +119,7 @@ class SkuGeneratorService
     protected function buildSkus(ReservedSkuRange $range, int $quantity): array
     {
         $skus = [];
-        $prefix = $range->prefix ?? '';
+        $prefix = $range->composed_prefix;
         $current = $range->used_up_to ? $range->used_up_to + 1 : $range->from;
 
         while (count($skus) < $quantity) {
@@ -127,7 +128,7 @@ class SkuGeneratorService
             }
 
             $candidateNumber = $current;
-            $candidateSku = $prefix . str_pad((string) $candidateNumber, 6, '0', STR_PAD_LEFT);
+            $candidateSku = $prefix . '-' . str_pad((string) $candidateNumber, 6, '0', STR_PAD_LEFT);
 
             if (!Product::query()->where('sku', $candidateSku)->exists()) {
                 $skus[] = $candidateSku;

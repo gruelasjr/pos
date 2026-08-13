@@ -23,7 +23,9 @@ class ProductType extends Model
     public $incrementing = false;
     protected $keyType = 'string';
 
-    protected $fillable = ['id', 'name', 'code'];
+    protected $fillable = ['id', 'name', 'code', 'active'];
+
+    protected $casts = ['active' => 'boolean'];
 
     protected static function booted(): void
     {
