@@ -8,6 +8,10 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up(): void
     {
+        // MySQL can leave this table behind when a later DDL statement in
+        // Schema::create fails, even though the migration is not recorded.
+        Schema::dropIfExists('product_metadata_coded_values');
+
         Schema::create('product_metadata_coded_values', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('tenant_id', 64)->index();
@@ -16,8 +20,8 @@ return new class extends Migration {
             $table->string('code', 16);
             $table->boolean('active')->default(true);
             $table->timestamps();
-            $table->unique(['tenant_id', 'definition_id', 'value']);
-            $table->unique(['tenant_id', 'definition_id', 'code']);
+            $table->unique(['tenant_id', 'definition_id', 'value'], 'pm_coded_values_definition_value_unique');
+            $table->unique(['tenant_id', 'definition_id', 'code'], 'pm_coded_values_definition_code_unique');
         });
 
         Schema::table('reserved_sku_ranges', function (Blueprint $table) {
